@@ -150,6 +150,16 @@ pre.code .ln.act{background:rgba(255,217,107,.22);box-shadow:inset 3px 0 0 #ffd9
 .padtab div{font-size:10px;color:var(--sub);text-align:center}
 .padtab div i{display:block;font-style:normal;font-size:17px}
 .padtab div.on{color:var(--accent);font-weight:700}
+
+.ring.low{background:conic-gradient(var(--accent) 0 60%,var(--soft) 0)}
+.fb.flow{position:static;display:block;border-radius:14px}
+.fbbtn{margin-top:8px;background:rgba(255,255,255,.22);border-radius:10px;padding:8px;text-align:center;font-weight:800;font-size:12.5px}
+.alertbox{position:absolute;left:30px;right:30px;top:50%;transform:translateY(-50%);background:var(--card);border-radius:16px;z-index:12;text-align:center;padding:18px 14px 0;overflow:hidden}
+.alertbox .ab{display:flex;border-top:1px solid var(--line);margin:16px -14px 0}
+.alertbox .ab span{flex:1;padding:12px 0;font-weight:700;color:var(--accent)}
+.alertbox .ab span+span{border-left:1px solid var(--line);color:var(--bad)}
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:8px;padding:0 6px}
+.btn.off{background:var(--dis);color:var(--distx);border-bottom-color:transparent}
 </style>
 </head>
 <body>
@@ -175,6 +185,7 @@ pre.code .ln.act{background:rgba(255,217,107,.22);box-shadow:inset 3px 0 0 #ffd9
     <li>완성한 트리는 <b>보관함</b>에 쌓이고, 기록 화면에서 완성 횟수를 볼 수 있습니다.</li>
     <li>기본 제공(시드) 문제는 수정·삭제 버튼이 보이지만 <b>비활성화</b>됩니다.</li>
     <li><b>iPad</b>는 목록과 상세가 나뉜 분할 화면으로 확장합니다.</li>
+    <li>6장에 <b>상태 화면</b>(진행 중 세션이 있을 때의 선택, 조건에 맞는 문제가 없을 때, 오답이 없을 때)을 추가했습니다.</li>
   </ul>
 </div>
 
@@ -343,6 +354,32 @@ pre.code .ln.act{background:rgba(255,217,107,.22);box-shadow:inset 3px 0 0 #ffd9
   <figcaption><b><span class="id">S4·S5</span>퀴즈 진행과 피드백</b>보기를 고르고 [확인]. 정답은 초록색+✓, 오답은 빨간색+✕와 좌우 흔들림(진동·효과음 포함). 색 외에 아이콘과 문구도 함께 표시. 해설은 피드백 패널에 표시.</figcaption>
 </figure>
 
+<figure>
+  <div class="phone"><div class="notch"></div><div class="screen">
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="body">
+      <div class="navt"><span>✕</span><span class="t">4 / 5</span><span>💡 힌트</span></div>
+      <div class="pb"><i style="width:80%"></i></div>
+      <div><span class="chip">Swift 문법</span><span class="chip">보통</span><span class="chip">#guard</span></div>
+      <div class="k" style="font-size:14px;line-height:1.45">이 코드를 실행하면 산타는 어떻게 될까요?</div>
+      <pre class="code"><span class="kw">let</span> gifts = <span class="nm">3</span>
+<span class="kw">guard</span> gifts <span class="kw">&gt;</span> <span class="nm">3</span> <span class="kw">else</span> {
+    santa.wait()
+    <span class="kw">return</span>
+}
+santa.deliver()</pre>
+      <div class="choice "><b>A</b>산타가 선물을 배달한다</div>
+      <div class="choice sel"><b>B</b>산타가 기다린다</div>
+      <div class="choice "><b>C</b>컴파일 오류가 난다</div>
+      <div class="choice "><b>D</b>아무 일도 일어나지 않는다</div>
+      <div class="btn">확인</div>
+    </div>
+
+    <div class="home"></div>
+  </div></div>
+  <figcaption><b><span class="id">S4</span>애니메이션 문제: 확인 전</b>코드를 읽고 보기를 고른 뒤 [확인]을 누르는 단계. [확인]을 누르기 전에는 재생하지 않음.</figcaption>
+</figure>
+
 <!-- S4 trace -->
 <figure>
   <div class="phone"><div class="notch"></div><div class="screen">
@@ -361,7 +398,26 @@ pre.code .ln.act{background:rgba(255,217,107,.22);box-shadow:inset 3px 0 0 #ffd9
     </div>
     <div class="home"></div>
   </div></div>
-  <figcaption><b><span class="id">S4</span>애니메이션 문제</b>[확인] 후 코드가 한 줄씩 강조되며 산타가 그 줄을 실행. 말풍선·변수 값을 표시하고 같은 설명을 VoiceOver에도 제공. 끝나면 정답 여부와 해설이 나옴. (건너뛰기·다시 보기 없음. 이 시안은 데모라서 자동으로 반복 재생하지만, 앱은 확인 후 1회만 재생)</figcaption>
+  <figcaption><b><span class="id">S4</span>애니메이션 문제: 재생 중</b>[확인] 후 코드가 한 줄씩 강조되며 산타가 그 줄을 실행. 말풍선·변수 값을 표시하고 같은 설명을 VoiceOver에도 제공. 끝나면 정답 여부와 해설이 나옴. (건너뛰기·다시 보기 없음. 이 시안은 데모라서 자동으로 반복 재생하지만, 앱은 확인 후 1회만 재생)</figcaption>
+</figure>
+
+<figure>
+  <div class="phone"><div class="notch"></div><div class="screen">
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="body">
+      <div class="navt"><span>✕</span><span class="t">4 / 5</span><span style="width:30px"></span></div>
+      <div class="pb"><i style="width:80%"></i></div>
+      <div class="scene"><div class="bubble" style="left:38%">return</div><div class="actor" style="left:8%">🎅</div><div class="gift">🏠</div><div class="ground"></div></div>
+      <div class="choice wrong"><b>A</b>산타가 선물을 배달한다</div>
+      <div class="choice right"><b>B</b>산타가 기다린다</div>
+      <div class="choice "><b>C</b>컴파일 오류가 난다</div>
+      <div class="choice "><b>D</b>아무 일도 일어나지 않는다</div>
+      <div class="fb flow no"><b>✕ 아쉬워요</b><p>3 &gt; 3은 거짓이라 guard의 else로 들어가 wait()를 하고 return으로 끝나요. 그래서 배달은 하지 않아요.</p><div class="fbbtn">다음 문제</div></div>
+    </div>
+
+    <div class="home"></div>
+  </div></div>
+  <figcaption><b><span class="id">S4·S5</span>애니메이션 문제: 재생 후 판정</b>재생이 끝나면 내가 고른 보기와 정답을 표시하고 해설을 보여 줌. 화면 아래 해설 패널에서 [다음 문제]로 넘어감. (이 시안은 오답 예시)</figcaption>
 </figure>
 
 </div>
@@ -392,7 +448,7 @@ pre.code .ln.act{background:rgba(255,217,107,.22);box-shadow:inset 3px 0 0 #ffd9
     </div>
     <div class="home"></div>
   </div></div>
-  <figcaption><b><span class="id">S6·S7</span>세션 결과</b>점수, 소요 시간, 보상 장식(트리로 날아가는 연출), 오답 노트, 추천 학습 자료. 정답률이 기준 미만이면 보상 영역이 "이번에는 장식을 못 받았어요, 벌칙은 없어요"로 바뀜.</figcaption>
+  <figcaption><b><span class="id">S6</span>세션 결과</b>점수, 소요 시간, 보상 장식(트리로 날아가는 연출), 오답 노트, 추천 학습 자료. 정답률이 기준 미만이면 보상 영역이 "이번에는 장식을 못 받았어요, 벌칙은 없어요"로 바뀜.</figcaption>
 </figure>
 
 <!-- 완성 -->
@@ -411,6 +467,70 @@ pre.code .ln.act{background:rgba(255,217,107,.22);box-shadow:inset 3px 0 0 #ffd9
     <div class="home" style="background:#fff"></div>
   </div></div>
   <figcaption><b><span class="id">S6</span>트리 완성</b>12칸이 모두 차면 완성 연출 후 트리를 보관함에 저장하고 빈 트리를 새로 시작. 남은 장식은 새 트리로 이월.</figcaption>
+</figure>
+
+<figure>
+  <div class="phone"><div class="notch"></div><div class="screen">
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="body">
+      <div class="navt"><span>닫기</span><span class="t">세션 결과</span><span style="width:30px"></span></div>
+      <div class="ring low"><div><b>60%</b><span class="sub">3 / 5</span></div></div>
+      <div class="stats">
+        <div class="card"><b>3:40</b><span class="sub">소요 시간</span></div>
+        <div class="card"><b>보통</b><span class="sub">난이도</span></div>
+        <div class="card"><b style="color:var(--bad)">80%</b><span class="sub">기준</span></div>
+      </div>
+      <div class="card row" style="padding:10px 12px"><div class="ico">🎁</div><div class="grow"><div class="k">이번에는 장식을 못 받았어요</div><div class="sub">벌칙은 없어요. 80% 이상이면 장식 2개를 받아요</div></div></div>
+      <div class="k">오답 노트 <span class="sub">2개</span></div>
+      <div class="card" style="padding:4px 12px">
+        <div class="item"><span class="x">✕</span><div><div class="k">guard의 else는 언제 실행되나요?</div><div class="sub">내 선택 A → 정답 C</div></div></div>
+        <div class="item"><span class="x">✕</span><div><div class="k">??의 결과 타입은?</div><div class="sub">내 선택 D → 정답 B</div></div></div>
+      </div>
+      <div class="btn ghost">오답 노트 보기</div>
+      <div class="btn">다시 도전</div>
+    </div>
+
+    <div class="home"></div>
+  </div></div>
+  <figcaption><b><span class="id">S6</span>세션 결과: 기준 미만</b>정답률이 기준(80%)에 못 미친 경우. 장식은 받지 못하지만 벌칙은 없고, 다시 도전하도록 안내함.</figcaption>
+</figure>
+
+<figure>
+  <div class="phone"><div class="notch"></div><div class="screen">
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="body">
+      <div class="navt"><span>‹ 결과</span><span class="t">오답 노트</span><span style="width:30px"></span></div>
+      <div class="sub">이번 세션 · 틀린 문제 2개</div>
+      <div class="card" style="padding:4px 12px">
+        <div class="item row" style="align-items:center"><span class="x">✕</span><div class="grow"><div class="k">guard의 else는 언제 실행되나요?</div><div class="sub">Swift 문법 · 내 선택 A → 정답 C</div></div><span class="sub">›</span></div>
+        <div class="item row" style="align-items:center"><span class="x">✕</span><div class="grow"><div class="k">??의 결과 타입은?</div><div class="sub">Swift 문법 · 내 선택 D → 정답 B</div></div><span class="sub">›</span></div>
+      </div>
+      <div class="sub" style="text-align:center">문제를 고치거나 지워도, 푼 당시의 내용으로 보여 줘요</div>
+    </div>
+
+    <div class="home"></div>
+  </div></div>
+  <figcaption><b><span class="id">S7</span>오답 노트: 목록</b>이번 세션에서 틀린 문제 목록. 문제를 누르면 상세로 이동.</figcaption>
+</figure>
+
+<figure>
+  <div class="phone"><div class="notch"></div><div class="screen">
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="body">
+      <div class="navt"><span>‹ 오답 노트</span><span class="t">1 / 2</span><span style="width:30px"></span></div>
+      <div><span class="chip">Swift 문법</span><span class="chip">보통</span><span class="chip">#guard</span></div>
+      <div class="k" style="font-size:14px;line-height:1.45">guard의 else는 언제 실행되나요?</div>
+      <div class="choice wrong"><b>A</b>조건이 참일 때</div>
+      <div class="choice "><b>B</b>항상 실행된다</div>
+      <div class="choice right"><b>C</b>조건이 거짓일 때</div>
+      <div class="choice "><b>D</b>실행되지 않는다</div>
+      <div class="card" style="padding:9px 12px"><div class="sub">해설</div><div style="margin-top:3px;line-height:1.5">guard는 조건이 거짓이면 else로 빠져나가요. else 안에서는 반드시 return 같은 탈출이 필요해요.</div></div>
+      <div class="card row" style="padding:8px 12px"><div class="ico" style="width:30px;height:30px;font-size:15px">📖</div><div class="grow k" style="font-size:11.5px">The Swift Programming Language: Control Flow</div><span class="sub">›</span></div>
+    </div>
+
+    <div class="home"></div>
+  </div></div>
+  <figcaption><b><span class="id">S7</span>오답 노트: 상세</b>풀 당시의 문제 내용으로 내 선택(✕)과 정답(✓), 해설, 추천 학습 자료를 보여 줌.</figcaption>
 </figure>
 
 </div>
@@ -554,6 +674,109 @@ pre.code .ln.act{background:rgba(255,217,107,.22);box-shadow:inset 3px 0 0 #ffd9
   </div></div>
   <figcaption><b><span class="id">S2·S3</span>iPad 가로: 작업 선택 분할 화면</b>iPhone의 작업 선택과 세션 설정 시트가 한 화면에 합쳐집니다. 퀴즈 진행 화면은 iPad에서도 가운데 한 컬럼으로 폭을 제한합니다.</figcaption>
 </figure>
+</div>
+
+<h2 class="sec">6. 상태 화면</h2>
+<p class="secsub">진행 중 세션이 있을 때의 선택, 조건에 맞는 문제가 없을 때, 오답이 없을 때의 안내 화면</p>
+<div class="grid">
+<figure>
+  <div class="phone"><div class="notch"></div><div class="screen">
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="body dim" style="gap:10px">
+      <div class="navt"><span class="sub">크리스마스 · 1번째 트리</span><span>🎁 보관함</span></div>
+      <div class="title">산타의 작업실</div>
+      <div class="card" style="height:120px"></div>
+    </div>
+    <div class="sheetbg"></div>
+    <div class="sheet">
+      <div class="grab"></div>
+      <div class="title" style="font-size:17px">진행 중인 세션이 있어요</div>
+      <div class="card row" style="padding:10px 12px"><div class="ico">🎁</div><div class="grow"><div class="k">선물 생산 · 보통</div><div class="sub">6 / 10 문제까지 풀었어요</div></div></div>
+      <div class="btn">이어서 풀기</div>
+      <div class="btn ghost">새로 시작</div>
+    </div>
+
+    <div class="home"></div>
+  </div></div>
+  <figcaption><b><span class="id">S1</span>진행 중 세션이 있을 때 새 세션 시작</b>이미 진행 중인 세션이 있는데 새 세션을 시작하려고 하면 먼저 이 선택이 나옴. 진행 중 세션은 동시에 1개만 허용.</figcaption>
+</figure>
+
+<figure>
+  <div class="phone"><div class="notch"></div><div class="screen">
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="body dim">
+      <div class="navt"><span class="sub">크리스마스 · 1번째 트리</span><span>🎁 보관함</span></div>
+      <div class="title">산타의 작업실</div>
+      <div class="card" style="height:120px"></div>
+    </div>
+    <div class="sheetbg"></div>
+    <div class="alertbox">
+      <div class="k" style="font-size:15px">새로 시작할까요?</div>
+      <div class="sub" style="margin-top:6px;line-height:1.5">진행 중이던 세션(선물 생산 · 6/10)은 이어서 풀 수 없게 돼요.</div>
+      <div class="ab"><span>취소</span><span>새로 시작</span></div>
+    </div>
+
+    <div class="home"></div>
+  </div></div>
+  <figcaption><b><span class="id">S1</span>새로 시작 확인</b>"새로 시작"을 고르면 한 번 더 확인한 뒤 기존 세션을 중단 처리함. 중단한 세션은 이어서 풀 수 없음.</figcaption>
+</figure>
+
+<figure>
+  <div class="phone"><div class="notch"></div><div class="screen">
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="body dim" style="gap:10px">
+      <div class="title">작업 선택</div>
+      <div class="card" style="height:62px"></div><div class="card" style="height:62px"></div>
+    </div>
+    <div class="sheetbg"></div>
+    <div class="sheet">
+      <div class="grab"></div>
+      <div class="row"><div class="ico">🎁</div><div class="grow"><div class="title" style="font-size:18px">선물 생산</div><div class="sub">Swift 문법</div></div></div>
+      <div class="k">난이도</div>
+      <div class="seg"><span>쉬움</span><span class="on">보통</span><span>어려움</span></div>
+      <div class="k">태그 <span class="sub">(선택)</span></div>
+      <div><span class="chip">전체</span><span class="chip red">#프로토콜</span><span class="chip">#클로저</span></div>
+      <div class="k">문제 수</div>
+      <div class="seg"><span class="dis">5</span><span class="dis">10</span><span class="dis">15</span></div>
+      <div class="card" style="background:var(--soft);border:0;padding:9px 12px">🔍 조건에 맞는 문제가 없어요. 태그를 바꿔 보세요.</div>
+      <div class="btn off">시작하기</div>
+    </div>
+
+    <div class="home"></div>
+  </div></div>
+  <figcaption><b><span class="id">S3</span>세션 설정: 조건에 맞는 문제 없음</b>태그로 거른 결과가 0개일 때. 문제 수는 모두 잠기고 [시작하기]가 비활성화되며, 태그를 바꾸도록 안내함.</figcaption>
+</figure>
+
+<figure>
+  <div class="phone"><div class="notch"></div><div class="screen">
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="body">
+      <div class="navt"><span class="title" style="color:var(--text)">문제 관리</span><span style="font-size:20px">＋</span></div>
+      <div class="card" style="padding:8px 12px;color:var(--sub)">🔍 프로토콜</div>
+      <div><span class="chip red">포장</span><span class="chip">쉬움</span></div>
+      <div class="empty"><div style="font-size:34px">🗂</div><div class="k" style="font-size:14px">조건에 맞는 문제가 없어요</div><div class="sub">필터를 초기화하거나 새 문제를 만들어 보세요</div>
+        <div class="btn ghost" style="width:100%;margin-top:6px">필터 초기화</div><div class="btn" style="width:100%">＋ 새 문제 만들기</div></div>
+    </div>
+<div class="tabbar"><div><i>🎄</i>작업</div><div><i>📊</i>기록</div><div class="on"><i>🗂</i>관리</div></div>
+    <div class="home"></div>
+  </div></div>
+  <figcaption><b><span class="id">S10</span>문제 관리: 결과 없음</b>검색이나 필터 결과가 0개이거나 문제가 하나도 없을 때. 안내 문구와 다음 행동 버튼을 보여 줌.</figcaption>
+</figure>
+
+<figure>
+  <div class="phone"><div class="notch"></div><div class="screen">
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="body">
+      <div class="navt"><span>‹ 결과</span><span class="t">오답 노트</span><span style="width:30px"></span></div>
+      <div class="empty"><div style="font-size:34px">🎉</div><div class="k" style="font-size:14px">틀린 문제가 없어요</div><div class="sub">이번 세션을 모두 맞혔어요</div>
+        <div class="btn" style="width:100%;margin-top:6px">작업으로 돌아가기</div></div>
+    </div>
+
+    <div class="home"></div>
+  </div></div>
+  <figcaption><b><span class="id">S7</span>오답 노트: 오답 없음</b>틀린 문제가 하나도 없을 때. 오답 노트 대신 안내 문구와 돌아가기 버튼을 보여 줌.</figcaption>
+</figure>
+
 </div>
 
 <script>
