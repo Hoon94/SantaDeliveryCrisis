@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>산타의 작업실 탈출 · 와이어프레임 v0.1</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard",sans-serif;background:#f1f1f1;color:#222;line-height:1.55}
+header{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid #d5d5d5;padding:12px 28px;display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+header h1{font-size:16px;margin-right:auto}
+header nav{display:flex;gap:4px;flex-wrap:wrap}
+header a{font-size:12px;color:#444;text-decoration:none;padding:4px 9px;border-radius:99px;border:1px solid #ccc;background:#fafafa}
+header a:hover{background:#222;color:#fff}
+main{max-width:1180px;margin:0 auto;padding:28px}
+section.doc{background:#fff;border:1px solid #d9d9d9;border-radius:14px;padding:24px 26px;margin-bottom:22px}
+h2{font-size:20px;margin-bottom:4px}
+h2 small{font-size:12px;color:#777;font-weight:500;margin-left:8px}
+.lead{color:#666;font-size:13px;margin-bottom:14px}
+h3{font-size:14px;margin:14px 0 6px}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th,td{border:1px solid #ddd;padding:7px 10px;text-align:left;vertical-align:top}
+th{background:#f4f4f4;font-weight:700}
+td.n{width:34px;text-align:center}
+ul{padding-left:18px;font-size:13px}
+li{margin:2px 0}
+code{background:#f1f1f1;padding:1px 5px;border-radius:4px;font-size:11.5px;font-family:ui-monospace,Menlo,monospace}
+.pinlg{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;background:#e5484d;color:#fff;font-size:10px;font-weight:800}
+
+/* flow */
+.flow{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;font-size:12px}
+.lane{border:1px dashed #aaa;border-radius:10px;padding:10px;background:#fafafa}
+.lane h4{font-size:12px;margin-bottom:8px}
+.fb{border:1.5px solid #333;background:#fff;border-radius:8px;padding:6px 8px;margin-bottom:4px;font-weight:600}
+.fb.sh{border-style:dashed}
+.fb.core{background:#222;color:#fff}
+.ar{text-align:center;color:#888;line-height:1;margin:2px 0;font-size:13px}
+.ar.t{font-size:10.5px;color:#777}
+@media(max-width:900px){.flow{grid-template-columns:1fr 1fr}}
+
+/* spec layout */
+.spec{display:flex;gap:26px;flex-wrap:wrap;align-items:flex-start}
+.phones{display:flex;gap:18px;flex-wrap:wrap}
+.pcol small{display:block;text-align:center;font-size:11px;color:#666;margin-top:6px;font-weight:600}
+.notes{flex:1;min-width:360px}
+.meta{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 12px}
+.meta span{font-size:11.5px;background:#f1f1f1;border:1px solid #ddd;border-radius:6px;padding:2px 8px;color:#444}
+.meta span b{color:#000}
+
+/* wireframe phone */
+.wp{width:300px;min-height:620px;border:2px solid #222;border-radius:34px;background:#fff;display:flex;flex-direction:column;overflow:hidden;position:relative;font-size:12px;color:#222}
+.sb{height:36px;display:flex;justify-content:space-between;align-items:center;padding:8px 22px 0;font-weight:700;font-size:11px;flex:none}
+.wbody{flex:1;padding:6px 14px 14px;display:flex;flex-direction:column;gap:10px;position:relative}
+.hi{height:5px;width:96px;background:#222;border-radius:4px;margin:6px auto 7px;flex:none;opacity:.8}
+.nav{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#444;min-height:24px}
+.nav b{color:#000;font-size:13px}
+.ltitle{font-size:24px;font-weight:800;letter-spacing:-.02em}
+.sub{font-size:11px;color:#777}
+.img{border:1.5px solid #999;border-radius:8px;display:grid;place-items:center;color:#555;font-size:11px;background:
+ linear-gradient(to top right,transparent calc(50% - .75px),#aaa calc(50% - .75px),#aaa calc(50% + .75px),transparent calc(50% + .75px)),
+ linear-gradient(to bottom right,transparent calc(50% - .75px),#aaa calc(50% - .75px),#aaa calc(50% + .75px),transparent calc(50% + .75px))}
+.img span{background:#fff;padding:2px 8px;border-radius:6px;border:1px solid #bbb}
+.card{border:1.5px solid #777;border-radius:10px;padding:10px;background:#f6f6f6}
+.wbtn{border:1.5px solid #222;border-radius:10px;padding:11px;text-align:center;font-weight:700}
+.wbtn.pri{background:#222;color:#fff}
+.wbtn.sm{padding:6px;font-size:11px}
+.wbtn.dis{border-color:#bbb;color:#aaa}
+.wbtn.danger{border-style:dashed}
+.chips{display:flex;gap:5px;flex-wrap:wrap}
+.wchip{border:1px solid #777;border-radius:99px;padding:3px 9px;font-size:10.5px;background:#fff}
+.wchip.on{background:#222;color:#fff;border-color:#222}
+.seg{display:flex;border:1.5px solid #777;border-radius:8px;overflow:hidden}
+.seg span{flex:1;text-align:center;padding:5px;font-size:11px;font-weight:600;border-right:1px solid #777}
+.seg span:last-child{border:0}
+.seg span.on{background:#222;color:#fff}
+.ln{height:7px;background:#ccc;border-radius:4px}
+.lns{display:flex;flex-direction:column;gap:5px}
+.sec{font-size:11px;font-weight:800;color:#555;margin-bottom:-4px;display:flex;justify-content:space-between}
+.sec i{font-style:normal;font-weight:500;color:#888}
+.lst{border:1.5px solid #777;border-radius:10px;overflow:hidden}
+.wrow{display:flex;gap:10px;align-items:center;padding:9px 10px;border-bottom:1px solid #ddd;position:relative}
+.lst .wrow:last-child{border:0}
+.ic{width:28px;height:28px;border:1.5px solid #888;border-radius:8px;flex:none;display:grid;place-items:center;font-size:12px}
+.tx{flex:1;min-width:0}
+.tx b{display:block;font-size:12px}
+.tx small{font-size:10.5px;color:#777}
+.rt{color:#777;font-size:12px}
+.tog{width:30px;height:17px;border:1.5px solid #222;border-radius:10px;position:relative;flex:none}
+.tog:after{content:"";position:absolute;top:1px;left:1px;width:11px;height:11px;border-radius:50%;background:#222}
+.tog.on{background:#222}.tog.on:after{left:14px;background:#fff}
+.tabs{display:flex;justify-content:space-around;border-top:1.5px solid #222;padding:7px 0 0;flex:none;background:#fff}
+.tabs div{text-align:center;font-size:10px;color:#777;width:60px}
+.tabs div i{display:block;width:20px;height:20px;border:1.5px solid #888;border-radius:6px;margin:0 auto 2px}
+.tabs div.on{color:#000;font-weight:800}.tabs div.on i{background:#222;border-color:#222}
+.dim{position:absolute;inset:0;background:rgba(0,0,0,.25);z-index:2}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:18px 18px 0 0;border-top:2px solid #222;padding:8px 14px 24px;z-index:3;display:flex;flex-direction:column;gap:10px}
+.grab{width:36px;height:4px;border-radius:3px;background:#999;margin:0 auto}
+.row2{display:flex;gap:8px}.row2>*{flex:1}
+.stat{border:1.5px solid #777;border-radius:10px;padding:8px;text-align:center}
+.stat b{display:block;font-size:15px}.stat small{font-size:10px;color:#777}
+.pips{display:flex;gap:3px}.pips span{flex:1;height:18px;border:1px solid #777;border-radius:6px;display:grid;place-items:center;font-size:9px}
+.pips .f{background:#ddd}.pips .w{border-style:dashed}.pips .c{border:2px solid #222}
+.opt{border:1.5px solid #777;border-radius:10px;padding:9px 10px;display:flex;gap:8px;align-items:center;font-weight:600}
+.opt i{width:20px;height:20px;border:1.5px solid #777;border-radius:50%;display:grid;place-items:center;font-size:10px;font-style:normal;flex:none}
+.opt.sel{border:2px solid #222;background:#eee}.opt.sel i{background:#222;color:#fff}
+.opt.ok{border:2px solid #222;background:#e9e9e9}.opt.no{border:2px dashed #222}
+.bars{display:flex;align-items:flex-end;gap:6px;height:96px;border-bottom:1.5px solid #777;padding:0 4px}
+.bars i{flex:1;background:#bbb;border:1px solid #777;border-bottom:0;border-radius:4px 4px 0 0}
+.pb{height:8px;border:1px solid #777;border-radius:6px;overflow:hidden}.pb i{display:block;height:100%;background:#999}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.grid3 .cell{aspect-ratio:1;border:1.5px solid #777;border-radius:10px;display:grid;place-items:center;font-size:18px}
+.grid3 .cell.lock{border-style:dashed;color:#bbb}
+.toast{border:1.5px solid #222;background:#fff;border-radius:99px;padding:5px 12px;font-size:11px;text-align:center;font-weight:600}
+.fab{position:absolute;right:14px;bottom:14px;width:40px;height:40px;border:2px solid #222;background:#222;color:#fff;border-radius:12px;display:grid;place-items:center;font-size:20px}
+.swipe{position:relative;display:flex}
+.swipe .wrow{flex:1;margin-left:-60px;background:#fff}
+.swipe .del{width:60px;background:#888;color:#fff;display:grid;place-items:center;font-size:11px;font-weight:700}
+.empty{border:1.5px dashed #aaa;border-radius:10px;padding:18px;text-align:center;color:#777;font-size:11.5px}
+
+/* pins */
+[data-n]{position:relative}
+[data-n]::before{content:attr(data-n);position:absolute;top:-8px;left:-8px;min-width:18px;height:18px;border-radius:50%;background:#e5484d;color:#fff;font-size:10px;font-weight:800;display:grid;place-items:center;z-index:4;font-style:normal;line-height:1}
+</style>
+</head>
+<body>
+<header>
+  <h1>🎄 산타의 작업실 탈출 · 와이어프레임 v0.1</h1>
+  <nav id="nav"></nav>
+</header>
+<main>
+
+<section class="doc" id="intro">
+  <h2>0. 문서 개요<small>iPhone 세로 · SwiftUI · 저해상도(흑백) 와이어프레임</small></h2>
+  <p class="lead">선택한 컨셉 <b>A · 산타의 작업실 탈출</b>(크리스마스 트리 × 방탈출)을 기준으로 한 화면 구조 초안입니다. 색상·일러스트·글꼴은 다음 단계(고해상도 디자인)에서 정하고, 여기서는 <b>어떤 화면이 있고, 무엇이 어디에 놓이며, 어떻게 이동하는지</b>만 확인합니다.</p>
+  <div class="meta">
+    <span><b>범위</b> 화면 12개 (상태 화면 포함 14장)</span>
+    <span><b>지원</b> iPhone 세로 · 다크모드 · (선택) iPad</span>
+    <span><b>읽는 법</b> <i class="pinlg">1</i> 빨간 번호는 오른쪽 표의 요소 번호와 같습니다</span>
+  </div>
+  <h3>게임 규칙 (이 문서의 기준)</h3>
+  <ul>
+    <li><b>한 세션 = 문제 10개</b>. 정답 1개당 트리 <b>장식 1개</b>를 얻습니다. 오답이면 그 문제의 장식만 못 얻고, 기존 보상은 줄지 않습니다(벌칙 없음).</li>
+    <li><b>트리 장식 12칸을 채우면 열쇠 조각 1개</b>, 열쇠 조각 3개를 모으면 문이 열려 다음 방으로 이동합니다.</li>
+    <li><b>방 = 카테고리</b>: 서재(iOS), 아틀리에(Design), 연구실(CS). 새 방은 이전 방을 열어야 해금됩니다.</li>
+    <li>연속 정답, 일일 미션을 달성하면 <b>선물 상자</b>를 받고, 열면 특별 장식이 나옵니다.</li>
+  </ul>
+</section>
+
+<section class="doc" id="flow">
+  <h2>1. 정보 구조와 화면 흐름</h2>
+  <p class="lead">하단 탭 4개(<code>TabView</code>)가 최상위이고, 각 탭 안에서 <code>NavigationStack</code>으로 이동합니다. 퀴즈 진행과 결과는 탭 바를 숨기는 전체 화면(<code>fullScreenCover</code>)으로 띄웁니다.</p>
+  <div class="flow">
+    <div class="lane"><h4>탭 ① 방</h4>
+      <div class="fb core">S1 방 메인</div><div class="ar">↓ 방 이름 탭</div>
+      <div class="fb sh">S2 방 선택 (시트)</div><div class="ar">↑ 선택하면 S1 갱신</div>
+      <div class="fb">S8 보관함 (push)</div>
+      <div class="ar">S1 [이어서 풀기] → 퀴즈 세션</div></div>
+    <div class="lane"><h4>탭 ② 출제</h4>
+      <div class="fb core">S3 출제 설정</div><div class="ar">↓ 시작</div>
+      <div class="fb">→ 퀴즈 세션</div>
+      <div class="ar t">기록 탭의 취약 카테고리를 누르면<br>필터가 채워진 상태로 열림</div></div>
+    <div class="lane"><h4>퀴즈 세션 (전체 화면)</h4>
+      <div class="fb core">S4 퀴즈 진행</div><div class="ar">↓ 확인</div>
+      <div class="fb sh">S5 정답/오답 피드백 (시트)</div><div class="ar">↓ 다음 문제 (×10 반복)</div>
+      <div class="fb core">S6 세션 결과</div><div class="ar">↓ 오답 전체 보기</div>
+      <div class="fb">S7 오답 노트 → 상세</div></div>
+    <div class="lane"><h4>탭 ③ 기록 · 탭 ④ 관리</h4>
+      <div class="fb core">S9 기록 대시보드</div><div class="ar">↓ 설정 아이콘</div>
+      <div class="fb">S12 설정</div>
+      <div class="fb core" style="margin-top:10px">S10 문제 관리 목록</div><div class="ar">↓ 행 탭 / ＋</div>
+      <div class="fb">S11 문제 편집 (push)</div></div>
+  </div>
+</section>
+
+<div id="screens"></div>
+
+<section class="doc" id="common">
+  <h2>공통 규칙</h2>
+  <table>
+    <tr><th style="width:130px">네비게이션</th><td>탭마다 독립된 <code>NavigationStack</code>. 큰 제목(<code>.navigationTitle</code> + large)은 탭 루트 화면에만 사용하고, push 화면은 inline 제목을 씁니다.</td></tr>
+    <tr><th>피드백</th><td>정답: 햅틱 <code>.success</code> + 짧은 효과음 + 장식이 트리로 날아가는 애니메이션. 오답: 햅틱 <code>.error</code> + 보기 좌우 흔들림. 색만으로 구분하지 않고 아이콘(✓/✕)과 문구를 함께 표시합니다.</td></tr>
+    <tr><th>다크모드</th><td>시스템 설정을 따릅니다(<code>ColorScheme</code>). 방 일러스트는 낮/밤 두 벌을 준비합니다. 이미지·영상 문제는 다크모드에서도 원본을 유지합니다.</td></tr>
+    <tr><th>접근성</th><td>Dynamic Type(글자 크기 설정) 대응, VoiceOver 라벨, 모션 줄이기 설정 시 날아가는 연출을 페이드로 대체합니다.</td></tr>
+    <tr><th>iPad (선택)</th><td>가로/세로 모두 지원 시 S1·S3·S10은 <code>NavigationSplitView</code>(좌측 목록, 우측 상세)로 확장하는 안을 추천합니다. 이번 와이어프레임은 iPhone만 다룹니다.</td></tr>
+    <tr><th>빈 상태·오류</th><td>문제가 없을 때(S10), 필터 결과가 0개일 때(S3), 오답이 없을 때(S7)는 안내 문구와 다음 행동 버튼을 보여줍니다.</td></tr>
+  </table>
+</section>
+
+<section class="doc" id="decisions">
+  <h2>결정이 필요한 항목<small>제안안을 기본값으로 가정하고 그렸습니다</small></h2>
+  <table>
+    <tr><th style="width:34px">#</th><th>질문</th><th>제안(기본값)</th><th>대안</th></tr>
+    <tr><td class="n">1</td><td>채점 시점</td><td>보기를 고른 뒤 <b>[확인]</b> 버튼으로 채점 (실수로 눌러도 되돌릴 수 있음)</td><td>보기를 누르면 즉시 채점 (빠르지만 오터치 위험)</td></tr>
+    <tr><td class="n">2</td><td>세션 도중 나가면?</td><td>진행 상황 <b>자동 저장</b>, 홈에서 "이어서 풀기"</td><td>세션 폐기</td></tr>
+    <tr><td class="n">3</td><td>반응형 출제 규칙</td><td>약한 주제(최근 정답률 낮음) 50% · 선호 카테고리 30% · 오래 안 푼 문제 20%</td><td>사용자가 비율을 직접 조절</td></tr>
+    <tr><td class="n">4</td><td>크리스마스 시즌 종료 후</td><td>트리·장식은 보관함에 남기고, 다음 시즌 스킨으로 교체 가능한 구조</td><td>시즌 한정으로 종료</td></tr>
+    <tr><td class="n">5</td><td>방 해금 조건</td><td>열쇠 조각 3개 (= 트리 3회 완성)</td><td>정답률 기준 추가 (예: 70% 이상)</td></tr>
+    <tr><td class="n">6</td><td>영상·이미지 저장 위치와 용량</td><td>기기 로컬 저장, 영상 1개 최대 50MB, 이미지 자동 압축</td><td>iCloud 동기화(CloudKit)</td></tr>
+    <tr><td class="n">7</td><td>계정과 동기화</td><td>1차 버전은 로그인 없이 기기 로컬(SwiftData)</td><td>Sign in with Apple + 동기화</td></tr>
+  </table>
+</section>
+</main>
+
+<script>
+/* ---------- 와이어프레임 부품 ---------- */
+const dn=n=>n?`data-n="${n}"`:'';
+const lines=(...w)=>`<div class="lns">${w.map(x=>`<div class="ln" style="width:${x}%"></div>`).join('')}</div>`;
+const img=(h,label,n)=>`<div class="img" style="height:${h}px" ${dn(n)}><span>${label}</span></div>`;
+const btn=(t,n,c='')=>`<div class="wbtn ${c}" ${dn(n)}>${t}</div>`;
+const chips=(arr,n)=>`<div class="chips" ${dn(n)}>${arr.map(c=>`<span class="wchip ${c[1]?'on':''}">${c[0]}</span>`).join('')}</div>`;
+const seg=(arr,on,n)=>`<div class="seg" ${dn(n)}>${arr.map((a,i)=>`<span class="${i===on?'on':''}">${a}</span>`).join('')}</div>`;
+const sec=(t,r='')=>`<div class="sec">${t}<i>${r}</i></div>`;
+const row=(t,s,n,rt='›',ic='')=>`<div class="wrow" ${dn(n)}><div class="ic">${ic}</div><div class="tx"><b>${t}</b><small>${s}</small></div><span class="rt">${rt}</span></div>`;
+const lst=(...r)=>`<div class="lst">${r.join('')}</div>`;
+const tog=(on)=>`<span class="tog ${on?'on':''}"></span>`;
+const nav=(l,t,r,ns={})=>`<div class="nav"><span ${dn(ns.l)}>${l}</span><b>${t}</b><span ${dn(ns.r)}>${r}</span></div>`;
+const tabs=a=>`<div class="tabs">${['방','출제','기록','관리'].map((t,i)=>`<div class="${i===a?'on':''}"><i></i>${t}</div>`).join('')}</div>`;
+function phone(body,{tab=-1,extra='',cap=''}={}){return `<div class="pcol"><div class="wp"><div class="sb"><span>9:41</span><span>▮▮▮</span></div><div class="wbody">${body}${extra}</div>${tab>=0?tabs(tab):''}<div class="hi"></div></div>${cap?`<small>${cap}</small>`:''}</div>`}
+
+/* ---------- 화면 정의 ---------- */
+const S=[];
+
+S.push({id:'s1',title:'S1. 방 메인',path:'탭 ① 방 (앱 시작 화면)',tab:'TabView › NavigationStack',
+ phones:[phone(`
+  <div class="nav"><span ${dn(1)}>서재 방 ▾</span><span ${dn(2)}>🎒 보관함</span></div>
+  <div class="ltitle">산타의 작업실</div>
+  <div style="position:relative">${img(190,'방 일러스트 (트리 + 문 + 창문)',3)}</div>
+  <div class="row2" ${dn(4)}><div class="stat"><b>🔔 4/12</b><small>장식</small></div><div class="stat"><b>🔑 2/3</b><small>열쇠 조각</small></div><div class="stat"><b>🎁 1</b><small>선물</small></div></div>
+  <div class="card" ${dn(5)}><b>장식 8개를 더 달면 3번째 열쇠 조각!</b>${lines(70)}</div>
+  ${btn('이어서 풀기 (4/10)',6,'pri')}
+  <div ${dn(7)}>${sec('오늘의 미션','2 / 3')}</div>
+  ${lst(row('오늘 5문제 풀기','완료','','✓'),row('3연속 정답 달성','완료','','✓'),row('연구실(CS) 복습 3문제','1 / 3','','🎁'))}
+  `,{tab:0})],
+ notes:[
+  [1,'방 이름 버튼','탭하면 방 선택 시트(S2)를 엽니다. 현재 방 이름과 ▾ 표시.','<code>Button</code> + <code>.sheet</code>'],
+  [2,'보관함 버튼','장식·열쇠·선물 컬렉션(S8)으로 이동.','<code>ToolbarItem</code> + <code>NavigationLink</code>'],
+  [3,'방 일러스트','트리 장식 개수와 문의 열림 상태가 실시간 반영됩니다. 탭하면 장식이 반짝이는 가벼운 반응.','<code>ZStack</code>, <code>Canvas</code> 또는 이미지 레이어'],
+  [4,'진행 수치 3칸','장식(트리), 열쇠 조각(문), 선물(미개봉). 선물은 탭하면 개봉 시트.','<code>HStack</code>, <code>Label</code>'],
+  [5,'다음 목표 카드','지금 가장 가까운 목표 1개만 표시해 다음 행동을 알려줍니다.','<code>GroupBox</code> 또는 커스텀 카드'],
+  [6,'이어서 풀기 (주 버튼)','진행 중 세션이 있으면 이어서, 없으면 "오늘의 맞춤 세션 시작". 항상 화면 하나의 주 버튼.','<code>Button</code> + <code>.buttonStyle(.borderedProminent)</code>'],
+  [7,'오늘의 미션','3개, 보상 아이콘 표시. 달성하면 체크와 함께 선물 지급.','<code>List</code> / <code>Section</code>']],
+ states:['진행 중 세션 없음: 버튼이 "맞춤 세션 시작"으로 바뀜','열쇠 3/3: 문이 열리는 짧은 연출 후 "다음 방으로 이동" 버튼 표시','모든 방 완료: "완주!" 화면과 트리 공유 버튼']});
+
+S.push({id:'s2',title:'S2. 방 선택 (시트)',path:'S1의 방 이름 탭',tab:'.sheet + presentationDetents(.medium)',
+ phones:[phone(`
+  <div class="nav"><span></span><b>방 선택</b><span>닫기</span></div>`,{tab:0,extra:`<div class="dim"></div><div class="sheet"><div class="grab"></div>
+   <div class="nav"><span></span><b>방 선택</b><span ${dn(1)}>닫기</span></div>
+   ${lst(row('📚 서재','iOS · 78% · 열쇠 2/3',2,'● 현재'),row('🎨 아틀리에','Design · 66% · 열림',3,'선택'),row('🔬 연구실','CS · 🔒 서재 열쇠 3개 필요',4,'🔒'),row('🎅 새로운 방','준비 중',5,'곧 오픈'))}
+   <div class="sub" style="text-align:center">방을 바꿔도 장식·열쇠 진행은 방마다 따로 저장됩니다</div></div>`})],
+ notes:[
+  [1,'닫기 / 아래로 스와이프','시트를 닫습니다.','<code>dismiss()</code>'],
+  [2,'열린 방(현재)','현재 방에는 표시를 붙이고, 진행률과 열쇠 수를 함께 보여줍니다.','<code>List</code> 행, <code>Label</code>'],
+  [3,'열린 방(이동 가능)','탭하면 S1이 해당 방으로 바뀝니다.','<code>Button</code> 행'],
+  [4,'잠긴 방','해금 조건을 문구로 알려줍니다. 탭하면 안내 토스트(진동 없음).','비활성 행 + <code>.disabled</code>'],
+  [5,'준비 중 슬롯','확장 가능성을 보여주는 자리 표시.','정적 행']],
+ states:['잠긴 방 탭: "서재의 열쇠 조각 3개를 모으면 열려요" 안내']});
+
+S.push({id:'s3',title:'S3. 출제 설정',path:'탭 ② 출제',tab:'Form 기반 · 필터 선택',
+ phones:[phone(`
+  <div class="ltitle">출제</div>
+  <div class="card" ${dn(1)}><div class="sub">반응형 출제 · 추천</div><b>오늘의 맞춤 자물쇠 10개</b>
+   <div style="margin:6px 0" ${dn(2)}>${chips([['CS 정답률 54%',1],['iOS 선호 ↑',1],['복습 3',1]])}</div>${btn('이 추천으로 시작',3,'pri sm')}</div>
+  ${sec('직접 고르기','필터')}
+  <div ${dn(4)}>${chips([['전체',0],['iOS',1],['Design',0],['CS',1]])}</div>
+  ${seg(['전체','쉬움','보통','어려움'],0,5)}
+  <div ${dn(6)}>${chips([['#Swift',1],['#UIKit',0],['#알고리즘',0],['＋ 태그',0]])}</div>
+  ${lst(`<div class="wrow" ${dn(7)}><div class="tx"><b>문제 수</b></div><span>－ 10 ＋</span></div>`,`<div class="wrow" ${dn(8)}><div class="tx"><b>출제 방식</b></div><span>맞춤 ▾</span></div>`)}
+  <div class="sub" style="text-align:center">조건에 맞는 문제 <b>34개</b></div>
+  ${btn('세션 시작',9,'pri')}`,{tab:1})],
+ notes:[
+  [1,'추천 세션 카드','정답률·카테고리 선호도·복습 필요 문제로 자동 구성한 세션. 기본 진입 경로.','<code>GroupBox</code>'],
+  [2,'추천 근거 칩','왜 이 문제들인지 보여줘 신뢰를 높입니다.','<code>HStack</code> 칩, <code>FlowLayout</code>'],
+  [3,'추천으로 시작','필터 선택 없이 바로 시작.','<code>Button</code>'],
+  [4,'카테고리 선택','복수 선택. 방 이름이 아닌 주제명(iOS, Design, CS) 사용.','칩 토글, <code>@State Set</code>'],
+  [5,'난이도','전체/쉬움/보통/어려움 중 하나.','<code>Picker(.segmented)</code>'],
+  [6,'태그','복수 선택, 검색으로 추가 가능.','칩 + <code>.searchable</code> 시트'],
+  [7,'문제 수','기본 10, 5~20 범위.','<code>Stepper</code>'],
+  [8,'출제 방식','맞춤(반응형) / 랜덤 / 오답 복습.','<code>Picker(.menu)</code>'],
+  [9,'세션 시작','조건에 맞는 문제 수를 실시간으로 표시. 부족하면 비활성 + 안내.','<code>Button</code>, 전체 화면 전환 <code>fullScreenCover</code>']],
+ states:['조건에 맞는 문제 0개: 버튼 비활성, "조건을 줄여보세요" 안내','문제 수보다 적을 때: 가능한 개수로 줄여서 시작 확인 팝업']});
+
+S.push({id:'s4',title:'S4. 퀴즈 진행',path:'S1·S3 시작 버튼 (전체 화면, 탭 바 숨김)',tab:'fullScreenCover › NavigationStack',
+ phones:[phone(`
+  <div class="nav"><span ${dn(1)}>✕</span><b ${dn(2)}>4 / 10</b><span class="wchip" ${dn(3)}>🔔 +2</span></div>
+  <div class="pips" ${dn(4)}><span class="f">🔔</span><span class="w">✕</span><span class="f">🔔</span><span class="c"></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+  <div ${dn(5)}>${chips([['CS',1],['보통',0],['#Swift',0]])}</div>
+  <b style="font-size:15px" ${dn(6)}>다음 코드의 출력 결과로 알맞은 것은?</b>
+  ${img(100,'이미지 / 영상 (▶ 0:12)',7)}
+  <div style="display:flex;flex-direction:column;gap:7px" ${dn(8)}>
+   <div class="opt"><i>A</i>0</div><div class="opt sel"><i>B</i>1</div><div class="opt"><i>C</i>5</div><div class="opt"><i>D</i>컴파일 오류</div></div>
+  ${btn('확인',9,'pri')}`)],
+ notes:[
+  [1,'닫기 (✕)','탭하면 "나갈까요? 진행 상황은 저장돼요" 확인 팝업.','<code>confirmationDialog</code>'],
+  [2,'진행 표시','현재 문제 / 전체 문제 수.','<code>Text</code>, <code>ProgressView</code>'],
+  [3,'이번 세션 보상','이번 세션에서 얻은 장식 수. 정답 시 +1 애니메이션.','<code>Label</code>, <code>.contentTransition(.numericText())</code>'],
+  [4,'문제별 진행 칸','10칸. 정답=장식 아이콘, 오답=✕(연하게), 현재=굵은 테두리.','<code>HStack</code> + <code>ForEach</code>'],
+  [5,'메타 칩','카테고리, 난이도, 태그. 탭 동작 없음(정보용).','칩'],
+  [6,'문제 텍스트','Dynamic Type 대응. 긴 문제는 스크롤.','<code>Text</code>, <code>ScrollView</code>'],
+  [7,'미디어 영역','이미지는 탭하면 확대, 영상은 인라인 재생(자동재생 없음). 없으면 영역 자체 숨김.','<code>AsyncImage</code>/<code>Image</code>, <code>VideoPlayer</code>'],
+  [8,'보기 목록','2~5개 지원. 하나 선택 가능, 다시 누르면 변경. 선택 상태는 테두리 + 체크로 표시.','<code>ForEach</code> + <code>Button</code>'],
+  [9,'확인 버튼','보기를 고르기 전에는 비활성. 탭하면 채점하고 S5 시트를 올립니다.','<code>Button</code>, <code>.disabled</code>']],
+ states:['보기에 이미지가 있는 문제: 2열 그리드로 전환','영상 로드 실패: "영상을 불러오지 못했어요" + 다시 시도, 문제 풀이는 계속 가능','마지막 문제: 시트 버튼이 "결과 보기"']});
+
+const fbPhone=(ok)=>phone(`
+  <div class="nav"><span>✕</span><b>4 / 10</b><span class="wchip">🔔 +${ok?3:2}</span></div>
+  <div class="pips"><span class="f">🔔</span><span class="w">✕</span><span class="f">🔔</span><span class="${ok?'f':'w'}">${ok?'🔔':'✕'}</span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+  <b style="font-size:14px">다음 코드의 출력 결과로 알맞은 것은?</b>
+  <div style="display:flex;flex-direction:column;gap:6px"><div class="opt"><i>A</i>0</div><div class="opt ${ok?'ok':'no'}"><i>${ok?'✓':'B'}</i>1</div><div class="opt ${ok?'':'ok'}"><i>${ok?'C':'✓'}</i>${ok?'5':'5'}</div><div class="opt"><i>D</i>컴파일 오류</div></div>`,
+ {extra:`<div class="sheet"><div class="grab"></div>
+  <div class="row2" style="align-items:center"><b style="font-size:16px;flex:2" ${dn(1)}>${ok?'✓ 정답이에요!':'✕ 아쉬워요'}</b><span class="wchip" style="text-align:center" ${dn(2)}>${ok?'🔔 +1':'장식 없음'}</span></div>
+  ${ok?'':`<div class="sub" ${dn(3)}>내 답 <b>B</b> → 정답 <b>C</b></div>`}
+  <div class="card" ${dn(4)}><div class="sub">해설</div>${lines(95,80,60)}</div>
+  ${ok?'':`<div class="toast" ${dn(5)}>오답 노트에 저장했어요</div>`}
+  ${btn('다음 문제',6,'pri')}</div><div class="dim" style="background:rgba(0,0,0,.12);z-index:1"></div>`});
+S.push({id:'s5',title:'S5. 정답 / 오답 피드백 (시트)',path:'S4에서 [확인] 탭',tab:'.sheet(.presentationDetents) · .interactiveDismissDisabled',
+ phones:[fbPhone(true).replace('</small>','').replace('class="pcol">','class="pcol">')+'' ,fbPhone(false)].map((h,i)=>h.replace(/<\/div>$/,`<small>${i?'5-b 오답':'5-a 정답'}</small></div>`)),
+ notes:[
+  [1,'결과 헤더','문구 + 아이콘(✓/✕)으로 색 없이도 구분. 정답은 짧게, 오답은 격려 톤.','<code>Label</code>'],
+  [2,'보상 표시','정답: "🔔 +1"과 함께 장식이 트리로 날아가는 연출(0.8초). 오답: "장식 없음"만 표시, 기존 보상은 그대로.','<code>matchedGeometryEffect</code>, <code>.sensoryFeedback</code>'],
+  [3,'내 답 / 정답 비교 (오답만)','뒤 화면의 보기에도 같은 표시를 남겨 한눈에 비교.','<code>Text</code>'],
+  [4,'해설 카드','텍스트 해설. 관련 이미지/링크가 있으면 아래에 추가.','<code>GroupBox</code>'],
+  [5,'저장 토스트 (오답만)','오답 노트 자동 저장을 알려줍니다. 2초 후 사라짐.','<code>overlay</code> + 타이머'],
+  [6,'다음 문제 / 결과 보기','시트는 버튼으로만 닫힘(스와이프 닫기 방지). 마지막 문제는 "결과 보기".','<code>Button</code>']],
+ states:['정답: 햅틱 success + 효과음(딩동)','오답: 햅틱 error + 효과음 + 보기 좌우 흔들림','연속 3정답: 선물 상자 획득 토스트가 추가로 표시','소리 끔/무음 모드/햅틱 끔(S12)이면 시각 피드백만 재생']});
+
+S.push({id:'s6',title:'S6. 세션 결과',path:'S4 마지막 문제 이후',tab:'fullScreenCover 내 push · 탭 바 숨김',
+ phones:[phone(`
+  <div class="nav"><span ${dn(1)}>닫기</span><b>세션 결과</b><span ${dn(2)}>공유</span></div>
+  ${img(130,'트리 완성 애니메이션',3)}
+  <div style="text-align:center"><b style="font-size:15px">🔑 열쇠 조각 3/3 · 문이 열렸어요</b></div>
+  <div class="row2" ${dn(4)}><div class="stat"><b>8/10</b><small>정답</small></div><div class="stat"><b>+12%p</b><small>지난주 대비</small></div><div class="stat"><b>6:42</b><small>소요 시간</small></div></div>
+  <div ${dn(5)}>${sec('오답 노트','2개')}</div>
+  ${lst(row('프로토콜 지향 설계란?','iOS · A → 정답 C','','›'),row('O(n log n) 정렬 알고리즘','CS · D → 정답 B','','›'))}
+  <div class="sub" style="text-align:right">전체 보기 ›</div>
+  <div ${dn(6)}>${sec('추천 학습 리소스')}</div>
+  ${lst(row('Swift 공식 문서 · Protocols','docs.swift.org','','↗','📖'),row('WWDC · Protocol-Oriented…','developer.apple.com','','↗','🎬'))}
+  ${btn('오답만 다시 풀기',7,'sm')}${btn('방으로 돌아가기',8,'pri')}`)],
+ notes:[
+  [1,'닫기','S1로 돌아갑니다(= 방으로 돌아가기와 동일).','<code>dismiss()</code>'],
+  [2,'공유','완성한 트리 이미지를 공유합니다.','<code>ShareLink</code>'],
+  [3,'보상 연출 영역','트리 완성, 열쇠 획득, 문 열림을 순서대로 보여줍니다. 시간 3초 이내, 탭하면 건너뛰기. 트리 미완성이면 현재 진행 장면만 표시.','<code>PhaseAnimator</code>, <code>TimelineView</code>'],
+  [4,'점수 요약','정답 수, 지난주 평균 대비 변화, 소요 시간.','<code>HStack</code> 카드'],
+  [5,'오답 노트 요약','이번 세션의 오답 문제 최대 3개. "전체 보기"로 S7 이동.','<code>List</code>, <code>NavigationLink</code>'],
+  [6,'추천 학습 리소스','오답의 카테고리·태그에 연결된 공식 문서/영상 링크(관리 화면에서 문제별 등록).','<code>Link</code>, <code>SFSafariViewController</code>'],
+  [7,'오답만 다시 풀기','오답 문제로 새 세션 시작. 오답이 없으면 버튼 숨김.','<code>Button</code>'],
+  [8,'방으로 돌아가기 (주 버튼)','S1로 이동하고 문이 열렸다면 "다음 방으로" 안내.','<code>Button</code>']],
+ states:['만점: "완벽해요!" 문구 + 특별 선물 상자','0점: 격려 문구, 오답 노트 강조','추천 리소스 미등록: 해당 섹션 숨김']});
+
+const wrongRows=lst(row('프로토콜 지향 설계란?','iOS · 내 답 A · 정답 C',2,'미해결'),row('O(n log n) 정렬 알고리즘','CS · 내 답 D · 정답 B','','미해결'),row('뷰 생명주기 순서','iOS · 내 답 B · 정답 A','','해결 ✓'));
+S.push({id:'s7',title:'S7. 오답 노트 (목록 → 상세)',path:'S6 "전체 보기" 또는 기록 탭',tab:'List + NavigationLink',
+ phones:[phone(`
+  ${nav('‹ 뒤로','오답 노트','필터',{r:1})}
+  <div class="ltitle" style="font-size:20px">오답 노트</div>
+  <div class="wchip" style="padding:6px 10px;border-radius:8px;color:#888">🔍 검색</div>
+  ${seg(['전체 12','미해결 7','해결 5'],1,3)}
+  ${wrongRows}
+  <div class="sub" style="text-align:center">← 스와이프: 해결 표시 / 삭제</div>`,{cap:'7-a 목록'}).replace(/<\/div>\s*$/,'</div>'),
+ phone(`
+  ${nav('‹ 오답 노트','문제 상세','')}
+  <b style="font-size:14px" ${dn(4)}>프로토콜 지향 설계란?</b>
+  ${img(70,'이미지',5)}
+  <div style="display:flex;flex-direction:column;gap:6px" ${dn(6)}><div class="opt no"><i>A</i>내 선택</div><div class="opt"><i>B</i>…</div><div class="opt ok"><i>✓</i>정답 C</div></div>
+  <div class="card"><div class="sub">해설</div>${lines(95,75)}</div>
+  ${lst(row('Swift 공식 문서','docs.swift.org','','↗','📖'))}
+  ${btn('다시 풀어보기',7,'pri')}`)],
+ notes:[
+  [1,'필터','카테고리, 난이도, 날짜로 좁히기.','<code>Menu</code>, <code>.toolbar</code>'],
+  [2,'오답 행','문제, 카테고리, 내 답과 정답, 상태(미해결/해결).','<code>List</code> 행'],
+  [3,'상태 탭','전체 / 미해결 / 해결. 같은 문제를 다시 맞히면 자동으로 "해결".','<code>Picker(.segmented)</code>'],
+  [4,'문제 상세','원본 문제 그대로.','<code>ScrollView</code>'],
+  [5,'미디어','이미지·영상 포함 문제도 동일하게 표시.','<code>Image</code>/<code>VideoPlayer</code>'],
+  [6,'보기 비교','내 선택과 정답을 아이콘으로 구분.','보기 행'],
+  [7,'다시 풀어보기','이 문제 한 개를 바로 풀어보는 미니 세션.','<code>Button</code>']],
+ states:['오답이 하나도 없을 때: "아직 오답이 없어요" + 출제 탭으로 이동 버튼','스와이프: 해결 표시(왼쪽), 삭제(오른쪽, 확인 팝업)']});
+
+S.push({id:'s8',title:'S8. 보관함',path:'S1 우측 상단 🎒',tab:'NavigationLink (push)',
+ phones:[phone(`
+  ${nav('‹ 방','보관함','',{})}
+  ${seg(['장식 8','열쇠 2','선물 1'],0,1)}
+  <div class="grid3" ${dn(2)}><div class="cell">🔔</div><div class="cell">⭐</div><div class="cell">🎀</div><div class="cell">🧦</div><div class="cell">🍬</div><div class="cell">❄️</div><div class="cell lock">?</div><div class="cell lock">?</div><div class="cell lock">?</div></div>
+  <div class="sub" ${dn(3)}>탭하면 설명과 얻은 날짜. 잠긴 칸은 획득 조건 힌트.</div>
+  ${img(70,'내 트리 미리보기',4)}
+  ${btn('트리 이미지 공유',5,'pri sm')}`)],
+ notes:[
+  [1,'종류 탭','장식 / 열쇠 / 선물. 선물은 미개봉 수량 표시.','<code>Picker(.segmented)</code>'],
+  [2,'수집 그리드','획득한 아이템은 아이콘, 미획득은 물음표 칸(점선).','<code>LazyVGrid</code>'],
+  [3,'아이템 상세','탭하면 시트로 이름·희귀도·획득 조건.','<code>.sheet</code>'],
+  [4,'내 트리 미리보기','현재 장식 배치. 탭하면 큰 화면에서 장식 위치를 바꿀 수 있는 확장 아이디어(2차).','<code>Image</code>'],
+  [5,'공유','트리 + 방 일러스트를 이미지로 내보냅니다.','<code>ShareLink</code>, <code>ImageRenderer</code>']],
+ states:['선물 개봉: 상자가 열리는 연출 후 새 장식 1개 지급']});
+
+S.push({id:'s9',title:'S9. 기록 (성과 대시보드)',path:'탭 ③ 기록',tab:'ScrollView + Swift Charts',
+ phones:[phone(`
+  <div class="nav"><span></span><span ${dn(7)}>⚙︎ 설정</span></div>
+  <div class="ltitle">기록</div>
+  ${seg(['주간','월간'],0,1)}
+  <div class="row2" ${dn(2)}><div class="stat"><b>46</b><small>시도 횟수</small></div><div class="stat"><b>78</b><small>평균 점수</small></div><div class="stat"><b>12일</b><small>연속</small></div></div>
+  <div class="card" ${dn(3)}><b>풀이 문제 수</b><div class="bars" style="margin-top:8px"><i style="height:40%"></i><i style="height:70%"></i><i style="height:50%"></i><i style="height:90%"></i><i style="height:60%"></i><i style="height:30%"></i><i style="height:80%"></i></div><div class="sub" style="display:flex;justify-content:space-between;margin-top:3px"><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span><span>일</span></div></div>
+  <div class="card" ${dn(4)}><b>취약 카테고리</b>
+   <div style="margin-top:6px"><div class="sub">CS · 자료구조 42%</div><div class="pb"><i style="width:42%"></i></div></div>
+   <div style="margin-top:6px"><div class="sub">Design · 접근성 55%</div><div class="pb"><i style="width:55%"></i></div></div>
+   <div style="margin-top:6px"><div class="sub">iOS · 동시성 61%</div><div class="pb"><i style="width:61%"></i></div></div>
+   <div class="sub" style="margin-top:6px">행을 탭하면 해당 주제로 출제 ›</div></div>
+  <div class="card" ${dn(5)}><b>게임 진행</b><div class="sub">트리 4/12 · 방 1/3 열림</div><div class="pb" style="margin-top:4px"><i style="width:33%"></i></div></div>`,{tab:2})],
+ notes:[
+  [1,'기간 선택','주간 / 월간 전환. 전환 시 차트 애니메이션.','<code>Picker(.segmented)</code>'],
+  [2,'요약 수치 3개','시도 횟수, 평균 점수, 연속 학습일. 이전 기간 대비 증감 표시.','<code>Grid</code>'],
+  [3,'풀이 문제 수 차트','주간은 요일별, 월간은 주차별 막대. 막대를 탭하면 수치.','<code>Chart</code> + <code>BarMark</code>'],
+  [4,'취약 카테고리','정답률이 낮은 주제 상위 3개. 탭하면 S3에 필터가 채워진 상태로 이동.','<code>List</code>, <code>ProgressView</code>'],
+  [5,'게임 진행','트리와 방 해금 진행. 탭하면 S1.','<code>GroupBox</code>'],
+  [7,'설정','S12로 이동.','<code>ToolbarItem</code>']],
+ states:['데이터 부족(첫 주): "기록이 쌓이면 보여드릴게요" 빈 상태 + 첫 세션 시작 버튼','월간 차트: 4~5개 막대(주차별)']});
+
+S.push({id:'s10',title:'S10. 문제 관리 목록',path:'탭 ④ 관리',tab:'List + searchable + swipeActions',
+ phones:[phone(`
+  <div class="nav"><span></span><span ${dn(1)} class="wchip">＋ 새 문제</span></div>
+  <div class="ltitle">문제 관리</div>
+  <div class="wchip" style="padding:6px 10px;border-radius:8px;color:#888" ${dn(2)}>🔍 문제·태그 검색</div>
+  <div ${dn(3)}>${chips([['전체 420',1],['iOS',0],['Design',0],['CS',0],['난이도 ▾',0]])}</div>
+  <div class="lst" ${dn(4)}>
+   <div class="swipe" ${dn(5)}><div class="wrow"><div class="ic">🖼</div><div class="tx"><b>SwiftUI 뷰 생명주기는?</b><small>iOS · 보통 · 이미지</small></div></div><div class="del">삭제</div></div>
+   ${row('이 애니메이션의 이징 곡선은?','Design · 쉬움 · 영상','','›','🎬')}${row('해시 충돌 해결 방법','CS · 어려움 · 텍스트','','›','📝')}${row('다크모드 대비 비율 기준','Design · 보통 · 이미지','','›','🖼')}${row('async/await 와 Task','iOS · 어려움 · 텍스트','','›','📝')}</div>
+  <div class="empty">(빈 상태) 아직 문제가 없어요<br>[＋ 새 문제 만들기]</div>`,{tab:3})],
+ notes:[
+  [1,'새 문제','S11을 새 문제 모드로 엽니다.','<code>ToolbarItem</code> + <code>.sheet</code>'],
+  [2,'검색','문제 본문, 태그, 해설에서 검색.','<code>.searchable</code>'],
+  [3,'필터 칩','카테고리, 난이도. 복수 조건은 AND.','<code>ScrollView(.horizontal)</code>'],
+  [4,'문제 행','제목, 카테고리, 난이도, 미디어 종류 아이콘(텍스트/이미지/영상).','<code>List</code>'],
+  [5,'스와이프 삭제','삭제 전 확인 팝업. 삭제한 문제가 포함된 기록은 "삭제된 문제"로 유지.','<code>.swipeActions</code>, <code>confirmationDialog</code>']],
+ states:['빈 상태: 안내 + 새 문제 만들기 버튼','편집 모드(우측 상단 편집): 다중 선택 후 일괄 삭제·카테고리 이동']});
+
+S.push({id:'s11',title:'S11. 문제 편집 (작성·수정·삭제)',path:'S10의 행 탭 또는 ＋',tab:'Form + 시트 / push',
+ phones:[phone(`
+  <div class="nav"><span ${dn(1)}>취소</span><b>문제 편집</b><span>저장</span></div>
+  <div ${dn(2)}>${sec('문제')}</div>
+  <div class="lst"><div class="wrow"><div class="tx"><b>다음 코드의 출력 결과로 알맞은 것은?</b></div></div>
+   <div class="wrow" ${dn(3)}><div class="row2" style="width:100%"><div class="wbtn sm">🖼 이미지</div><div class="wbtn sm">🎬 영상</div><div class="wbtn sm dis">＋ 제거</div></div></div></div>
+  ${img(48,'첨부 미리보기',3)}
+  <div ${dn(4)}>${sec('보기 (정답 선택)','드래그로 순서 변경')}</div>
+  ${lst(`<div class="wrow"><span>≡</span><div class="tx"><b>0</b></div><span>○</span></div>`,`<div class="wrow"><span>≡</span><div class="tx"><b>1</b></div><span>●</span></div>`,`<div class="wrow"><span>≡</span><div class="tx"><b>5</b></div><span>○</span></div>`,`<div class="wrow" ${dn(5)}><div class="tx"><b>＋ 보기 추가</b></div></div>`)}
+  ${sec('분류')}
+  ${lst(row('카테고리','CS',6,'›'),row('난이도','보통','','›'),row('태그','#Swift  #값타입','','›'))}
+  <div ${dn(7)}>${sec('게임 연결')}</div>
+  ${lst(row('배치 방','🔬 연구실','','›'),row('보상','🔔 장식 +1','','›'))}
+  ${sec('해설 · 학습 리소스')}
+  ${lst(row('해설','값 타입은 복사됨','','›'),row('리소스 링크','docs.swift.org','','›'))}
+  ${btn('문제 삭제',9,'danger')}`)],
+ notes:[
+  [1,'취소 / 저장','변경이 있을 때 취소하면 "변경 내용을 버릴까요?" 확인. 저장은 필수 항목(문제, 보기 2개 이상, 정답) 충족 시 활성.','<code>ToolbarItem</code>'],
+  [2,'문제 입력','여러 줄 텍스트. 글자 수 제한은 두지 않음(1,000자 권장 표시).','<code>TextEditor</code>'],
+  [3,'미디어 첨부','이미지: 사진 보관함/파일. 영상: 사진 보관함, 최대 50MB. 첨부하면 미리보기와 제거 버튼.','<code>PhotosPicker</code>, <code>fileImporter</code>'],
+  [4,'보기 목록','2~5개. 라디오로 정답 선택, 드래그로 순서 변경, 왼쪽 스와이프로 삭제.','<code>ForEach</code> + <code>.onMove</code> + <code>.onDelete</code>'],
+  [5,'보기 추가','최대 5개에서 비활성.','<code>Button</code>'],
+  [6,'분류','카테고리(필수, 단일), 난이도(필수), 태그(복수, 자동완성).','<code>Picker</code>, 태그 시트'],
+  [7,'게임 연결','문제가 배치될 방과 정답 시 보상. 기본값은 카테고리에 맞는 방.','<code>Picker</code>'],
+  [9,'문제 삭제 (수정 모드만)','확인 팝업 후 삭제. 새 문제 모드에서는 숨김.','<code>confirmationDialog</code>, <code>role: .destructive</code>']],
+ states:['저장 오류(용량 초과 등): 상단에 오류 배너, 입력 내용 유지','영상 업로드 중: 진행률 표시, 저장 버튼 일시 비활성']});
+
+S.push({id:'s12',title:'S12. 설정',path:'S9 우측 상단 ⚙︎',tab:'Form',
+ phones:[phone(`
+  ${nav('‹ 기록','설정','')}
+  ${sec('피드백')}
+  ${lst(`<div class="wrow" ${dn(1)}><div class="tx"><b>효과음</b></div>${tog(1)}</div>`,`<div class="wrow"><div class="tx"><b>햅틱(진동)</b></div>${tog(1)}</div>`,`<div class="wrow"><div class="tx"><b>모션 줄이기</b><small>시스템 설정 따름</small></div>${tog(0)}</div>`)}
+  ${sec('알림')}
+  ${lst(`<div class="wrow" ${dn(2)}><div class="tx"><b>일일 미션 알림</b></div>${tog(1)}</div>`,row('알림 시간','오후 8:00','','›'))}
+  ${sec('화면')}
+  ${lst(row('화면 모드','시스템 설정','','›'))}
+  ${sec('데이터')}
+  ${lst(row('내보내기 / 가져오기','문제 JSON',3,'›'),row('진행 상황 초기화','',4,'›'))}
+  <div class="sub" style="text-align:center">버전 1.0.0</div>`)],
+ notes:[
+  [1,'효과음 · 햅틱 · 모션','끄면 시각 피드백(색, 아이콘, 흔들림)만 유지됩니다. 모션 줄이기는 시스템 설정을 기본으로 따릅니다.','<code>Toggle</code>, <code>@AppStorage</code>'],
+  [2,'일일 미션 알림','권한 요청은 이 토글을 처음 켤 때만 합니다.','<code>UNUserNotificationCenter</code>'],
+  [3,'내보내기 / 가져오기','문제 데이터를 파일로 백업·복원(팀원과 공유 가능).','<code>fileExporter</code>, <code>fileImporter</code>'],
+  [4,'진행 상황 초기화','장식·열쇠·기록 삭제. 이중 확인 필수.','<code>confirmationDialog</code>']],
+ states:['화면 모드: 시스템 / 라이트 / 다크 (기본 시스템)']});
+
+/* ---------- 렌더 ---------- */
+document.getElementById('screens').innerHTML=S.map(s=>`
+<section class="doc" id="${s.id}">
+ <h2>${s.title}</h2>
+ <div class="meta"><span><b>진입</b> ${s.path}</span><span><b>구조</b> ${s.tab}</span></div>
+ <div class="spec"><div class="phones">${s.phones.join('')}</div>
+ <div class="notes"><table><tr><th>#</th><th>요소</th><th>동작 · 규칙</th><th>SwiftUI</th></tr>
+ ${s.notes.map(n=>`<tr><td class="n"><span class="pinlg">${n[0]}</span></td><td><b>${n[1]}</b></td><td>${n[2]}</td><td>${n[3]}</td></tr>`).join('')}</table>
+ <h3>상태 · 예외</h3><ul>${s.states.map(x=>`<li>${x}</li>`).join('')}</ul></div></div></section>`).join('');
+document.getElementById('nav').innerHTML=[['flow','흐름'],...S.map(s=>[s.id,s.id.toUpperCase()]),['common','공통'],['decisions','결정사항']].map(a=>`<a href="#${a[0]}">${a[1]}</a>`).join('');
+</script>
+</body>
+</html>

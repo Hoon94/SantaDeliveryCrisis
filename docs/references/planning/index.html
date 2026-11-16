@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>퀴즈 iOS 앱 · 게임 테마 시안 4종</title>
+<style>
+:root{--page:#eceef2;--pagetext:#14161a;--pagesub:#5b6270;--pcard:#fff;--pline:#d9dce3}
+body[data-mode=dark]{--page:#0d0e11;--pagetext:#f2f3f5;--pagesub:#9aa1ae;--pcard:#17191e;--pline:#2a2d35}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard",sans-serif;background:var(--page);color:var(--pagetext);transition:background .3s}
+header.top{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--page) 88%,transparent);backdrop-filter:blur(14px);border-bottom:1px solid var(--pline);padding:14px 28px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+header.top h1{font-size:18px;font-weight:800;margin-right:auto}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tabs button,.modebtn,.sbtn{border:1px solid var(--pline);background:var(--pcard);color:var(--pagetext);padding:8px 14px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+.tabs button.on,.sbtn.on{background:var(--pagetext);color:var(--page);border-color:var(--pagetext)}
+main{max-width:1600px;margin:0 auto;padding:28px}
+.intro{display:grid;grid-template-columns:1.1fr 1fr;gap:28px;margin-bottom:24px}
+.intro h2{font-size:28px;margin-bottom:4px}
+.intro .subt{color:var(--pagesub);font-weight:700;font-size:13px;margin-bottom:10px}
+.intro p{color:var(--pagesub);line-height:1.65;font-size:14px}
+.pill{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;border:1px solid var(--pline);color:var(--pagesub);margin:10px 6px 0 0}
+.keys{background:var(--pcard);border:1px solid var(--pline);border-radius:16px;padding:16px 18px;font-size:13px;line-height:1.75;color:var(--pagesub)}
+.keys b{color:var(--pagetext)}
+.keys ul{padding-left:18px;margin:4px 0 10px}
+.loop{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin:6px 0 12px}
+.loop span{background:var(--page);border:1px solid var(--pline);color:var(--pagetext);padding:4px 10px;border-radius:99px;font-weight:600;font-size:12px}
+.loop i{color:var(--pagesub);font-style:normal}
+.seasonbar{display:flex;gap:8px;margin:0 0 18px;align-items:center;font-size:13px;color:var(--pagesub)}
+.screens{display:flex;gap:28px;overflow-x:auto;padding:8px 4px 28px;scroll-snap-type:x proximity}
+.col{flex:0 0 auto;scroll-snap-align:start}
+.cap{font-size:13px;font-weight:700;margin:0 0 10px 6px}
+.cap small{display:block;font-weight:500;color:var(--pagesub);font-size:12px;margin-top:2px}
+.compare{width:100%;border-collapse:collapse;background:var(--pcard);border-radius:16px;overflow:hidden;font-size:13px;margin-top:10px}
+.compare th,.compare td{padding:12px 14px;border-bottom:1px solid var(--pline);text-align:left;vertical-align:top;line-height:1.5}
+.compare th{color:var(--pagesub);font-weight:600;width:120px}
+@media(max-width:900px){.intro{grid-template-columns:1fr}}
+
+/* ===== phone ===== */
+.phone{width:300px;height:620px;border-radius:44px;background:#000;padding:8px;box-shadow:0 20px 50px rgba(0,0,0,.28)}
+.screen{position:relative;width:100%;height:100%;border-radius:36px;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--font);font-size:13px}
+.status{position:absolute;top:0;left:0;right:0;height:38px;display:flex;justify-content:space-between;align-items:center;padding:6px 24px 0;font-size:12px;font-weight:700;z-index:5;color:var(--text)}
+.island{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:80px;height:22px;background:#000;border-radius:20px;z-index:6}
+.body{position:absolute;inset:0;padding:44px 16px 84px;overflow-y:auto;scrollbar-width:none}
+.body::-webkit-scrollbar{display:none}
+.body.notab{padding-bottom:22px}
+.home-ind{position:absolute;bottom:5px;left:50%;transform:translateX(-50%);width:100px;height:4px;border-radius:4px;background:var(--text);opacity:.8;z-index:8}
+
+/* ===== shared ui ===== */
+.nav{display:flex;align-items:center;justify-content:space-between;min-height:30px;margin-bottom:8px}
+.nav .t{font-weight:700;font-size:14px}
+.nav .a{color:var(--accent);font-weight:600;font-size:13px}
+.large{font-size:26px;font-weight:800;letter-spacing:-.02em;margin:2px 0 10px;line-height:1.2}
+.sub{color:var(--sub);font-size:12px}
+.card{background:var(--card);border-radius:var(--r);padding:14px;margin-bottom:12px;border:1px solid var(--line)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.chip{padding:5px 10px;border-radius:99px;background:var(--card);border:1px solid var(--line);font-size:11px;font-weight:700;color:var(--sub)}
+.chip.on{background:var(--accent);color:var(--onacc);border-color:var(--accent)}
+.btn{display:block;width:100%;text-align:center;padding:13px;border-radius:var(--br,14px);background:var(--accent);color:var(--onacc);font-weight:800;font-size:14px;border:0;font-family:inherit;box-shadow:0 4px 0 color-mix(in srgb,var(--accent) 60%,#000);margin-bottom:12px}
+.row{display:flex;align-items:center;gap:10px}
+.sp{flex:1}
+.bar{height:8px;border-radius:8px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:8px}
+.bar.bad i{background:var(--bad)}
+.dot{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;font-size:18px;background:color-mix(in srgb,var(--accent) 16%,transparent);flex:none}
+.lst{background:var(--card);border-radius:var(--r);overflow:hidden;margin-bottom:12px;border:1px solid var(--line)}
+.lst .it{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--line)}
+.lst .it:last-child{border:0}
+.lst .it b{font-size:13px;display:block}
+.lst .it span.s{font-size:11px;color:var(--sub)}
+.why{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.why span{font-size:10.5px;padding:3px 8px;border-radius:99px;background:rgba(255,255,255,.2);font-weight:700}
+.hero{background:var(--hero);color:var(--onhero,#fff);border-radius:var(--r);padding:16px;margin-bottom:12px;position:relative;overflow:hidden}
+.hero h3{font-size:17px;margin:6px 0 4px;letter-spacing:-.01em}
+.hero p{font-size:12px;opacity:.9}
+.hero .btn{background:var(--herobtn,#fff);color:var(--herobtntx,#222);margin:12px 0 0;padding:10px;box-shadow:0 3px 0 rgba(0,0,0,.2)}
+.h2{font-size:13px;font-weight:800;margin:6px 2px 8px;display:flex;justify-content:space-between;align-items:center}
+.h2 small{font-weight:600;color:var(--sub);font-size:11px}
+.tag{font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:6px;background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent);display:inline-block}
+.tag.d{background:color-mix(in srgb,var(--bad) 14%,transparent);color:var(--bad)}
+.hero .tag{background:rgba(255,255,255,.22);color:inherit}
+
+/* tab bar */
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:72px;display:flex;justify-content:space-around;padding:8px 6px 0;z-index:7;background:var(--tabbg);border-top:1px solid var(--line)}
+.tabbar div{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;color:var(--sub);font-weight:700;width:60px}
+.tabbar div svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tabbar div.on{color:var(--accent)}
+.floattab .tabbar{left:14px;right:14px;bottom:14px;height:56px;border-radius:28px;border:1px solid var(--line);box-shadow:0 8px 22px rgba(0,0,0,.22);padding-top:7px}
+
+/* game world */
+.scene{border-radius:var(--r);overflow:hidden;border:1px solid var(--line);margin-bottom:12px;position:relative}
+.scene svg{display:block;width:100%;height:auto}
+.res{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.res span{flex:1;min-width:58px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:6px 8px;font-weight:800;font-size:13px;text-align:center;white-space:nowrap}
+.res small{display:block;font-size:9.5px;color:var(--sub);font-weight:600}
+.mis{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line)}
+.mis:last-child{border:0}
+.mis .c{width:20px;height:20px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-size:11px;color:#fff;flex:none}
+.mis.d .c{background:var(--ok);border-color:var(--ok)}
+.mis.d b{text-decoration:line-through;opacity:.55}
+.mis b{font-size:12.5px;flex:1}
+.mis em{font-style:normal;font-size:11px;font-weight:800;color:var(--accent)}
+.goal{display:flex;gap:10px;align-items:center}
+.goal .big{font-size:30px}
+
+/* quiz */
+.qmeta{display:flex;gap:6px;margin:6px 0 10px}
+.q{font-size:16px;font-weight:800;line-height:1.4;margin-bottom:10px;letter-spacing:-.01em}
+.media{height:92px;border-radius:var(--r);background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 30%,var(--card)),var(--card));display:grid;place-items:center;margin-bottom:10px;position:relative;overflow:hidden;border:1px solid var(--line)}
+.media code{background:rgba(0,0,0,.45);color:#fff;padding:6px 10px;border-radius:8px;font-size:11px;font-family:ui-monospace,Menlo,monospace;line-height:1.5}
+.media .play{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.55);color:#fff;border-radius:99px;padding:2px 8px;font-size:10px}
+.hud{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.hud .gain{background:var(--card);border:1px solid var(--line);border-radius:99px;padding:3px 10px;font-weight:800;font-size:12px}
+.ctx{font-size:11px;color:var(--sub);font-weight:600;margin-top:6px}
+.pips{display:flex;gap:4px;margin:8px 0 4px}
+.pips span{flex:1;height:24px;border-radius:8px;background:var(--card);border:1px dashed var(--line);display:grid;place-items:center;font-size:12px;transition:.2s}
+.pips .f{border-style:solid;border-color:var(--accent);background:color-mix(in srgb,var(--accent) 16%,var(--card))}
+.pips .w{opacity:.5;font-size:10px;border-style:solid}
+.pips .cur{border:2px solid var(--text)}
+.pips .pop{animation:pop .4s}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:var(--or,14px);background:var(--card);border:2px solid var(--line);cursor:pointer;font-weight:700;transition:.15s;user-select:none;box-shadow:0 3px 0 var(--line)}
+.opt .k{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font-size:11px;color:var(--sub);flex:none}
+.opt:hover{border-color:var(--accent)}
+.opt.ok{background:color-mix(in srgb,var(--ok) 18%,var(--card));border-color:var(--ok);box-shadow:0 3px 0 var(--ok);animation:pop .35s}
+.opt.ok .k{background:var(--ok);border-color:var(--ok);color:#fff}
+.opt.bad{background:color-mix(in srgb,var(--bad) 18%,var(--card));border-color:var(--bad);box-shadow:0 3px 0 var(--bad);animation:shake .4s}
+.opt.bad .k{background:var(--bad);border-color:var(--bad);color:#fff}
+.opts.done .opt{pointer-events:none}
+@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+@keyframes pop{50%{transform:scale(1.06)}}
+.fb{display:none;margin-top:10px;padding:10px 12px;border-radius:var(--r);font-size:12px;line-height:1.5}
+.fb.show{display:block;animation:pop .3s}
+.fb.ok{background:color-mix(in srgb,var(--ok) 16%,var(--card))}
+.fb.bad{background:color-mix(in srgb,var(--bad) 16%,var(--card))}
+.fb b{display:block;margin-bottom:2px;font-size:13px}
+.fb small{color:var(--sub);display:block;margin-top:4px;font-size:10.5px}
+.hint{font-size:10.5px;color:var(--sub);text-align:center;margin-top:8px}
+.fly{position:absolute;left:50%;top:46%;font-size:26px;font-weight:900;z-index:20;pointer-events:none;animation:fly 1.1s ease-out forwards;color:var(--accent);text-shadow:0 2px 10px rgba(0,0,0,.35);white-space:nowrap}
+@keyframes fly{0%{opacity:0;transform:translate(-50%,24px) scale(.6)}20%{opacity:1;transform:translate(-50%,0) scale(1.25)}100%{opacity:0;transform:translate(-50%,-110px) scale(1)}}
+
+/* result */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.stats div{background:var(--card);border-radius:var(--r);padding:10px;text-align:center;border:1px solid var(--line)}
+.stats b{display:block;font-size:16px}
+.stats span{font-size:10px;color:var(--sub)}
+.rwd{text-align:center;padding:16px 12px;background:var(--rwdbg,var(--card))}
+.rwd .big{font-size:44px;line-height:1.1}
+.rwd h3{font-size:17px;margin:6px 0 2px}
+.rwd svg{height:140px;width:auto;display:block;margin:0 auto 4px}
+
+/* chart */
+.seg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:3px;margin-bottom:12px}
+.seg button{flex:1;border:0;background:transparent;padding:6px;border-radius:9px;font-weight:800;font-size:12px;color:var(--sub);cursor:pointer;font-family:inherit}
+.seg button.on{background:var(--accent);color:var(--onacc)}
+.chart{display:flex;align-items:flex-end;gap:7px;height:110px;margin-top:10px}
+.chart div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;height:100%;font-size:9.5px;color:var(--sub)}
+.chart i{display:block;width:100%;background:var(--accent);border-radius:6px 6px 3px 3px;transition:height .4s;opacity:.85}
+.chart div:last-child i{opacity:1}
+.kpis{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+.kpis div{background:var(--card);border-radius:var(--r);padding:10px;border:1px solid var(--line)}
+.kpis span{font-size:10px;color:var(--sub);display:block}
+.kpis b{font-size:18px;display:block;margin-top:2px}
+.kpis em{font-style:normal;font-size:10px;color:var(--ok);font-weight:800}
+.weak{margin-bottom:10px}
+.weak .row{font-size:12px;margin-bottom:4px;font-weight:700}
+
+/* form */
+.field{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:1px solid var(--line);gap:10px}
+.field:last-child{border:0}
+.field label{color:var(--sub);font-size:12px;flex:none}
+.field .v{font-weight:700;text-align:right}
+.ta{padding:12px 14px;font-weight:700;line-height:1.5;border-bottom:1px solid var(--line)}
+.attach{display:flex;gap:8px;padding:12px 14px}
+.attach div{flex:1;border:1.5px dashed var(--line);border-radius:10px;padding:10px 0;text-align:center;font-size:11px;color:var(--sub);font-weight:700}
+.attach div.has{border-style:solid;border-color:var(--accent);color:var(--accent)}
+.swipe{position:relative;overflow:hidden}
+.swipe .del{position:absolute;right:0;top:0;bottom:0;width:64px;background:var(--bad);color:#fff;display:grid;place-items:center;font-weight:800;font-size:12px}
+.swipe .it{position:relative;background:var(--card);transform:translateX(-64px)}
+.search{background:var(--card);border-radius:12px;padding:8px 12px;color:var(--sub);margin-bottom:10px;font-size:12px;border:1px solid var(--line)}
+.fab{position:absolute;right:16px;bottom:92px;width:48px;height:48px;border-radius:16px;background:var(--accent);color:var(--onacc);display:grid;place-items:center;font-size:24px;box-shadow:0 6px 16px rgba(0,0,0,.3);z-index:9}
+
+/* ===== common animations ===== */
+@keyframes fall{0%{transform:translateY(-10px);opacity:0}10%{opacity:1}100%{transform:translateY(150px);opacity:.1}}
+@keyframes twinkle{50%{opacity:.3}}
+@keyframes pulse{0%{r:22;opacity:.9}100%{r:34;opacity:0}}
+@keyframes floaty{50%{transform:translateY(-8px) rotate(6deg)}}
+.snow circle{animation:fall 5s linear infinite}
+.twinkle{animation:twinkle 2.4s infinite}
+.pulse{animation:pulse 1.8s infinite}
+
+/* =============== A : 산타의 작업실 탈출 (크리스마스 트리 × 방탈출) =============== */
+.t-a{--bg:#fbf3e6;--card:#fffdf8;--text:#2b1a14;--sub:#8c6f62;--accent:#c8382b;--onacc:#fff;--ok:#2f8f5b;--bad:#d64545;--line:#ecdcc6;--r:18px;--font:"Apple SD Gothic Neo","Pretendard",sans-serif;--tabbg:#fffaf0;--hero:linear-gradient(135deg,#1b6b42,#0f432b);--herobtn:#ffd96b;--herobtntx:#4a2a00;--wall:#f4dfc0;--floor:#c99d6b;--win:#bfe3ff;--rwdbg:linear-gradient(#fffdf8,#f8e9d0)}
+[data-mode=dark] .t-a{--bg:#0c1a14;--card:#14271e;--text:#f7eedc;--sub:#9fb5a7;--accent:#ff6a5c;--onacc:#2a0b07;--line:#254036;--ok:#4ed08a;--bad:#ff7a7a;--tabbg:#0f2019;--wall:#16291f;--floor:#3b2a1c;--win:#0b2b4e;--hero:linear-gradient(135deg,#1f7a4c,#0f3b27);--rwdbg:linear-gradient(#14271e,#0f2019)}
+
+/* =============== B : 무인도 탈출 (계절 이벤트 스킨) =============== */
+.t-b{--bg:#e6f7f5;--card:#fff;--text:#0e3a40;--sub:#5a8589;--accent:#0f9fa8;--onacc:#fff;--ok:#27b36f;--bad:#ee5a5a;--line:#c8e6e3;--r:20px;--font:"Apple SD Gothic Neo","Pretendard",ui-rounded,sans-serif;--tabbg:#fff;--hero:linear-gradient(135deg,#17b5c6,#0a7ea4);--herobtn:#ffe08a;--herobtntx:#5a3a00;--sky1:#9fe3ef;--sky2:#e8fbff;--sea:#2aa6c4;--sand:#f3d9a0;--sun:#ffd25a;--rwdbg:linear-gradient(#e8fbff,#bfeef3)}
+[data-mode=dark] .t-b{--bg:#05202a;--card:#0b3340;--text:#e6fbfb;--sub:#8ec0c4;--accent:#2fd6d6;--onacc:#022a2e;--line:#16505e;--ok:#3ee59a;--bad:#ff7b7b;--tabbg:#0a2d38;--sky1:#04131d;--sky2:#0d3a52;--sea:#0b5a78;--sand:#8a7a52;--sun:#e8edf5;--hero:linear-gradient(135deg,#0d7f93,#0a4a6e);--rwdbg:linear-gradient(#0d3a52,#0b3340)}
+
+/* =============== C : 우주 탐사 =============== */
+.t-c{--bg:#eceeff;--card:#fff;--text:#14173a;--sub:#6a6f9c;--accent:#5b4bff;--onacc:#fff;--ok:#12b57a;--bad:#ff5a7a;--line:#d8dbf6;--r:18px;--font:-apple-system,"SF Pro Display","Apple SD Gothic Neo",sans-serif;--tabbg:rgba(255,255,255,.95);--hero:linear-gradient(135deg,#1b1f5e,#4a2bb0);--herobtn:#8cf0d0;--herobtntx:#06352a;--space:#12154a;--onspace:#e8eaff;--rwdbg:linear-gradient(#1b1f5e,#32208a);--onrwd:#fff}
+[data-mode=dark] .t-c{--bg:#050716;--card:#0e1230;--text:#eef0ff;--sub:#8e94c8;--accent:#8c7dff;--onacc:#0a0830;--line:#222858;--ok:#2ee6a0;--bad:#ff6b8a;--tabbg:rgba(11,14,40,.95);--space:#0a0d2c;--hero:linear-gradient(135deg,#17195a,#3a1f94);--rwdbg:linear-gradient(#17195a,#2a1a78)}
+.t-c .rwd{color:#fff}
+.t-c .rwd .sub{color:#c7caff}
+.t-c .opt.ok,.t-c .opt.bad{box-shadow:0 0 18px -4px currentColor}
+.t-c .opt.ok{color:var(--ok)}.t-c .opt.bad{color:var(--bad)}
+.t-c .opt.ok>*,.t-c .opt.bad>*{color:var(--text)}
+.t-c .opt.ok .k,.t-c .opt.bad .k{color:#fff}
+.t-c .bar i{box-shadow:0 0 8px var(--accent)}
+.t-c .stats b,.t-c .kpis b{font-family:ui-monospace,Menlo,monospace}
+
+/* =============== D : 계절 이벤트 컬렉션 (시즌별 스킨 교체) =============== */
+.t-d{--font:"Apple SD Gothic Neo","Pretendard",ui-rounded,sans-serif;--r:20px;--ok:#2dbd75;--bad:#ee5470}
+.t-d[data-s=spring]{--bg:#fff1f6;--card:#fff;--text:#3b2230;--sub:#9a7184;--accent:#e8588b;--onacc:#fff;--line:#f6d5e2;--tabbg:#fff;--hero:linear-gradient(135deg,#f77fa8,#ffb3cd);--herobtn:#fff;--herobtntx:#b02a5c;--stage1:#ffd6e5;--stage2:#fff1f6;--rwdbg:linear-gradient(#ffe3ee,#fff)}
+[data-mode=dark] .t-d[data-s=spring]{--bg:#1b1117;--card:#2a1b23;--text:#ffeaf1;--sub:#c49bb0;--accent:#ff8db4;--onacc:#3a0a1d;--line:#46303b;--tabbg:#24161e;--hero:linear-gradient(135deg,#b24773,#7a2f50);--stage1:#4a2a3a;--stage2:#2a1b23;--rwdbg:linear-gradient(#3a2230,#2a1b23)}
+.t-d[data-s=autumn]{--bg:#fff3e2;--card:#fffdf8;--text:#35200f;--sub:#97724e;--accent:#ef7418;--onacc:#fff;--line:#f1dbc0;--tabbg:#fff9ef;--hero:linear-gradient(135deg,#ff9a3c,#c1480c);--herobtn:#2b1245;--herobtntx:#ffd27a;--stage1:#ffd9a8;--stage2:#fff3e2;--rwdbg:linear-gradient(#ffe2bd,#fffdf8)}
+[data-mode=dark] .t-d[data-s=autumn]{--bg:#140b1d;--card:#22142f;--text:#fbeed9;--sub:#b79fcb;--accent:#ff9a3c;--onacc:#2a1200;--line:#3a2650;--tabbg:#1c1028;--hero:linear-gradient(135deg,#4a1f6e,#22103a);--herobtn:#ff9a3c;--herobtntx:#2a1200;--stage1:#3b2158;--stage2:#22142f;--rwdbg:linear-gradient(#3b2158,#22142f)}
+.t-d[data-s=winter]{--bg:#e9f3fc;--card:#fff;--text:#14304a;--sub:#6a8aa6;--accent:#3b8fe0;--onacc:#fff;--line:#d1e4f5;--tabbg:#fff;--hero:linear-gradient(135deg,#7cc2f6,#3b8fe0);--herobtn:#fff;--herobtntx:#1b5fa8;--stage1:#cfe8fb;--stage2:#eef6fd;--rwdbg:linear-gradient(#d9ecfc,#fff)}
+[data-mode=dark] .t-d[data-s=winter]{--bg:#09131f;--card:#102238;--text:#eaf6ff;--sub:#8fb0cc;--accent:#6bb8ff;--onacc:#06223d;--line:#1d3753;--tabbg:#0d1c2e;--hero:linear-gradient(135deg,#1f4a7a,#0e2a47);--stage1:#17406a;--stage2:#102238;--rwdbg:linear-gradient(#17406a,#102238)}
+.dscene{border-radius:var(--r);background:linear-gradient(var(--stage1),var(--stage2));border:1px solid var(--line);padding:12px;margin-bottom:12px;position:relative;overflow:hidden;text-align:center}
+.dscene .top{display:flex;justify-content:space-between;align-items:center}
+.dscene .center{font-size:84px;line-height:1.1;margin:4px 0;filter:drop-shadow(0 8px 10px rgba(0,0,0,.2))}
+.dscene .fl{position:absolute;font-size:16px;animation:floaty 3.2s ease-in-out infinite}
+.slots{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px}
+.slots span{aspect-ratio:1;border-radius:12px;background:var(--card);border:1px solid var(--line);display:grid;place-items:center;font-size:20px}
+.slots span.lock{filter:grayscale(1) brightness(.7);opacity:.5;border-style:dashed}
+.track{display:flex;gap:6px;overflow:hidden;margin-bottom:12px}
+.track div{flex:1;text-align:center;font-size:10px;font-weight:800;color:var(--sub)}
+.track div span{display:grid;place-items:center;height:34px;border-radius:12px;background:var(--card);border:1px solid var(--line);font-size:16px;margin-bottom:3px}
+.track div.d span{background:var(--accent);border-color:var(--accent);color:var(--onacc)}
+.track div.c span{border:2px solid var(--accent);animation:pop 1.4s infinite}
+.t-d .seasonchip{background:rgba(255,255,255,.25)}
+</style>
+</head>
+<body data-mode="light">
+<header class="top">
+  <h1>🎮 퀴즈 iOS 앱 · 게임 테마 시안 4종</h1>
+  <div class="tabs" id="tabs"></div>
+  <button class="modebtn" id="modebtn">🌙 다크모드 미리보기</button>
+</header>
+<main>
+  <section class="intro" id="intro"></section>
+  <div class="seasonbar" id="seasonbar"></div>
+  <div class="screens" id="screens"></div>
+  <h2 style="font-size:18px;margin:8px 0 6px">시안 비교</h2>
+  <table class="compare" id="compare"></table>
+  <p style="color:var(--pagesub);font-size:12px;margin-top:18px;line-height:1.7">※ iPhone 세로 기준 시안입니다. 3번 화면의 보기를 눌러 정답/오답 피드백과 보상 연출(색상·흔들림·소리·진동)을 체험할 수 있습니다. 상단 버튼으로 라이트/다크 모드를 전환해 확인해 주세요. 그림은 이모지·SVG로 만든 임시 그림이며, 실제 제작 단계에서 일러스트로 교체합니다.</p>
+</main>
+
+<script>
+const ico={
+ home:'<svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg>',
+ play:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M10 8.5l6 3.5-6 3.5z"/></svg>',
+ chart:'<svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
+ list:'<svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>'
+};
+let season='winter';
+
+/* ---------- 컨셉 데이터 ---------- */
+const BASE={
+a:{name:'A · 산타의 작업실 탈출',sub:'추천 조합 ① 크리스마스 트리 × 방탈출',
+ title:'장식을 달아 트리를 완성하면, 잠긴 문이 열려요',
+ desc:'산타의 작업실에 갇힌 상태로 시작합니다. 문제를 맞힐 때마다 트리에 장식이 하나씩 달리고, 트리가 완성되면 열쇠 조각을 얻습니다. 열쇠 3조각을 모으면 문이 열리고 다음 방으로 넘어갑니다. 지금 시즌에 맞는 분위기와 방탈출의 "끝까지 풀고 싶은 마음"을 함께 노립니다.',
+ pills:['크리스마스 시즌','방탈출 스토리','트리 꾸미기','완성 이미지 공유'],
+ loop:['문제 풀기','장식 달기','트리 완성 → 열쇠 조각','문 열고 다음 방'],
+ map:['카테고리 = 방 (서재·아틀리에·연구실)','반응형 출제 = 아직 안 열린 자물쇠(약한 주제) 우선 배치','세션 요약 = 오늘 단 장식 + 오답은 "놓친 단서"로 저장','대시보드 = 트리 완성도, 열쇠 진행, 못 연 방'],
+ note:'오답이어도 벌칙은 없고, 그 문제의 장식만 달리지 않습니다.',
+ tabs:['방','출제','기록','관리'],app:'산타의 작업실',
+ rw:'🔔',rwName:'장식',hud:'서재 방 · 🔑 열쇠 조각 2/3',
+ zones:[['📚','서재','iOS',78],['🎨','아틀리에','Design',66],['🔬','연구실','CS',54]],
+ weakTitle:'아직 열리지 않은 방',collect:['🎄 트리 장식','4 / 12',33],
+ heroT:'오늘의 맞춤 자물쇠 10개',heroS:'정답률이 낮은 연구실(CS) 문제를 먼저 배치했어요',why:['CS 정답률 54%','iOS 선호 ↑','복습 3문제'],btn:'방으로 들어가기',
+ fbOk:['딸깍! 자물쇠가 풀렸어요','🔔 장식 +1 · 트리가 한 칸 더 반짝여요. struct는 값 타입이라 복사하면 독립 사본이 생겨요.'],
+ fbBad:['자물쇠가 꿈쩍도 안 해요','이번 장식은 달지 못했어요. 정답은 B. 단서는 오답 노트에 저장돼요.'],
+ rec:'다음 방의 힌트',mgr:'자물쇠 문제 관리',
+ missions:[['오늘 5문제 풀기',1,'+1 🔔'],['3연속 정답 달성',1,'+1 🔔'],['연구실(CS) 복습 3문제',0,'🎁 선물']],
+ goalT:'장식 8개를 더 달면 3번째 열쇠 조각!',goalS:'트리 완성까지 8칸 남았어요'},
+b:{name:'B · 무인도 탈출',sub:'추천 조합 ② 무인도 탈출 × 계절 이벤트',
+ title:'재료를 모아 뗏목을 만들고, 겨울 섬에서 탈출해요',
+ desc:'무인도에 표류한 상태로 시작합니다. 정답이 나무·밧줄·돛천 같은 재료가 되어 뗏목이 6단계로 완성되고, 완성하면 섬을 탈출합니다. 이번 달은 "오로라 겨울 섬" 한정 스킨으로 눈이 내리는 섬을 꾸밀 수 있고, 시즌이 끝나면 다른 스킨으로 바뀝니다. 몇 주에 걸친 장기 목표가 있는 구성입니다.',
+ pills:['장기 목표(6단계)','시즌 스킨','재료 수집','보너스 상자'],
+ loop:['문제 풀기','재료 얻기','뗏목 한 단계 제작','섬 탈출 → 새 섬'],
+ map:['카테고리 = 섬의 구역 (정글·해변·동굴)','반응형 출제 = 아직 탐험 못한 구역(약한 주제) 우선','세션 요약 = 오늘 모은 재료와 뗏목 진척도','대시보드 = 뗏목 단계, 주간 탐험량, 못 간 구역'],
+ note:'오답이면 재료를 얻지 못할 뿐 기존 재료는 줄지 않습니다.',
+ tabs:['섬','출제','기록','관리'],app:'아일랜드 이스케이프',
+ rw:'🪵',rwName:'재료',hud:'정글 구역 · 🛶 뗏목 3/6단계',
+ zones:[['🌴','정글','iOS',78],['🏖️','해변','Design',66],['🕳️','동굴','CS',54]],
+ weakTitle:'탐험이 필요한 구역',collect:['🛶 뗏목 제작','3 / 6 단계',50],
+ heroT:'오늘의 탐험 10문제',heroS:'동굴(CS)에 아직 못 간 문제가 많아요',why:['CS 정답률 54%','iOS 선호 ↑','복습 3문제'],btn:'탐험 떠나기',
+ fbOk:['튼튼한 통나무를 얻었어요!','🪵 재료 +1 · struct는 값 타입이라 복사하면 독립 사본이 생겨요.'],
+ fbBad:['파도에 재료가 떠내려갔어요','이번엔 재료를 못 얻었어요. 정답은 B. 오답 노트에 저장했어요.'],
+ rec:'섬 탐험 가이드',mgr:'탐험 문제 관리',
+ missions:[['오늘 5문제 풀기',1,'+1 🪢'],['3연속 정답 달성',0,'📦 상자'],['동굴(CS) 3문제',0,'+1 🧵']],
+ goalT:'재료 3개를 더 모으면 4단계 완성!',goalS:'뗏목 돛을 달 차례예요'},
+c:{name:'C · 우주 탐사',sub:'추천 조합 ③ 우주 탐사',
+ title:'정답으로 연료를 채우고, 행성을 하나씩 탐험해요',
+ desc:'우주선을 타고 행성을 차례로 방문합니다. 정답이 연료가 되어 다음 행성까지 이동하고, 도착하면 행성 도감 카드를 얻습니다. 카테고리가 행성이어서 진행 상황이 한 장의 지도로 보이고, 아직 못 간 약한 분야는 안개 낀 행성으로 표시됩니다. 일러스트 부담이 낮고 다크모드와 가장 잘 어울립니다.',
+ pills:['별자리 지도','행성 도감','다크모드 최적','제작 부담 낮음'],
+ loop:['문제 풀기','연료 충전','행성 도착','도감 카드 + 다음 행성'],
+ map:['카테고리 = 행성 (iOS·Design·CS)','반응형 출제 = 안개 낀 행성(약한 주제)으로 항로 설정','세션 요약 = 도착 행성, 연료, 도감 카드, 오답 노트','대시보드 = 항해 거리, 주간 연료량, 미탐사 행성'],
+ note:'오답이면 연료를 덜 얻을 뿐 이미 간 행성은 그대로입니다.',
+ tabs:['지도','출제','항해일지','관리'],app:'오비트',
+ rw:'⚡',rwName:'연료',hud:'CS 행성으로 이동 중 · 🚀 62%',
+ zones:[['🪐','iOS 행성','iOS',78],['🌍','Design 행성','Design',66],['🌑','CS 행성','CS',54]],
+ weakTitle:'안개 낀 행성',collect:['📖 행성 도감','2 / 5 행성',40],
+ heroT:'CS 행성으로 가는 항로',heroS:'정답률 54%의 CS 문제를 중심으로 10문제를 골랐어요',why:['CS 정답률 54%','iOS 선호 ↑','복습 3문제'],btn:'발사 준비',
+ fbOk:['연료 충전 완료!','⚡ 연료 +1 · struct는 값 타입이라 복사하면 독립 사본이 생겨요.'],
+ fbBad:['궤도가 살짝 흔들렸어요','이번엔 연료를 못 채웠어요. 정답은 B. 오답 노트에 저장했어요.'],
+ rec:'항해 참고 자료',mgr:'항로 문제 관리',
+ missions:[['오늘 5문제 풀기',1,'+1 ⚡'],['3연속 정답 달성',1,'+1 ⚡'],['CS 행성 도착하기',0,'🌑 도감']],
+ goalT:'연료 38%를 더 채우면 CS 행성 도착!',goalS:'도착하면 도감 카드를 받아요'},
+d:{name:'D · 계절 이벤트 컬렉션',sub:'추천 목록 10번 독립 · 시즌 한정 꾸미기 × 시즌 패스',
+ title:'시즌마다 스킨이 바뀌고, 한정 아이템을 모아 꾸며요',
+ desc:'벚꽃·할로윈·눈사람 같은 계절 테마를 한 가지 구조로 돌려 쓰는 시안입니다. 정답이 시즌 포인트가 되어 시즌 보상 트랙이 열리고, 한정 아이템으로 중앙 오브제(벚나무·호박·눈사람)를 꾸밉니다. 구조는 그대로이고 이미지와 색만 교체하므로 제작 부담이 낮습니다. 위 버튼으로 시즌을 바꿔보세요.',
+ pills:['시즌 패스','한정 아이템','구조 1개 · 스킨 교체','제작 부담 낮음'],
+ loop:['문제 풀기','시즌 포인트','보상 트랙 해금','한정 아이템 꾸미기'],
+ map:['카테고리 = 시즌 미션 (iOS·Design·CS 미션)','반응형 출제 = 약한 주제를 미션으로 먼저 제시','세션 요약 = 오늘 포인트, 새 아이템·뱃지, 오답 노트','대시보드 = 시즌 진행도, 주간 포인트, 미완성 미션'],
+ note:'시즌이 끝나도 모은 아이템은 컬렉션에 남습니다.',
+ tabs:['시즌','출제','기록','관리'],collectN:5,
+ why:['CS 정답률 54%','iOS 선호 ↑','복습 3문제'],
+ missions:[['오늘 5문제 풀기',1,'+50 P'],['3연속 정답 달성',1,'+30 P'],['CS 미션 3문제',0,'🎁 아이템']]},
+};
+const SEASONS={
+ spring:{label:'🌸 벚꽃 시즌',app:'벚꽃 시즌',rw:'🌸',rwName:'꽃잎',pts:'꽃잎',center:'🌳',float:['🌸','🌸','🦋','🌸'],items:['🌸','🦋','🐝','🧺','🍡','🐦','🎏','🌷'],tr:['🌷','🧺','🌸','🎏','🦋','🍡','🐦','👑'],d:'D-21',sceneT:'벚나무를 꽃피워요',
+  hud:'벚꽃 시즌 · 🌸 340 / 500',zones:[['🌸','iOS 미션','iOS',78],['🌷','Design 미션','Design',66],['🍡','CS 미션','CS',54]],weakTitle:'미완성 시즌 미션',collect:['🌸 시즌 포인트','340 / 500',68],
+  heroT:'벚꽃 미션 10문제',heroS:'꽃잎을 모아 벚나무를 활짝 피워요',btn:'꽃잎 모으러 가기',
+  fbOk:['꽃잎이 활짝 피었어요!','🌸 꽃잎 +1 · struct는 값 타입이라 복사하면 독립 사본이 생겨요.'],fbBad:['꽃잎이 바람에 날아갔어요','이번엔 꽃잎을 못 얻었어요. 정답은 B. 오답 노트에 저장했어요.'],
+  rec:'봄 시즌 추천 자료',mgr:'시즌 미션 문제 관리',goalT:'꽃잎 160개를 더 모으면 시즌 보상 6!',goalS:'다음 보상: 🦋 나비 한정 아이템',rewardName:'🌸 벚꽃 요정 뱃지'},
+ autumn:{label:'🎃 할로윈 시즌',app:'할로윈 시즌',rw:'🍬',rwName:'사탕',pts:'사탕',center:'🎃',float:['🦇','👻','🦇','🕸️'],items:['👻','🦇','🕸️','🍬','🕯️','🧙','🐈‍⬛','🍭'],tr:['🕯️','🍭','👻','🦇','🕸️','🧙','🐈‍⬛','👑'],d:'D-12',sceneT:'호박 랜턴을 꾸며요',
+  hud:'할로윈 시즌 · 🍬 340 / 500',zones:[['🎃','iOS 미션','iOS',78],['👻','Design 미션','Design',66],['🧙','CS 미션','CS',54]],weakTitle:'미완성 시즌 미션',collect:['🍬 시즌 포인트','340 / 500',68],
+  heroT:'할로윈 미션 10문제',heroS:'사탕을 모아 호박 랜턴을 꾸며요',btn:'사탕 받으러 가기',
+  fbOk:['트릭 오어 트릿! 정답이에요','🍬 사탕 +1 · struct는 값 타입이라 복사하면 독립 사본이 생겨요.'],fbBad:['유령이 사탕을 가져갔어요','이번엔 사탕을 못 얻었어요. 정답은 B. 오답 노트에 저장했어요.'],
+  rec:'할로윈 시즌 추천 자료',mgr:'시즌 미션 문제 관리',goalT:'사탕 160개를 더 모으면 시즌 보상 6!',goalS:'다음 보상: 🐈‍⬛ 검은 고양이 아이템',rewardName:'🎃 호박 마법사 뱃지'},
+ winter:{label:'⛄ 눈사람 시즌',app:'눈사람 시즌',rw:'❄️',rwName:'눈송이',pts:'눈송이',center:'⛄',float:['❄️','❄️','✨','❄️'],items:['🎩','🧣','🥕','🧤','⭐','🎄','🔔','🎁'],tr:['🧤','🥕','🎩','🧣','⭐','🎄','🔔','👑'],d:'D-9',sceneT:'눈사람을 완성해요',
+  hud:'눈사람 시즌 · ❄️ 340 / 500',zones:[['⛄','iOS 미션','iOS',78],['🎄','Design 미션','Design',66],['🧣','CS 미션','CS',54]],weakTitle:'미완성 시즌 미션',collect:['❄️ 시즌 포인트','340 / 500',68],
+  heroT:'눈사람 미션 10문제',heroS:'눈송이를 모아 눈사람을 완성해요',btn:'눈송이 모으러 가기',
+  fbOk:['눈이 소복소복 쌓였어요!','❄️ 눈송이 +1 · struct는 값 타입이라 복사하면 독립 사본이 생겨요.'],fbBad:['눈이 녹아버렸어요','이번엔 눈송이를 못 얻었어요. 정답은 B. 오답 노트에 저장했어요.'],
+  rec:'겨울 시즌 추천 자료',mgr:'시즌 미션 문제 관리',goalT:'눈송이 160개를 더 모으면 시즌 보상 6!',goalS:'다음 보상: 🧤 장갑 한정 아이템',rewardName:'⛄ 눈사람 장인 뱃지'}
+};
+function th(k){return k==='d'?Object.assign({},BASE.d,SEASONS[season]):BASE[k]}
+
+/* ---------- 레이아웃 도우미 ---------- */
+function tabbar(i,labels){return `<div class="tabbar">${['home','play','chart','list'].map((k,n)=>`<div class="${n===i?'on':''}">${ico[k]}${labels[n]}</div>`).join('')}</div>`}
+function phone(k,inner,{tab=-1,fab=false}={}){const t=th(k);
+ const cls=(k==='b'||k==='c'||k==='d')&&tab>=0?'floattab':'';
+ return `<div class="phone"><div class="screen t-${k} ${cls}" ${k==='d'?`data-s="${season}"`:''} data-k="${k}"><div class="island"></div>
+ <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+ <div class="body ${tab<0?'notab':''}" ${tab>=0&&cls?'style="padding-bottom:92px"':''}>${inner}</div>${fab?'<div class="fab">＋</div>':''}${tab>=0?tabbar(tab,t.tabs):''}<div class="home-ind"></div></div></div>`}
+function missions(k){const t=th(k);return `<div class="h2">오늘의 미션 <small>2 / 3 완료</small></div><div class="lst">${t.missions.map(m=>`<div class="mis ${m[1]?'d':''}"><span class="c">${m[1]?'✓':''}</span><b>${m[0]}</b><em>${m[2]}</em></div>`).join('')}</div>`}
+
+/* ---------- 장면(SVG) ---------- */
+const SPOTS=[[110,62],[100,86],[122,90],[88,113],[110,110],[132,113],[76,142],[98,138],[122,142],[144,142],[88,160],[132,160]];
+const ORN=['#ff4d4d','#ffd23f','#4da3ff','#ff8be0'];
+function treeG(n){return `<polygon points="110,40 80,92 140,92" fill="#1f7a46"/><polygon points="110,64 68,128 152,128" fill="#26905a"/><polygon points="110,94 56,168 164,168" fill="#2fa86a"/><rect x="102" y="168" width="16" height="16" fill="#7a4a2b"/><text x="110" y="46" font-size="20" text-anchor="middle">⭐</text>`+
+ SPOTS.map((p,i)=>i<n?`<circle cx="${p[0]}" cy="${p[1]}" r="5.5" fill="${ORN[i%4]}" stroke="#fff" stroke-width="1"/>`:`<circle cx="${p[0]}" cy="${p[1]}" r="4" fill="none" stroke="#fff" stroke-opacity=".6" stroke-dasharray="2 2"/>`).join('')}
+function roomSVG(n,keys){return `<svg viewBox="0 0 268 210"><rect width="268" height="210" style="fill:var(--wall)"/><rect y="178" width="268" height="32" style="fill:var(--floor)"/>
+ <rect x="14" y="40" width="54" height="58" rx="3" style="fill:var(--win)" stroke="#8b5e3c" stroke-width="3"/><path d="M41 40v58M14 69h54" stroke="#8b5e3c" stroke-width="2"/>
+ <g class="snow" fill="#fff"><circle cx="24" cy="44" r="2"/><circle cx="38" cy="40" r="1.6" style="animation-delay:1s"/><circle cx="52" cy="44" r="2" style="animation-delay:2s"/><circle cx="30" cy="46" r="1.5" style="animation-delay:3s"/><circle cx="58" cy="42" r="1.8" style="animation-delay:.5s"/></g>
+ <rect x="194" y="62" width="58" height="116" rx="4" fill="#7a4a2b"/><rect x="202" y="70" width="42" height="46" rx="2" fill="#8d5a36"/>
+ <rect x="215" y="126" width="18" height="15" rx="2" fill="#e0a526"/><path d="M219 126v-6a5 5 0 0110 0v6" stroke="#e0a526" fill="none" stroke-width="3"/>
+ ${[0,1,2].map(i=>`<text x="${204+i*17}" y="198" font-size="14" opacity="${i<keys?1:.3}">🔑</text>`).join('')}
+ <g>${treeG(n)}</g>
+ <rect x="62" y="172" width="22" height="14" rx="2" fill="#e04f4f"/><rect x="71" y="172" width="4" height="14" fill="#ffd23f"/><rect x="150" y="174" width="20" height="12" rx="2" fill="#4da3ff"/><rect x="158" y="174" width="4" height="12" fill="#fff"/></svg>`}
+function raftG(n){const pcs=[
+ `<rect x="150" y="152" width="78" height="9" rx="4" fill="#9a6a3a"/>`,`<rect x="150" y="163" width="78" height="9" rx="4" fill="#b07a44"/>`,`<rect x="150" y="174" width="78" height="9" rx="4" fill="#9a6a3a"/>`,
+ `<line x1="189" y1="152" x2="189" y2="96" stroke="#6b4a2b" stroke-width="4" stroke-linecap="round"/>`,`<polygon points="192,98 192,148 228,148" fill="#fff" stroke="#ddd"/>`,`<polygon points="189,96 189,106 176,101" fill="#ee5a5a"/>`];
+ return pcs.map((p,i)=>i<n?p:`<g opacity=".55" style="filter:grayscale(1)">${p.replace(/fill="#[0-9a-f]+"/i,'fill="none" stroke="#fff" stroke-dasharray="3 3"').replace(/stroke="#6b4a2b"/,'stroke="#fff" stroke-dasharray="3 3"')}</g>`).join('')}
+function islandSVG(n){return `<svg viewBox="0 0 268 210"><defs><linearGradient id="skyB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--sky1)"/><stop offset="1" style="stop-color:var(--sky2)"/></linearGradient></defs>
+ <rect width="268" height="210" fill="url(#skyB)"/><circle cx="226" cy="36" r="15" style="fill:var(--sun)"/>
+ <path d="M0 40 Q60 10 130 36 T268 22" stroke="#5dffb0" stroke-width="14" fill="none" opacity=".28"/><path d="M0 58 Q70 30 140 54 T268 40" stroke="#b58bff" stroke-width="10" fill="none" opacity=".25"/>
+ <path d="M0 150 Q22 140 44 150 T88 150 T132 150 T176 150 T220 150 T268 150 V210 H0Z" style="fill:var(--sea)"/><path d="M0 170 Q22 162 44 170 T88 170 T132 170 T176 170 T220 170 T268 170 V210 H0Z" fill="#fff" opacity=".12"/>
+ <ellipse cx="64" cy="164" rx="58" ry="20" style="fill:var(--sand)"/><ellipse cx="64" cy="154" rx="38" ry="8" fill="#fff" opacity=".9"/>
+ <text x="64" y="156" font-size="54" text-anchor="middle">🌴</text><text x="108" y="176" font-size="14">🦀</text><text x="26" y="190" font-size="14">🍾</text>
+ <g>${raftG(n)}</g><text x="190" y="202" font-size="10" font-weight="800" text-anchor="middle" fill="#fff">뗏목 ${n}/6단계</text>
+ <g class="snow" fill="#fff"><circle cx="30" cy="10" r="2"/><circle cx="80" cy="6" r="1.6" style="animation-delay:1s"/><circle cx="130" cy="10" r="2" style="animation-delay:2s"/><circle cx="180" cy="4" r="1.5" style="animation-delay:3s"/><circle cx="240" cy="8" r="2" style="animation-delay:.5s"/><circle cx="110" cy="8" r="1.4" style="animation-delay:2.5s"/></g></svg>`}
+const STARS=Array.from({length:34},(_,i)=>[(i*53+17)%268,(i*89+11)%250,.6+((i*7)%10)/10]);
+function spaceSVG(){const P=[[56,214],[192,176],[76,128],[196,80],[104,34]],N=['지구 기지','iOS 행성','CS 행성','Design 행성','???'],G=['#4aa8ff','#ffb35a','#a07bff','#6a7090','#444a66'];
+ const seg=(a,b,done)=>`<line x1="${P[a][0]}" y1="${P[a][1]}" x2="${P[b][0]}" y2="${P[b][1]}" stroke="${done?'#8cf0d0':'#8e94c8'}" stroke-width="${done?3:2}" ${done?'':'stroke-dasharray="5 5"'} opacity="${done?.9:.6}"/>`;
+ return `<svg viewBox="0 0 268 250"><rect width="268" height="250" style="fill:var(--space)"/>${STARS.map(s=>`<circle class="twinkle" cx="${s[0]}" cy="${s[1]}" r="${s[2]}" fill="#fff" style="animation-delay:${(s[0]%5)*.4}s"/>`).join('')}
+ ${seg(0,1,1)}${seg(1,2,1)}${seg(2,3,0)}${seg(3,4,0)}
+ ${P.map((p,i)=>{const done=i<2,cur=i===2;return `<g><circle cx="${p[0]}" cy="${p[1]}" r="20" fill="${G[i]}" opacity="${i>2?.55:1}"/><ellipse cx="${p[0]}" cy="${p[1]}" rx="30" ry="6" fill="none" stroke="#fff" stroke-opacity=".35" transform="rotate(-18 ${p[0]} ${p[1]})" ${i===3?'':'style="display:none"'}/>${cur?`<circle class="pulse" cx="${p[0]}" cy="${p[1]}" r="22" fill="none" stroke="#8cf0d0" stroke-width="2"/>`:''}
+ <text x="${p[0]}" y="${p[1]+6}" font-size="16" text-anchor="middle" fill="#fff">${done?'✓':i>2?'🔒':''}</text><text x="${p[0]}" y="${p[1]+36}" font-size="10" font-weight="700" text-anchor="middle" fill="#e8eaff">${N[i]}</text></g>`}).join('')}
+ <text x="${P[2][0]+32}" y="${P[2][1]-14}" font-size="22">🚀</text><text x="196" y="124" font-size="10" fill="#8e94c8" text-anchor="middle" opacity=".8">☁ 안개 지역</text></svg>`}
+function sceneD(){const t=th('d');const fl=[[10,40],[82,48],[14,120],[80,126]];
+ return `<div class="dscene"><div class="top"><span class="tag">${t.label}</span><span class="chip on">${t.d}</span></div>
+ ${t.float.map((f,i)=>`<span class="fl" style="left:${[10,84,12,82][i]}%;top:${[24,30,62,66][i]}%;animation-delay:${i*.6}s">${f}</span>`).join('')}
+ <div class="center">${t.center}</div><div style="font-weight:800;font-size:14px">${t.sceneT}</div>
+ <div class="slots">${t.items.map((it,i)=>`<span class="${i<th('d').collectN?'':'lock'}">${it}</span>`).join('')}</div></div>`}
+
+/* ---------- 화면 ---------- */
+function world(k){const t=th(k);
+ const head={a:`<div class="nav"><span class="sub">크리스마스 룸 · 1번째 방</span><span class="a">🎒 보관함</span></div><div class="large">${t.app}</div>`,
+  b:`<div class="nav"><span class="sub">❄ 오로라 겨울 섬 (이번 달 한정)</span><span class="a">🎒 배낭</span></div><div class="large">${t.app}</div>`,
+  c:`<div class="nav"><span class="sub">항해 7일째 · 🚀 연료 62%</span><span class="a">📖 도감</span></div><div class="large">${t.app}</div>`,
+  d:`<div class="nav"><span class="sub">시즌 보상 5 / 8 · ${t.d}</span><span class="a">🎒 컬렉션</span></div><div class="large">${t.app}</div>`}[k];
+ let body='';
+ if(k==='a')body=`<div class="scene">${roomSVG(4,2)}</div><div class="res"><span>🔔 4/12<small>장식</small></span><span>🔑 2/3<small>열쇠 조각</small></span><span>🎁 1<small>선물</small></span></div>`;
+ if(k==='b')body=`<div class="scene">${islandSVG(3)}</div><div class="res"><span>🪵 5<small>나무</small></span><span>🪢 2<small>밧줄</small></span><span>🧵 1<small>돛천</small></span><span>📦 0<small>상자</small></span></div>`;
+ if(k==='c')body=`<div class="scene">${spaceSVG()}</div><div class="card"><div class="row"><b>⚡ 연료</b><span class="sp"></span><span class="sub">62%</span></div><div class="bar" style="margin-top:6px"><i style="width:62%"></i></div></div>`;
+ if(k==='d')body=sceneD()+`<div class="h2">시즌 보상 트랙 <small>${t.pts} 340 / 500</small></div><div class="track">${t.tr.map((r,i)=>`<div class="${i<5?'d':i===5?'c':''}"><span>${i<5?'✓':r}</span>${i+1}</div>`).join('')}</div>`;
+ return head+body+`<div class="card goal"><div class="big">${k==='a'?'🔑':k==='b'?'🛶':k==='c'?'🌑':'🎁'}</div><div><b>${t.goalT}</b><div class="sub">${t.goalS}</div></div></div><div class="btn">${k==='a'?'이어서 풀기':k==='b'?'이어서 탐험':k==='c'?'이어서 항해':'이어서 풀기'}</div>`+missions(k)}
+
+function setup(k){const t=th(k);
+ return `<div class="nav"><span class="sub">출제 설정</span><span class="a">초기화</span></div><div class="large">오늘의 출제</div>
+ <div class="hero"><span class="tag">반응형 출제</span><h3>${t.heroT}</h3><p>${t.heroS}</p><div class="why">${t.why.map(w=>`<span>${w}</span>`).join('')}</div><div class="btn">${t.btn}</div></div>
+ <div class="h2">필터</div><div class="chips"><span class="chip on">전체</span><span class="chip">iOS</span><span class="chip">Design</span><span class="chip">CS</span><span class="chip">#Swift</span><span class="chip">쉬움</span><span class="chip">어려움</span></div>
+ <div class="h2">${k==='a'?'방':k==='b'?'구역':k==='c'?'행성':'시즌 미션'} 선택 <small>직접 고르기</small></div>
+ <div class="lst">${t.zones.map((z,i)=>`<div class="it"><div class="dot">${z[0]}</div><div style="flex:1"><b>${z[1]}</b><span class="s">${z[2]} · 정답률 ${z[3]}%${i===2?' · 가장 약함':''}</span><div class="bar ${i===2?'bad':''}" style="margin-top:5px"><i style="width:${z[3]}%"></i></div></div></div>`).join('')}</div>`}
+
+function quiz(k){const t=th(k);
+ const pips=Array.from({length:10},(_,i)=>i===1?`<span class="w">✕</span>`:i<3?`<span class="f">${t.rw}</span>`:i===3?`<span class="cur"></span>`:`<span></span>`).join('');
+ return `<div class="hud"><span class="a" style="color:var(--accent);font-weight:700">✕</span><span style="font-weight:800">4 / 10</span><span class="gain">${t.rw} <b class="cnt">2</b></span></div>
+ <div class="ctx">${t.hud}</div><div class="pips">${pips}</div>
+ <div class="qmeta"><span class="tag">CS</span><span class="tag d">보통</span><span class="tag">#Swift</span></div>
+ <div class="q">다음 코드의 출력 결과로 알맞은 것은?</div>
+ <div class="media"><code>struct P { var x = 1 }<br>var a = P(); var b = a<br>b.x = 5; print(a.x)</code><span class="play">▶ 영상 0:12</span></div>
+ <div class="opts">${['0','1','5','컴파일 오류'].map((o,i)=>`<div class="opt" data-i="${i}"><span class="k">${'ABCD'[i]}</span>${o}</div>`).join('')}</div>
+ <div class="fb ok"><b>${t.fbOk[0]}</b>${t.fbOk[1]}<small>📳 햅틱 success · 🔊 효과음</small></div>
+ <div class="fb bad"><b>${t.fbBad[0]}</b>${t.fbBad[1]}<small>📳 햅틱 error · 🔊 효과음</small></div>
+ <div class="hint">↑ 보기를 눌러 보상 연출을 확인해보세요</div>`}
+
+function rewardPanel(k){const t=th(k);
+ if(k==='a')return `<div class="card rwd"><svg viewBox="40 24 140 164">${treeG(12)}</svg><h3>🎄 트리 완성!</h3><div class="sub">장식 +8 · 🔑 열쇠 조각 3/3 · 문이 열렸어요</div></div>`;
+ if(k==='b')return `<div class="card rwd"><svg viewBox="140 88 100 110"><g>${raftG(5)}</g></svg><h3>🛶 뗏목 5 / 6단계</h3><div class="sub">재료 +8로 2단계 제작 · 📦 보너스 상자 1개</div></div>`;
+ if(k==='c')return `<div class="card rwd"><div class="big">🌑</div><h3>CS 행성 도착!</h3><div class="sub">⚡ 연료 +8 · 📖 도감 카드 1장 획득</div></div>`;
+ return `<div class="card rwd"><div class="big">${t.center}</div><h3>${t.rewardName} 획득!</h3><div class="sub">${t.rw} ${t.pts} +80 · 시즌 보상 6 해금 · 한정 아이템 1개</div></div>`}
+function result(k){const t=th(k);
+ return `<div class="nav"><span class="a">닫기</span><span class="t">세션 결과</span><span class="a">공유</span></div>${rewardPanel(k)}
+ <div class="stats"><div><b>8/10</b><span>정답</span></div><div><b>+12%p</b><span>지난주 대비</span></div><div><b>6:42</b><span>소요 시간</span></div></div>
+ <div class="h2">오답 노트 <small>2개</small></div>
+ <div class="lst"><div class="it"><span style="color:var(--bad)">✕</span><div><b>프로토콜 지향 설계란?</b><span class="s">iOS · 내 선택 A → 정답 C</span></div></div><div class="it"><span style="color:var(--bad)">✕</span><div><b>O(n log n) 정렬 알고리즘</b><span class="s">CS · 내 선택 D → 정답 B</span></div></div></div>
+ <div class="h2">${t.rec}</div>
+ <div class="lst"><div class="it"><div class="dot">📖</div><div><b>Swift 공식 문서 · Protocols</b><span class="s">docs.swift.org</span></div></div><div class="it"><div class="dot">🎬</div><div><b>WWDC · Protocol-Oriented…</b><span class="s">developer.apple.com</span></div></div></div>
+ <div class="btn">오답만 다시 풀기</div>`}
+
+const WEEK={주:[['월',4],['화',7],['수',5],['목',9],['금',6],['토',3],['일',8]],월:[['1주',22],['2주',31],['3주',27],['4주',38]]};
+function bars(p){const d=WEEK[p],m=Math.max(...d.map(x=>x[1]));return d.map(x=>`<div><span>${x[1]}</span><i style="height:${x[1]/m*80}%"></i>${x[0]}</div>`).join('')}
+function dash(k){const t=th(k);
+ return `<div class="large">기록</div>
+ <div class="seg"><button class="on" data-p="주">주간</button><button data-p="월">월간</button></div>
+ <div class="kpis"><div><span>시도</span><b>46</b><em>▲ 8</em></div><div><span>평균 점수</span><b>78</b><em>▲ 5%</em></div><div><span>연속</span><b>12일</b><em>🔥</em></div></div>
+ <div class="card"><div class="row"><b>풀이 문제 수</b><span class="sp"></span><span class="sub">이번 주</span></div><div class="chart" data-chart>${bars('주')}</div></div>
+ <div class="card"><div class="row"><b>${t.collect[0]}</b><span class="sp"></span><span class="sub">${t.collect[1]}</span></div><div class="bar" style="margin-top:8px"><i style="width:${t.collect[2]}%"></i></div></div>
+ <div class="card"><div class="h2" style="margin-top:0">${t.weakTitle}</div>${[['CS · 자료구조',42],['Design · 접근성',55],['iOS · 동시성',61]].map(w=>`<div class="weak"><div class="row"><span>${w[0]}</span><span class="sp"></span><span class="sub">${w[1]}%</span></div><div class="bar bad"><i style="width:${w[1]}%"></i></div></div>`).join('')}</div>`}
+
+function manage(k){const t=th(k);const z=t.zones;
+ return `<div class="nav"><span class="t" style="font-size:22px;font-weight:800">${t.mgr}</span><span class="a">편집</span></div>
+ <div class="search">🔍 문제·태그 검색</div>
+ <div class="chips"><span class="chip on">전체 420</span><span class="chip">iOS</span><span class="chip">Design</span><span class="chip">CS</span></div>
+ <div class="lst">
+ <div class="swipe"><div class="del">삭제</div><div class="it"><div class="dot">🖼</div><div><b>SwiftUI 뷰 생명주기는?</b><span class="s">${z[0][1]} · 보통 · 이미지</span></div></div></div>
+ <div class="it"><div class="dot">🎬</div><div><b>이 애니메이션의 이징 곡선은?</b><span class="s">${z[1][1]} · 쉬움 · 영상</span></div></div>
+ <div class="it"><div class="dot">📝</div><div><b>해시 충돌 해결 방법</b><span class="s">${z[2][1]} · 어려움 · 텍스트</span></div></div>
+ <div class="it"><div class="dot">🖼</div><div><b>다크모드 대비 비율 기준</b><span class="s">${z[1][1]} · 보통 · 이미지</span></div></div>
+ <div class="it"><div class="dot">📝</div><div><b>async/await 와 Task</b><span class="s">${z[0][1]} · 어려움 · 텍스트</span></div></div></div>
+ <div class="hint">← 스와이프로 삭제 · 탭하여 편집</div>`}
+function edit(k){const t=th(k);
+ return `<div class="nav"><span class="a">취소</span><span class="t">문제 편집</span><span class="a">저장</span></div>
+ <div class="h2">문제</div><div class="lst"><div class="ta">다음 코드의 출력 결과로 알맞은 것은?</div><div class="attach"><div class="has">🖼 이미지</div><div class="has">🎬 영상</div><div>＋ 파일</div></div></div>
+ <div class="h2">보기 (정답 선택)</div>
+ <div class="lst">${['0','1','5','컴파일 오류'].map((o,i)=>`<div class="field"><label>${'ABCD'[i]}</label><span class="v" style="flex:1;text-align:left">${o}</span><span style="color:${i==1?'var(--ok)':'var(--line)'};font-size:16px">${i==1?'●':'○'}</span></div>`).join('')}<div class="field"><label style="color:var(--accent)">＋ 보기 추가</label></div></div>
+ <div class="h2">분류 · 게임 연결</div>
+ <div class="lst"><div class="field"><label>카테고리</label><span class="v">CS ›</span></div><div class="field"><label>난이도</label><span class="v">보통 ›</span></div><div class="field"><label>태그</label><span class="v"><span class="tag">#Swift</span> <span class="tag">#값타입</span></span></div>
+ <div class="field"><label>배치 위치</label><span class="v">${t.zones[2][0]} ${t.zones[2][1]} ›</span></div><div class="field"><label>보상</label><span class="v">${t.rw} ${t.rwName} +1</span></div></div>
+ <div class="btn" style="background:transparent;color:var(--bad);border:1px solid var(--line);box-shadow:none">문제 삭제</div>`}
+
+/* ---------- 렌더 ---------- */
+let cur='a';
+function mk(k){return [
+ ['게임 메인 (월드)','진행 상황 · 미션 · 이어서 하기',phone(k,world(k),{tab:0})],
+ ['출제 · 반응형 + 필터','추천 세션 · 카테고리/태그/난이도',phone(k,setup(k),{tab:1})],
+ ['퀴즈 진행 · 보상 피드백','보기를 눌러보세요 (텍스트+영상)',phone(k,quiz(k))],
+ ['세션 결과 · 보상','보상 · 오답 노트 · 추천 리소스',phone(k,result(k))],
+ ['성과 대시보드','주/월 전환을 눌러보세요',phone(k,dash(k),{tab:2})],
+ ['콘텐츠 관리 · 목록','검색 · 필터 · 스와이프 삭제',phone(k,manage(k),{tab:3,fab:true})],
+ ['콘텐츠 관리 · 편집','이미지·영상 첨부 · 게임 배치',phone(k,edit(k))]
+ ].map((s,i)=>`<div class="col"><div class="cap">${i+1}. ${s[0]}<small>${s[1]}</small></div>${s[2]}</div>`).join('')}
+
+function render(){const t=th(cur);
+ document.getElementById('tabs').innerHTML=Object.keys(BASE).map(k=>`<button class="${k===cur?'on':''}" data-k="${k}">${BASE[k].name.split(' ·')[0]} · ${BASE[k].name.split('· ')[1]}</button>`).join('');
+ document.getElementById('intro').innerHTML=`<div><h2>${t.name}</h2><div class="subt">${t.sub}</div><p style="font-size:16px;color:var(--pagetext);font-weight:700;margin-bottom:8px">${t.title}</p><p>${t.desc}</p>${t.pills.map(p=>`<span class="pill">${p}</span>`).join('')}</div>
+ <div class="keys"><b>게임 루프 (한 번의 반복)</b><div class="loop">${t.loop.map((l,i)=>(i?'<i>→</i>':'')+`<span>${l}</span>`).join('')}</div>
+ <b>핵심 기능과의 연결</b><ul>${t.map.map(m=>`<li>${m}</li>`).join('')}</ul><b>오답 처리</b>: ${t.note}</div>`;
+ const sb=document.getElementById('seasonbar');
+ sb.innerHTML=cur==='d'?`<span>시즌 스킨 바꾸기:</span>`+Object.keys(SEASONS).map(s=>`<button class="sbtn ${s===season?'on':''}" data-s="${s}">${SEASONS[s].label}</button>`).join('')+`<span>→ 구조는 그대로, 이미지·색·문구만 교체됩니다.</span>`:'';
+ document.getElementById('screens').innerHTML=mk(cur);bind()}
+
+function bind(){
+ document.querySelectorAll('.screen').forEach(sc=>{const box=sc.querySelector('.opts');if(!box)return;const k=sc.dataset.k,t=th(k);
+  box.querySelectorAll('.opt').forEach(o=>o.onclick=()=>{
+   if(box.classList.contains('done'))return;box.classList.add('done');
+   const ok=o.dataset.i==='1';box.children[1].classList.add('ok');if(!ok)o.classList.add('bad');
+   sc.querySelectorAll('.fb').forEach(f=>f.classList.remove('show'));sc.querySelector('.fb.'+(ok?'ok':'bad')).classList.add('show');
+   const pip=sc.querySelector('.pips .cur'),cnt=sc.querySelector('.cnt');
+   pip.className=ok?'f pop':'w pop';pip.textContent=ok?t.rw:'✕';
+   if(ok){cnt.textContent=+cnt.textContent+1;const f=document.createElement('div');f.className='fly';f.textContent='+1 '+t.rw;sc.appendChild(f);setTimeout(()=>f.remove(),1200)}
+   const hint=sc.querySelector('.hint');hint.innerHTML='<u style="cursor:pointer" class="again">다시 해보기</u>';
+   hint.querySelector('.again').onclick=()=>{box.classList.remove('done');box.querySelectorAll('.opt').forEach(x=>x.classList.remove('ok','bad'));sc.querySelectorAll('.fb').forEach(f=>f.classList.remove('show'));pip.className='cur';pip.textContent='';if(ok)cnt.textContent=+cnt.textContent-1;hint.textContent='↑ 보기를 눌러 보상 연출을 확인해보세요'};
+   beep(ok);if(navigator.vibrate)navigator.vibrate(ok?30:[40,40,40]);
+  })});
+ document.querySelectorAll('.seg').forEach(s=>s.querySelectorAll('button').forEach(b=>b.onclick=()=>{s.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');s.parentElement.querySelector('[data-chart]').innerHTML=bars(b.dataset.p)}))}
+
+let ac;function beep(ok){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.type=ok?'sine':'sawtooth';o.frequency.setValueAtTime(ok?660:200,ac.currentTime);if(ok)o.frequency.exponentialRampToValueAtTime(1100,ac.currentTime+.15);g.gain.setValueAtTime(.12,ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+.3);o.start();o.stop(ac.currentTime+.3)}catch(e){}}
+
+document.getElementById('tabs').onclick=e=>{const b=e.target.closest('button');if(b){cur=b.dataset.k;render()}};
+document.getElementById('seasonbar').onclick=e=>{const b=e.target.closest('button');if(b){season=b.dataset.s;render()}};
+const mb=document.getElementById('modebtn');
+function setMode(m){document.body.dataset.mode=m;mb.textContent=m==='dark'?'☀️ 라이트모드 미리보기':'🌙 다크모드 미리보기'}
+mb.onclick=()=>setMode(document.body.dataset.mode==='dark'?'light':'dark');
+if(matchMedia('(prefers-color-scheme:dark)').matches)setMode('dark');
+
+document.getElementById('compare').innerHTML=`<tr><th></th>${Object.keys(BASE).map(k=>`<th style="color:var(--pagetext)">${BASE[k].name}</th>`).join('')}</tr>`+
+[['조합',['크리스마스 트리 + 방탈출','무인도 탈출 + 계절 이벤트','우주 탐사','계절 이벤트 (독립)']],
+ ['분위기',['따뜻함·아늑한 긴장감','모험·시원함','신비·미래적','귀엽고 산뜻함']],
+ ['핵심 보상',['트리 장식 → 열쇠 조각','재료 → 뗏목 6단계','연료 → 행성 도감','시즌 포인트 → 한정 아이템']],
+ ['목표 길이',['짧음~중간 (방 단위)','길다 (뗏목 완성까지 수 주)','길다 (행성 지도 확장)','시즌 단위 (약 한 달)']],
+ ['제작 부담',['중간 (방 배경, 장식)','중간 (뗏목 6단계, 스킨)','낮음 (도형 위주)','낮음 (이미지 세트 교체)']],
+ ['주의점',['시즌 종료 후 재사용 방안 필요','스킨 교체 일정 관리','단조롭지 않게 행성별 변화 필요','시즌마다 콘텐츠 제작 필요']]]
+.map(r=>`<tr><th>${r[0]}</th>${r[1].map(c=>`<td>${c}</td>`).join('')}</tr>`).join('');
+render();
+</script>
+</body>
+</html>
