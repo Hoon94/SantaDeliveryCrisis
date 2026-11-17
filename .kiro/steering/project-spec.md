@@ -4,9 +4,10 @@ inclusion: always
 
 # 산타의 작업실 탈출 (Santa's Delivery Crisis) 스펙 문서
 
-- 상태: 초안 v0.1 (팀 리뷰 전)
+- 상태: 초안 v0.3 (디자인 시안 기준으로 정리, 팀 리뷰 전)
 - 마감: 2026-11-22
-- 관련 문서: [확정 내역과 질의응답](../../docs/project-understanding.md) / [추가 구현 목록](../../docs/future-work.md) / [원본 기획 자료](../../docs/references/planning)
+- 디자인 기준: [디자인 매뉴얼](../../docs/design/santa-workshop-main-manual.html) / [화면 설계서](../../docs/design/screen-spec.html). 화면 구성은 이 둘을 따르고, 규칙은 이 문서와 작업별 문서를 따릅니다. 서로 다르면 담당자가 임의로 정하지 말고 팀에 확인합니다.
+- 관련 문서: [팀 업무 분담](../../docs/team-work-assignment.md) / [작업별 상세 스펙](../../docs/specs) / [통합 계약표](../../docs/integration-contracts.md) / [확정 내역과 질의응답](../../docs/project-understanding.md) / [추가 구현 목록](../../docs/future-work.md) / [원본 기획 자료](../../docs/references/planning)
 - 표기
   - **[가정]**: 문서를 쓰면서 제안했지만 팀이 아직 확정하지 않은 내용입니다.
   - **미정**: 제안 없이 팀의 결정을 기다리는 내용입니다.
@@ -25,10 +26,9 @@ iOS 개발 학습용 퀴즈 앱입니다. 산타의 빈 크리스마스 트리�
 - 퀴즈 CRUD(만들기·보기·고치기·지우기). 텍스트, 이미지, 영상 문제
 - 4지선다 단일 선택 문제
 - 코드 실행을 줄별 애니메이션으로 보여 주는 문제(3~5개 유형)
-- 반응형 출제("오늘의 출제"는 4개 작업을 섞어서 앱이 구성)
-- 출제 탭에서 난이도, 카테고리(여러 개), 태그, 문제 수를 고른 뒤 트리의 장식을 눌러 시작하는 선택 출제
+- 출제 탭에서 난이도, 카테고리(여러 개), 문제 수를 고른 뒤 트리의 장식을 눌러 시작하는 선택 출제. 정답률이 가장 낮은 카테고리에 [추천] 배지
 - 세션 진행, 이어서 풀기, 결과 요약(점수, 오답 노트, 추천 학습 자료)
-- 트리 장식 보상, 트리 완성, 완성 기록 보관
+- 트리 장식 보상, 트리 완성, 완성한 트리 수 기록
 - 주/월 성과 대시보드
 - 설정(정답률 기준 등), 다크모드, iPhone(세로)과 iPad(가로·세로), 접근성
 
@@ -54,10 +54,10 @@ iOS 개발 학습용 퀴즈 앱입니다. 산타의 빈 크리스마스 트리�
 | 용어 | 뜻 |
 | --- | --- |
 | 작업 | 문제 카테고리를 산타 테마로 부르는 이름 (아래 표). 기획서의 "방"을 대체 |
-| 작업실 | 첫 번째 탭의 이름. 트리와 "오늘의 출제"가 있는 메인 화면 `[가정]` |
+| 작업실 | 첫 번째 탭의 이름. 트리와 진행 상황을 보는 메인 화면 |
 | 세션 | 문제 5/10/15개를 한 번에 푸는 한 판 |
 | 장식 | 세션 보상. 트리에 쌓임 |
-| 트리 | 장식 12칸짜리 한 그루. 완성하면 보관함에 저장하고 새 트리를 시작 |
+| 트리 | 장식 12칸짜리 한 그루. 완성하면 완성 기록을 남기고 새 트리를 시작 |
 | 난이도 | 쉬움, 보통, 어려움 (이 세 단어로 통일) |
 
 ### 작업과 카테고리 대응
@@ -73,15 +73,13 @@ iOS 개발 학습용 퀴즈 앱입니다. 산타의 빈 크리스마스 트리�
 
 ## 5. 게임 규칙
 
-1. 세션은 두 가지 방식으로 시작합니다.
-   - 작업실 탭의 "오늘의 출제": 난이도와 문제 수만 고르면 앱이 4개 작업을 섞어서 구성합니다.
-   - 출제 탭: 팝업에서 난이도, 카테고리(여러 개), 태그, 문제 수를 고른 뒤, 큰 트리에서 켜진 장식(카테고리 하나)을 눌러 그 카테고리의 세션을 시작합니다. 해금 조건은 없습니다.
+1. 세션은 출제 탭에서 시작합니다. 팝업에서 난이도, 카테고리(여러 개), 문제 수를 고르고 [장식 선택]을 누르면 트리에 카테고리 장식 4개가 나타납니다. 고른 카테고리의 장식만 켜지고, 켜진 장식을 누르면 그 카테고리 하나의 세션이 시작됩니다. 해금 조건은 없습니다. 작업실의 "오늘의 출제" 버튼은 출제 탭으로 이동합니다 `[가정]`.
 2. 세션이 끝나면 정답률을 계산합니다.
    - 정답률이 **기준 이상**이면 장식 **1개**를 받습니다. 기본 기준은 80%이고, 설정에서 50~100%(10% 단위)로 바꿀 수 있습니다.
    - 난이도와 문제 수는 보상에 영향이 없습니다.
    - 기준 미만이면 장식을 받지 못하지만 벌칙은 없습니다.
 3. 트리는 한 그루이고 4개 작업의 장식이 같은 트리에 쌓입니다. 장식은 12칸입니다.
-4. 12칸이 모두 차면 트리가 완성됩니다. 산타가 출발하는 연출을 보여 주고, 완성한 트리는 보관함(기록 탭)에 저장하며, 빈 트리를 새로 시작합니다. 퀴즈 기록, 통계, 설정은 유지됩니다.
+4. 12칸이 모두 차면 트리가 완성됩니다. 산타가 출발하는 연출을 보여 주고, 완성한 트리는 완성 기록으로 저장하며(기록 화면에 완성한 트리 수 표시), 빈 트리를 새로 시작합니다. 퀴즈 기록, 통계, 설정은 유지됩니다.
 5. 쉬운 세션을 반복해서 빨리 완성하는 것은 막지 않습니다.
 6. 세션 중 앱을 종료하면 진행 상황이 저장되고, 다시 켜면 "이어서 풀기"로 계속합니다. 진행 중 세션은 동시에 1개만 허용합니다.
 
@@ -89,28 +87,31 @@ iOS 개발 학습용 퀴즈 앱입니다. 산타의 빈 크리스마스 트리�
 
 ### 6-1. 탭
 하단 탭 4개: **작업실 / 출제 / 기록 / 관리**. 각 탭은 독립된 NavigationStack을 가집니다. 퀴즈 진행과 결과는 탭 바를 숨기는 전체 화면입니다.
-- 작업실: 트리 진행도와 "오늘의 출제"만 둔 단순한 메인 화면입니다.
-- 출제: 난이도·카테고리·태그·문제 수를 고르고 트리의 장식을 눌러 시작하는 선택 출제입니다.
-- 이전 3탭 구성(작업/기록/관리)을 4탭으로 바꿨습니다. 탭 이름 "작업실"은 `[가정]`입니다.
+- 작업실: 트리 진행도, "오늘의 출제" 버튼, 난이도별 아직 안 푼 문제, 이어서 풀기를 둔 단순한 메인 화면입니다.
+- 출제: 난이도·카테고리·문제 수를 고르고 트리의 장식을 눌러 시작하는 선택 출제입니다.
+- 기록: 통계(완성한 트리 수 포함)와 설정으로 들어가는 화면입니다.
+- 관리: 문제 목록과 편집입니다.
 
 ### 6-2. 화면 목록
 
-화면별 상세 설명은 담당 작업 문서에 있습니다.
+화면별 상세 설명은 담당 작업 문서에 있고, 모든 상태(시트, 알림, 빈 상태, 오류 포함)는 [화면 설계서](../../docs/design/screen-spec.html)에 있습니다.
 
 | ID | 화면 | 위치 | 상세 |
 | --- | --- | --- | --- |
-| S1 | 작업실 메인 | 작업실 탭 루트 | [04-task-and-select](../../docs/specs/04-task-and-select.md) |
-| S2 | 출제 화면 | 출제 탭 루트 | [04-task-and-select](../../docs/specs/04-task-and-select.md) |
-| S3 | 출제 설정 팝업 | 팝업 | [04-task-and-select](../../docs/specs/04-task-and-select.md) |
+| S1 | 작업실 | 작업실 탭 루트 | [04-task-and-select](../../docs/specs/04-task-and-select.md) |
+| S2 | 출제(필터 팝업) | 출제 탭 루트 | [04-task-and-select](../../docs/specs/04-task-and-select.md) |
+| S2-B | 장식 선택 | 출제 탭 루트(팝업 뒤) | [04-task-and-select](../../docs/specs/04-task-and-select.md) |
+| S2-A1, S2-A2, S2-E1 | 진행 중 세션 선택, 새로 시작 확인, 시작 실패 | 시트, 알림 | [04-task-and-select](../../docs/specs/04-task-and-select.md) |
 | S4 | 퀴즈 진행 | 전체 화면 | [03-quiz-flow](../../docs/specs/03-quiz-flow.md) |
 | S5 | 정답/오답 피드백 | 시트 | [03-quiz-flow](../../docs/specs/03-quiz-flow.md) |
 | S6 | 세션 결과 | 전체 화면 | [03-quiz-flow](../../docs/specs/03-quiz-flow.md) |
 | S7 | 오답 노트 | 푸시 | [03-quiz-flow](../../docs/specs/03-quiz-flow.md) |
-| S8 | 보관함 | 기록 탭에서 푸시 | [06-records-settings](../../docs/specs/06-records-settings.md) |
 | S9 | 기록 대시보드 | 기록 탭 루트 | [06-records-settings](../../docs/specs/06-records-settings.md) |
+| S12 | 설정 | 기록 탭에서 푸시 | [06-records-settings](../../docs/specs/06-records-settings.md) |
 | S10 | 문제 관리 목록 | 관리 탭 루트 | [07-question-management](../../docs/specs/07-question-management.md) |
 | S11 | 문제 편집 | 푸시 | [07-question-management](../../docs/specs/07-question-management.md) |
-| S12 | 설정 | 기록 탭에서 푸시 | [06-records-settings](../../docs/specs/06-records-settings.md) |
+
+보관함(S8)과 작업 선택(S2)·세션 설정(S3) 화면은 디자인 시안에서 없어졌거나 출제 탭 하나로 합쳐졌습니다.
 
 ### 6-3. iPad
 - 가로·세로 모두 지원합니다. S10은 `NavigationSplitView`(좌측 목록, 우측 상세)로 확장합니다. 출제 화면(S2)의 트리는 화면 크기에 맞춰 늘어납니다.
@@ -124,11 +125,11 @@ iOS 개발 학습용 퀴즈 앱입니다. 산타의 빈 크리스마스 트리�
 | --- | --- |
 | [00-foundation](../../docs/specs/00-foundation.md) | 프로젝트 설정, 모델·프로토콜·mock, 색상 틀 |
 | [01-seed-data](../../docs/specs/01-seed-data.md) | 시드 JSON, 로더, 60문제 |
-| [02-session-engine](../../docs/specs/02-session-engine.md) | 출제 비율, 이어서 풀기 로직, 보상·트리 |
+| [02-session-engine](../../docs/specs/02-session-engine.md) | 출제 비율, 카테고리 추천, 이어서 풀기 로직, 보상·트리 |
 | [03-quiz-flow](../../docs/specs/03-quiz-flow.md) | S4~S7, 문제 풀이, 결과, 피드백 |
-| [04-task-and-select](../../docs/specs/04-task-and-select.md) | S1~S3, 출제 탭 장식 트리, 문제 수 활성화 |
+| [04-task-and-select](../../docs/specs/04-task-and-select.md) | S1, S2, S2-B, 출제 탭 장식 트리, 장식 켜짐 조건 |
 | [05-code-trace](../../docs/specs/05-code-trace.md) | 애니메이션 문제(코드 트레이스) |
-| [06-records-settings](../../docs/specs/06-records-settings.md) | S8, S9, S12, 통계, 설정 |
+| [06-records-settings](../../docs/specs/06-records-settings.md) | S9, S12, 통계, 설정 |
 | [07-question-management](../../docs/specs/07-question-management.md) | S10, S11, 문제 관리, 미디어 |
 | [08-assets](../../docs/specs/08-assets.md) | 캐릭터, 트리, 장식, 효과음 |
 | [09-finish](../../docs/specs/09-finish.md) | README, 점검, 마감 |
@@ -176,9 +177,9 @@ enum SessionStatus: String, Codable { case inProgress, completed, abandoned }
 /// 이미지·영상 파일은 복사하지 않고 파일명만 가진다(파일 보존 규칙은 아래 규칙 참고).
 struct QuestionSnapshot: Codable {
     let questionID: UUID              // 통계 계산용 원본 id
-    let category: QuizCategory        // 카테고리별 통계용 (혼합 세션에서도 문제별 카테고리를 알 수 있음)
+    let category: QuizCategory        // 카테고리별 통계와 추천 배지용
     let kind: QuestionKind
-    let tags: [String]                // 향후 태그 기반 출제·통계용(1차에는 선호 태그를 쓰지 않음) (원본이 바뀌거나 지워져도 풀 당시 태그를 알 수 있음)
+    let tags: [String]                // 풀 당시의 태그. 1차에는 태그 선택 기능이 없음
     let animationID: String?
     let text: String
     let codeSnippet: String?
@@ -194,7 +195,7 @@ struct QuestionSnapshot: Codable {
 
 @Model final class QuizSession {
     @Attribute(.unique) var id: UUID
-    var category: QuizCategory?       // nil이면 오늘의 출제(4개 작업 혼합)
+    var category: QuizCategory?       // 1차에는 항상 값이 있음. nil은 4개 작업 혼합 세션용 자리(future-work)
     var difficulty: Difficulty
     var questionIDs: [UUID]           // 출제 순서 고정
     var questionSnapshots: [QuestionSnapshot]  // questionIDs와 같은 순서의 문제 복사본
@@ -246,23 +247,29 @@ struct QuestionSnapshot: Codable {
 각자 이 이름과 시그니처로 만들면 합칠 때 어긋나지 않습니다. 구현 안의 세부는 자유입니다.
 
 ```swift
-/// 세션용 문제 선택 ([02-session-engine](../../docs/specs/02-session-engine.md) 비율). 선택 출제는 category를 하나만 넘긴다
+/// 카테고리 추천 (S2 팝업의 [추천] 배지)
+protocol TaskRecommending {
+    /// 답한 기록이 있는 카테고리 중 정답률이 가장 낮은 카테고리. 동률이면 작업 순서가 앞선 쪽, 기록이 없으면 nil
+    func recommendedCategory(sessions: [QuizSession]) -> QuizCategory?
+}
+
+/// 세션용 문제 선택 (비율은 docs/specs/02-session-engine.md). 1차에는 category를 항상 하나 넘긴다
 protocol QuestionSelecting {
     func select(
-        category: QuizCategory?,    // nil이면 4개 작업 전체에서 고르는 오늘의 출제
+        category: QuizCategory?,    // 1차에는 항상 값이 있음. nil(4개 작업 혼합)은 future-work
         difficulty: Difficulty,
-        tags: Set<String>,          // 비어 있으면 전체 태그. 여러 개면 하나라도 가진 문제. 오늘의 출제는 비움
+        tags: Set<String>,          // 1차 UI에는 태그 선택이 없어 항상 빈 집합. 비어 있으면 전체 태그, 여러 개면 하나라도 가진 문제
         count: Int,
         questions: [Question],
         history: [QuizSession]      // 답(정오답, 시각)과 풀 당시 스냅샷(카테고리, 태그)을 함께 읽음
     ) -> [Question]
-    /// 조건에 맞는 문제 수 (S3의 문제 수 활성화와 S2의 장식 켜짐 판단용. 카테고리를 여러 개 고른 경우 호출하는 쪽이 카테고리별로 호출해 합산)
+    /// 조건에 맞는 문제 수 (S2-B의 장식 켜짐 판단용: 1 이상이면 켜짐. 카테고리별로 호출한다)
     func availableCount(category: QuizCategory?, difficulty: Difficulty, tags: Set<String>, questions: [Question]) -> Int
 }
 
 /// 세션 생성·진행·종료. SwiftData 저장을 담당
 protocol SessionManaging {
-    func startSession(category: QuizCategory?, difficulty: Difficulty, tags: Set<String>, count: Int) throws -> QuizSession   // category nil = 오늘의 출제
+    func startSession(category: QuizCategory?, difficulty: Difficulty, tags: Set<String>, count: Int) throws -> QuizSession   // 1차에는 category 항상 지정
     /// `questionIndex`번째 문제(0부터)에 답을 저장한다. 문제는 순서대로만 제출할 수 있다.
     /// 이미 답이 있는 문제에 다시 호출하면 처음 저장된 답을 돌려주고 새로 저장하지 않는다(값이 달라도 유지).
     /// 아직 답하지 않은 앞선 문제가 있는 순서로 호출하면 오류를 던진다.
@@ -346,10 +353,10 @@ Santa'sDeliveryCrisis/
   Services/             세션, 출제, 트리, 피드백
   Features/
     Task/               S1 (작업실)
-    Select/             S2, S3 (출제 탭: 팝업, 장식 트리)
+    Select/             S2, S2-B (출제 탭: 필터 팝업, 장식 트리)
     Quiz/               S4, S5, S6, S7
     Trace/              애니메이션 문제 컴포넌트와 장면
-    Records/            S8, S9
+    Records/            S9
     Manage/             S10, S11
     Settings/           S12
   Resources/
@@ -396,19 +403,19 @@ Santa'sDeliveryCrisis/
 - **크래시 방지:** 11-1의 규칙을 지킵니다. 빈 배열 접근, 범위 밖 인덱스를 조심합니다. `choices.count != 4`인 문제는 편집 단계에서 저장할 수 없게 하고, 시드 로드 단계에서 건너뛰며 로그를 남깁니다.
 - **성능:** 목록은 `List`나 `LazyVStack`을 씁니다. 큰 영상은 미리 로드하지 않고 해당 문제 화면에서만 로드합니다.
 - **오프라인:** 네트워크 없이 모든 기능이 동작해야 합니다. 학습 자료 링크는 Safari로 여는 외부 링크이며, 오프라인이면 열리지 않습니다.
-- **테스트:** 순수 로직(`QuestionSelector`, 보상 계산, 트리 완성)은 단위 테스트를 만듭니다.
+- **테스트:** 순수 로직(`QuestionSelector`, `TaskRecommending`, 보상 계산, 트리 완성)은 단위 테스트를 만듭니다.
 
 ## 14. 완료 기준 (마감 2026-11-22)
 
 - [ ] iPhone과 iPad에서 시뮬레이터로 실행해 아래 흐름이 처음부터 끝까지 동작합니다.
-  1. 출제 탭에서 설정 선택 → 켜진 장식 누르기 → 퀴즈 진행 → 결과 → 장식 지급. 작업실의 "오늘의 출제"(문제 풀기 → S3a → 퀴즈)도 확인하며, 퀴즈 이후 결과·보상 흐름은 동일합니다
-  2. 장식 12칸을 채워 트리 완성 → 보관함에 기록
+  1. 작업실에서 "오늘의 출제"로 출제 탭 이동 → 필터 팝업에서 설정 → 장식 선택 → 켜진 장식 누르기 → 퀴즈 진행 → 결과 → 장식 지급
+  2. 장식 12칸을 채워 트리 완성 → 기록 화면의 완성한 트리 수가 늘어남
   3. 문제 생성/수정/삭제 (사용자가 만든 문제 기준. 시드 문제의 수정·삭제 버튼은 비활성화 상태로 표시)
   4. 기록 대시보드에서 통계와 완성 기록 확인
 - [ ] 앱을 세션 도중 종료해도 "이어서 풀기"로 복구됩니다.
 - [ ] 애니메이션 문제가 3개 이상 유형으로 동작합니다.
 - [ ] [통합 계약표](../../docs/integration-contracts.md)의 통합 시나리오 5개가 통과합니다.
-- [ ] 아래 계약은 단위 테스트로 확인합니다: 오늘의 출제가 여러 작업의 문제를 섞어 구성함, 태그를 여러 개 고르거나 하나도 고르지 않았을 때의 후보, 앱을 다시 켜고 `finish`를 다시 호출해도 장식이 중복 지급되지 않음, 원본 문제를 수정하거나 삭제한 뒤에도 진행 중 세션을 이어 풀 수 있음.
+- [ ] 아래 계약은 단위 테스트로 확인합니다: 후보가 고른 문제 수보다 적을 때 가능한 만큼만 출제함, 카테고리 추천 배지 계산(동률, 기록 없음), 앱을 다시 켜고 `finish`를 다시 호출해도 장식이 중복 지급되지 않음, 원본 문제를 수정하거나 삭제한 뒤에도 진행 중 세션을 이어 풀 수 있음.
 - [ ] 라이트/다크 모드가 모두 자연스럽게 표시됩니다.
 - [ ] 가장 큰 Dynamic Type에서 주요 화면이 깨지지 않습니다.
 - [ ] 시드 문제가 60문제 이상 들어 있습니다.
@@ -417,20 +424,20 @@ Santa'sDeliveryCrisis/
 
 ## 15. 작업 분리
 
-작업 0이 끝나기 전에는 다른 작업이 서로 의존합니다. 작업 0만 먼저 진행하고, 나머지는 병렬로 진행합니다.
+작업 0(완료)이 끝나기 전에는 다른 작업이 서로 의존합니다. 담당 A~D의 업무와 협업 방식은 [팀 업무 분담](../../docs/team-work-assignment.md)에 있습니다.
 
-| 번호 | 작업 | 포함 | 의존 | 병렬 가능 |
-| --- | --- | --- | --- | --- |
-| 0 | [기반](../../docs/specs/00-foundation.md) | Xcode 프로젝트 설정(iOS 17, iPad 방향), 폴더 구조, 8장 모델, enum, 9장 프로토콜과 결과 타입(`SessionResult`, `TreeGrantResult`, `QuestionSnapshot`, `TraceSceneAction` 빈 자리), 화면 미리보기용 가짜(mock) 구현, `MediaFileManaging`, `SettingsStore`(설정 키와 기본값), 테스트 타깃, iOS 17 배포 설정 확인, 색상 Asset 기본 틀, 탭 뼈대 | 없음 | 가장 먼저, 가능한 한 빨리 develop에 병합 |
-| 1 | [시드 데이터](../../docs/specs/01-seed-data.md) | 시드 JSON 스키마, 로더, 첫 실행 주입, 문제 작성(60문제 이상) | 0 | 문제 작성은 작업 0 중에도 시작 가능 |
-| 2 | [세션 로직](../../docs/specs/02-session-engine.md) | `QuestionSelector`, `SessionManager`, 보상 계산, `TreeManager`, 단위 테스트 | 0 | 1, 3, 4와 병렬 |
-| 3 | [퀴즈 화면](../../docs/specs/03-quiz-flow.md) | S4, S5, S6, S7, 피드백(햅틱, 효과음), 이어서 풀기 UI | 0, 2의 프로토콜 | 작업 0의 가짜(mock) 구현으로 개발하고, 작업 2의 실제 구현이 준비되면 교체 |
-| 4 | [작업실·출제 화면](../../docs/specs/04-task-and-select.md) | S1, S2, S3a/S3b(카테고리·태그 선택 포함), 트리 렌더링, 장식 켜짐/꺼짐, 완성 연출 | 0, 2의 프로토콜 | |
-| 5 | [애니메이션 문제](../../docs/specs/05-code-trace.md) | `TraceStep`, 코드 하이라이트·변수 표시·말풍선 컴포넌트, 장면 3~5개, 접근성(모션 줄이기, VoiceOver) | 0, 에셋 | 3의 S4와 연결하는 시점만 조율 |
-| 6 | [기록·설정](../../docs/specs/06-records-settings.md) | S8(보관함), S9(차트), S12, @AppStorage 키 | 0 | |
-| 7 | [문제 관리](../../docs/specs/07-question-management.md) | S10, S11, 사진 보관함 선택, 파일 복사 저장 | 0 | |
-| 8 | [에셋·사운드](../../docs/specs/08-assets.md) | 캐릭터, 트리, 장식, 배경, 효과음, 앱 아이콘 | 없음 | 처음부터 병렬 |
-| 9 | [마감](../../docs/specs/09-finish.md) | README(글꼴 크기를 시스템 설정에 맡긴 해석 설명 포함), 스크린샷·GIF, 문서화 주석 점검, 접근성·iPad 점검, 크래시 점검 | 전체 | 마지막 |
+| 번호 | 작업 | 담당 | 포함 | 의존 | 병렬 가능 |
+| --- | --- | --- | --- | --- | --- |
+| 0 | [기반](../../docs/specs/00-foundation.md) | 완료 | Xcode 프로젝트 설정(iOS 17, iPad 방향), 폴더 구조, 8장 모델, enum, 9장 프로토콜과 결과 타입(`SessionResult`, `TreeGrantResult`, `QuestionSnapshot`, `TraceSceneAction` 빈 자리), 화면 미리보기용 가짜(mock) 구현, `MediaFileManaging`, `SettingsStore`(설정 키와 기본값), 테스트 타깃, iOS 17 배포 설정 확인, 색상 Asset 기본 틀, 탭 뼈대 | 없음 | 가장 먼저, 가능한 한 빨리 develop에 병합 |
+| 1 | [시드 데이터](../../docs/specs/01-seed-data.md) | A | 시드 JSON 스키마, 로더, 첫 실행 주입, 문제 작성(60문제 이상) | 0 | 문제 작성은 작업 0 중에도 시작 가능 |
+| 2 | [세션 로직](../../docs/specs/02-session-engine.md) | A | `QuestionSelector`, `TaskRecommending`, `SessionManager`, 보상 계산, `TreeManager`, 단위 테스트 | 0 | 1, 3, 4와 병렬 |
+| 3 | [퀴즈 화면](../../docs/specs/03-quiz-flow.md) | B | S4, S5, S6, S7, 피드백(햅틱, 효과음), 이어서 풀기 UI | 0, 2의 프로토콜 | 작업 0의 가짜(mock) 구현으로 개발하고, 작업 2의 실제 구현이 준비되면 교체 |
+| 4 | [작업실·출제 화면](../../docs/specs/04-task-and-select.md) | C | S1, S2(필터 팝업), S2-B(장식 선택), 진행 중 세션 시트·알림, 트리 렌더링, 장식 켜짐/꺼짐, 완성 연출 | 0, 2의 프로토콜 | |
+| 5 | [애니메이션 문제](../../docs/specs/05-code-trace.md) | B | `TraceStep`, 코드 하이라이트·변수 표시·말풍선 컴포넌트, 장면 3~5개, 접근성(모션 줄이기, VoiceOver) | 0, 에셋 | 3의 S4와 연결하는 시점만 조율 |
+| 6 | [기록·설정](../../docs/specs/06-records-settings.md) | D | S9(차트, 완성 트리 수), S12, @AppStorage 키 | 0 | |
+| 7 | [문제 관리](../../docs/specs/07-question-management.md) | D | S10, S11, 사진 보관함 선택, 파일 복사 저장 | 0 | |
+| 8 | [에셋·사운드](../../docs/specs/08-assets.md) | C | 캐릭터, 트리, 장식, 배경, 효과음, 앱 아이콘 | 없음 | 처음부터 병렬 |
+| 9 | [마감](../../docs/specs/09-finish.md) | D·전원 | README(글꼴 크기를 시스템 설정에 맡긴 해석 설명 포함), 스크린샷·GIF, 문서화 주석 점검, 접근성·iPad 점검, 크래시 점검 | 전체 | 마지막 |
 
 연결 지점 (여기가 어긋나기 쉽습니다)
 - 작업 3, 4는 작업 2의 프로토콜(9장)만 보고 개발하고, 실제 구현이 준비되면 교체합니다.
@@ -440,12 +447,15 @@ Santa'sDeliveryCrisis/
 
 ## 16. 확인이 필요한 가정
 
-아래는 팀이 아직 확정하지 않은 항목입니다. 구현 전에 사용자에게 먼저 확인합니다.
+아래는 팀이 아직 확정하지 않은 항목입니다. 구현 전에 사용자에게 먼저 확인합니다. 디자인 시안과 화면 설계서(8장)에도 같은 성격의 항목이 있습니다.
 
-1. 첫 번째 탭 이름 "작업실" (6-1장)
-2. 진행 중 세션이 있을 때 S1의 "문제 풀기" 버튼을 "이어서 풀기"로 바꾸는 방식 (S1)
-3. S1의 난이도 카드를 누르면 해당 난이도를 미리 고른 S3a를 여는 동작 (S1)
-4. 선택 출제(카테고리 하나)의 문제 선택 비율 50% 약한 문제 / 50% 오래 안 푼 문제 ([02-session-engine](../../docs/specs/02-session-engine.md))
-5. 장식을 누르면 퀴즈 화면이 커지며 열리는 연출. 1차는 페이드, iOS 17에서 확대 연출은 직접 구현 필요 ([04-task-and-select](../../docs/specs/04-task-and-select.md))
-6. 출제 탭 설정 팝업(S3b) 상태 정리 규칙(카테고리 최소 1개, 태그 정리, 문제 수 무효 처리, 취소 동작) ([04-task-and-select](../../docs/specs/04-task-and-select.md))
-7. 보상을 난이도와 상관없이 항상 1개로 통일하면서 이월 규칙과 관련 필드를 삭제함. 되돌리기 쉬우니 팀 확인이 필요합니다 (5장, 8장)
+1. 작업실의 "오늘의 출제" 버튼은 출제 탭으로 이동만 하고, 4개 작업을 섞는 세션은 1차에 없음 ([04-task-and-select](../../docs/specs/04-task-and-select.md))
+2. 카테고리 [추천] 배지 규칙: 기록이 있는 카테고리 중 정답률 최저, 동률은 작업 순서, 기록 없으면 배지 없음 ([02-session-engine](../../docs/specs/02-session-engine.md))
+3. 후보가 고른 문제 수보다 적을 때 가능한 만큼만 출제하고 안내 문구를 보임 ([04-task-and-select](../../docs/specs/04-task-and-select.md))
+4. 출제 필터 팝업 상태 정리(카테고리 최소 1개, 취소 시 이전 설정 유지) ([04-task-and-select](../../docs/specs/04-task-and-select.md))
+5. 단일 카테고리 선택 출제의 문제 선택 비율 50% 약한 문제 / 50% 오래 안 푼 문제 ([02-session-engine](../../docs/specs/02-session-engine.md))
+6. 장식을 누르면 퀴즈 화면이 커지며 열리는 연출. 1차는 페이드, iOS 17에서 확대 연출은 직접 구현 필요 ([04-task-and-select](../../docs/specs/04-task-and-select.md))
+7. 출제 탭만 나이트 글로우 팔레트를 쓰고 나머지는 작업실 색을 씀. 최종 색을 하나로 할지 미정 ([04-task-and-select](../../docs/specs/04-task-and-select.md), [08-assets](../../docs/specs/08-assets.md))
+8. 시안 v3의 장식별 난이도 통과 점, 문 열림, 초기화 버튼은 1차에서 제외 ([04-task-and-select](../../docs/specs/04-task-and-select.md))
+9. 태그 선택, 보관함 화면, 문제 수 잠금을 뺌(디자인 시안 기준). 되돌리기 쉬운 항목이며 [future-work](../../docs/future-work.md)에 있음
+10. 보상을 난이도와 상관없이 항상 1개로 통일하면서 이월 규칙과 관련 필드를 삭제함. 팀 확인이 필요합니다 (5장, 8장)
