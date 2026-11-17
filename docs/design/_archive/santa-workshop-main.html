@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>A · 산타의 작업실 탈출 · 게임 메인</title>
+<style>
+:root{--page:#eceef2;--pagetext:#14161a;--pagesub:#5b6270;--pline:#d9dce3}
+body[data-mode=dark]{--page:#0d0e11;--pagetext:#f2f3f5;--pagesub:#9aa1ae;--pline:#2a2d35}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard",sans-serif;background:var(--page);color:var(--pagetext);transition:background .3s}
+header.top{display:flex;gap:16px;align-items:center;padding:16px 28px;border-bottom:1px solid var(--pline)}
+header.top h1{font-size:18px;font-weight:800;margin-right:auto}
+.modebtn{border:1px solid var(--pline);background:transparent;color:var(--pagetext);padding:8px 14px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+main{max-width:1600px;margin:0 auto;padding:24px 28px}
+.lead{font-size:13px;color:var(--pagesub);line-height:1.7;margin-bottom:20px}
+.screens{display:flex;justify-content:center;padding:8px 4px 28px}
+.cap{font-size:13px;font-weight:700;margin:0 0 10px 6px}
+.cap small{display:block;font-weight:500;color:var(--pagesub);font-size:12px;margin-top:2px}
+
+/* phone */
+.phone{width:320px;height:700px;border-radius:44px;background:#000;padding:8px;box-shadow:0 20px 50px rgba(0,0,0,.28)}
+.screen{position:relative;width:100%;height:100%;border-radius:36px;overflow:hidden;background:var(--bg);color:var(--text);font-size:13px;
+ --bg:#fbf3e6;--card:#fffdf8;--text:#2b1a14;--sub:#8c6f62;--accent:#c8382b;--onacc:#fff;--ok:#2f8f5b;--line:#ecdcc6;--r:18px;--tabbg:#fffaf0;--wall:#f4dfc0;--floor:#c99d6b;--win:#bfe3ff;--easy:#2f8f5b;--mid:#d98a1c;--hard:#c8382b}
+[data-mode=dark] .screen{--bg:#0c1a14;--card:#14271e;--text:#f7eedc;--sub:#9fb5a7;--accent:#ff6a5c;--onacc:#2a0b07;--line:#254036;--ok:#4ed08a;--tabbg:#0f2019;--wall:#16291f;--floor:#3b2a1c;--win:#0b2b4e;--easy:#4ed08a;--mid:#f0b04a;--hard:#ff6a5c}
+.status{position:absolute;top:0;left:0;right:0;height:38px;display:flex;justify-content:space-between;align-items:center;padding:6px 24px 0;font-size:12px;font-weight:700;z-index:5}
+.island{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:80px;height:22px;background:#000;border-radius:20px;z-index:6}
+.body{position:absolute;inset:0;padding:54px 22px 96px;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between}
+.body::-webkit-scrollbar{display:none}
+.home-ind{position:absolute;bottom:5px;left:50%;transform:translateX(-50%);width:100px;height:4px;border-radius:4px;background:var(--text);opacity:.8;z-index:8}
+.tabbar{position:absolute;left:0;right:0;bottom:0;height:78px;background:var(--tabbg);border-top:1px solid var(--line);display:flex;padding:8px 6px 0;z-index:7}
+.tabbar div{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:700;color:var(--sub)}
+.tabbar div.on{color:var(--accent)}
+.tabbar svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* main screen parts */
+.large{font-size:24px;font-weight:800;letter-spacing:-.02em;line-height:1.2;text-align:center;margin:0}
+.treewrap{border-radius:22px;padding:10px 0 0;text-align:center;position:relative;overflow:hidden}
+.treewrap svg{width:84%;margin:0 auto;display:block}
+.btn{display:block;width:100%;text-align:center;padding:15px;border-radius:14px;background:var(--accent);color:var(--onacc);font-weight:800;font-size:15px;border:0;font-family:inherit;box-shadow:0 4px 0 color-mix(in srgb,var(--accent) 60%,#000);margin:0;cursor:pointer}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 color-mix(in srgb,var(--accent) 60%,#000)}
+.rule{text-align:center;font-size:12px;color:var(--sub);line-height:1.5;margin-bottom:14px}
+.rule b{color:var(--text)}
+.h2{display:flex;justify-content:space-between;align-items:baseline;font-weight:800;font-size:14px;margin:0 2px 10px}
+.left{text-align:center;font-size:13px;color:var(--sub);margin:0}
+.left b{color:var(--accent);font-size:15px}
+.blk{display:flex;flex-direction:column;gap:12px}
+.h2 small{font-weight:600;font-size:11px;color:var(--sub)}
+.badge{display:inline-block;font-size:10px;font-weight:800;padding:2px 8px;border-radius:99px;color:#fff}
+.b-easy{background:var(--easy)}.b-mid{background:var(--mid)}.b-hard{background:var(--hard)}
+.bar{height:6px;border-radius:6px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:6px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:8px}
+.row{display:flex;align-items:center;gap:8px}
+.sp{flex:1}
+.sub{color:var(--sub);font-size:11px}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 6px;text-align:center}
+.tile b{display:block;font-size:22px;margin:4px 0 2px}
+.tile .bar{margin-top:6px}
+.seg{display:flex;height:14px;border-radius:8px;overflow:hidden;margin:6px 0 8px}
+.seg i{display:block}
+.legend{display:flex;justify-content:space-between;font-size:11px;font-weight:700}
+.legend span::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;background:currentColor}
+.pills{display:flex;gap:6px;margin-bottom:8px}
+.pills button{flex:1;border:1px solid var(--line);background:var(--card);color:var(--sub);border-radius:99px;padding:7px 0;font-size:12px;font-weight:800;font-family:inherit;cursor:pointer}
+.pills button.on{background:var(--text);color:var(--bg);border-color:var(--text)}
+.q{display:flex;gap:8px;align-items:center;font-size:12px;padding:8px 0;border-top:1px solid var(--line)}
+.q:first-child{border-top:0}
+.q span{flex:1;font-weight:600}
+.q em{font-style:normal;color:var(--sub);font-size:11px}
+.pill-top{display:flex;justify-content:center;gap:6px;margin-bottom:6px}
+.pill-top span{font-size:11px;font-weight:800;padding:4px 10px;border-radius:99px;background:var(--card);border:1px solid var(--line)}
+.snow circle{animation:snow 4s linear infinite}
+@keyframes snow{from{transform:translateY(-6px);opacity:0}30%{opacity:1}to{transform:translateY(34px);opacity:0}}
+.glow{animation:glow 2.4s ease-in-out infinite}
+@keyframes glow{50%{opacity:.45}}
+.night{background:linear-gradient(#0b1d3a,#12335c);border-radius:22px}
+.room{background:var(--wall);border-radius:22px}
+.ring{position:relative}
+.ring .pct{position:absolute;top:10px;right:10px;background:var(--card);border:1px solid var(--line);border-radius:99px;padding:4px 10px;font-weight:800;font-size:11px}
+</style>
+</head>
+<body data-mode="light">
+<header class="top">
+  <h1>🎄 A · 산타의 작업실 탈출 · 게임 메인</h1>
+  <button class="modebtn" id="modebtn">🌙 다크모드 미리보기</button>
+</header>
+<main>
+  <p class="lead">스크롤 없이 한 화면에 들어가는 메인 화면입니다. 트리, 문제 풀기, 난이도별 남은 문제만 남겼습니다.</p>
+  <div class="screens" id="screens"></div>
+</main>
+
+<script>
+const ico={
+ home:'<svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg>',
+ play:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M10 8.5l6 3.5-6 3.5z"/></svg>',
+ chart:'<svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
+ list:'<svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>'
+};
+const TABS=['작업실','출제','기록','관리'];
+const tabbar=()=>`<div class="tabbar">${['home','play','chart','list'].map((k,n)=>`<div class="${n===0?'on':''}">${ico[k]}${TABS[n]}</div>`).join('')}</div>`;
+const phone=inner=>`<div class="phone"><div class="screen"><div class="island"></div><div class="status"><span>9:41</span><span>●●● ▮</span></div><div class="body">${inner}</div>${tabbar()}<div class="home-ind"></div></div></div>`;
+
+/* 데이터: 난이도별 남은 문제 */
+const LV=[
+ {k:'easy',n:'쉬움',left:5,total:12,qs:['struct와 class의 차이','let과 var의 차이','Optional이란?']},
+ {k:'mid',n:'보통',left:7,total:12,qs:['클로저의 캡처 리스트','ARC와 순환 참조','프로토콜 확장']},
+ {k:'hard',n:'어려움',left:4,total:10,qs:['actor와 데이터 레이스','Swift Concurrency 구조','메모리 레이아웃']}
+];
+const COL={easy:'var(--easy)',mid:'var(--mid)',hard:'var(--hard)'};
+const TOTAL_LEFT=LV.reduce((a,l)=>a+l.left,0);
+
+/* 트리: 장식 8칸 */
+const SPOTS=[[110,62],[95,94],[126,98],[80,130],[110,126],[140,132],[66,164],[154,166]];
+const ORN=['#ff4d4d','#ffd23f','#4da3ff','#ff8be0'];
+function tree(n,{star='#ffd23f',lights=false}={}){
+ const o=SPOTS.map((p,i)=>i<n?`<circle cx="${p[0]}" cy="${p[1]}" r="7" fill="${ORN[i%4]}" stroke="#fff" stroke-width="1.5"/><circle cx="${p[0]-2}" cy="${p[1]-2}" r="1.8" fill="#fff" opacity=".8"/>`:`<circle cx="${p[0]}" cy="${p[1]}" r="6" fill="none" stroke="#fff" stroke-opacity=".7" stroke-width="1.5" stroke-dasharray="3 3"/>`).join('');
+ const l=lights?[[96,70],[126,78],[84,106],[138,112],[70,146],[152,148],[100,148],[122,150]].map((p,i)=>`<circle class="glow" style="animation-delay:${i*.3}s" cx="${p[0]}" cy="${p[1]}" r="2.4" fill="#fff6b0"/>`).join(''):'';
+ return `<polygon points="110,34 76,98 144,98" fill="#1f7a46"/><polygon points="110,62 60,140 160,140" fill="#26905a"/><polygon points="110,96 46,184 174,184" fill="#2fa86a"/><rect x="100" y="184" width="20" height="20" rx="2" fill="#7a4a2b"/>
+ <polygon points="110,18 114,29 126,29 116,36 120,48 110,41 100,48 104,36 94,29 106,29" fill="${star}"/>${l}${o}`}
+const svg=(inner,vb='0 0 220 214')=>`<svg viewBox="${vb}">${inner}</svg>`;
+const ground='<ellipse cx="110" cy="206" rx="70" ry="6" fill="#000" opacity=".12"/>';
+
+const TITLE='<div class="large">산타의 작업실</div>';
+const CTA='<button class="btn">문제 풀기</button>';
+
+const bottom=()=>`<div class="h2">남은 문제 <small>총 ${TOTAL_LEFT}문제</small></div><div class="tiles">${LV.map(l=>`<div class="tile"><span class="badge b-${l.k}">${l.n}</span><b>${l.left}</b><span class="sub">/ ${l.total}문제</span><div class="bar"><i style="width:${(l.total-l.left)/l.total*100}%;background:${COL[l.k]}"></i></div></div>`).join('')}</div>`;
+const room=`<rect y="170" width="220" height="44" style="fill:var(--floor)"/><rect x="8" y="30" width="44" height="50" rx="3" style="fill:var(--win)" stroke="#8b5e3c" stroke-width="3"/><path d="M30 30v50M8 55h44" stroke="#8b5e3c" stroke-width="2"/><g class="snow" fill="#fff"><circle cx="16" cy="34" r="2"/><circle cx="30" cy="32" r="1.6" style="animation-delay:1s"/><circle cx="43" cy="34" r="2" style="animation-delay:2s"/></g>`;
+const LEFT=8-5;
+document.getElementById('screens').innerHTML=phone(`${TITLE}<div class="blk"><div class="treewrap room">${svg(room+tree(5)+ground)}<div style="position:absolute;top:10px;right:10px;background:var(--card);border:1px solid var(--line);border-radius:99px;padding:4px 10px;font-weight:800;font-size:11px">🎄 5 / 8</div></div><p class="left">트리를 완성하려면 장식 <b>${LEFT}개</b>가 남았어요</p>${CTA}</div><div>${bottom()}</div>`);
+
+const mb=document.getElementById('modebtn');
+function setMode(m){document.body.dataset.mode=m;mb.textContent=m==='dark'?'☀ 라이트모드 미리보기':'🌙 다크모드 미리보기'}
+mb.onclick=()=>setMode(document.body.dataset.mode==='dark'?'light':'dark');
+if(matchMedia('(prefers-color-scheme:dark)').matches)setMode('dark');
+</script>
+</body>
+</html>
