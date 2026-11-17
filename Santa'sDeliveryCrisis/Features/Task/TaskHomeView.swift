@@ -7,6 +7,9 @@ struct TaskHomeView: View {
     @Query private var questions: [Question]
     @Query private var history: [QuizSession]
 
+    /// 오늘의 출제 버튼에서 출제 탭으로 이동하는 동작.
+    let onSelectQuestions: () -> Void
+
     /// 서비스에서 현재 진행도와 완성한 트리 수를 읽어 화면을 구성한다.
     var body: some View {
         let filledCount = TreeSlots.clampedCount(services.trees.currentTree().decorationCount)
@@ -63,6 +66,18 @@ struct TaskHomeView: View {
             if let session = services.sessions.resumableSession() {
                 TaskResumeCard(session: session)
             }
+
+            // FIXME: [가정 1] 4개 작업 혼합 세션은 1차에 없음. 이동만 한다
+            Button(action: onSelectQuestions) {
+                Text("오늘의 출제")
+                    .font(.body.weight(.heavy))
+                    .frame(maxWidth: .infinity)
+                    .padding(14)
+                    .foregroundStyle(Color.roomOnAccent)
+                    .background(Color.roomAccent, in: RoundedRectangle(cornerRadius: 14))
+            }
+            .buttonStyle(.plain)
+            .accessibilityHint("출제 탭으로 이동합니다")
 
             UnsolvedQuestionTiles(stats: stats)
         }
@@ -148,7 +163,7 @@ private func taskHomePreview(
         switch container {
         case .success(let container):
             NavigationStack {
-                TaskHomeView()
+                TaskHomeView(onSelectQuestions: {})
             }
             .modelContainer(container)
             .environment(\.services, services)
