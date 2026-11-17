@@ -16,9 +16,9 @@
 | `seed-data` | 공통 모델과 JSON 계약 | 첫 실행과 재실행에서 중복 없이 주입됨. 번들 미디어 경로가 맞음. 애니메이션 문제의 `animationID`가 `code-trace-animation`의 장면 목록과 일치함. 60문제 검수 완료 | `code-trace-animation`, `session-engine` |
 | `session-engine` | 공통 타입과 mock | 실제 저장소, 문제 공급, 미디어 정리 호출, 설정 스냅샷과 연결됨. 저장 실패, 중복 호출, 재실행이 검증됨 | `seed-data`, `question-management`, `quiz-flow`, `task-and-tree`, `records-and-settings` |
 | `quiz-flow` | 세션 계약과 mock | `session-engine`, `code-trace-animation`, 효과음 재생과 연결됨. 결과에서 작업실 탭으로 돌아감. 삭제된 문제가 오답 노트에서 빠짐 | `session-engine`, `code-trace-animation` |
-| `task-and-tree` | 세션·트리 계약과 mock | `session-engine`의 후보 수(`availableCount`), 완료 결과와 연결됨. 시드 후보로 S3a/S3b와 S2의 장식 켜짐·꺼짐이 동작함. `quiz-flow`로 진입함. 완성 연출이 동작함 | `session-engine`, `seed-data`, `quiz-flow` |
+| `task-and-tree` | 세션·트리 계약과 mock | `session-engine`의 후보 수(`availableCount`), 완료 결과와 연결됨. 시드 후보로 S2의 필터 팝업, [추천] 배지, S2-B의 장식 켜짐·꺼짐이 동작함. `quiz-flow`로 진입함. 완성 연출이 동작함 | `session-engine`, `seed-data`, `quiz-flow` |
 | `code-trace-animation` | `TraceStep`, 장면 목록 계약, 임시 에셋 | 시드의 `animationID`와 단계 데이터로 S4에서 재생됨. 완료 신호가 `quiz-flow`에 전달됨. 장면을 못 찾았을 때 대체 동작이 있음. VoiceOver 설명이 나옴 | `seed-data`, `quiz-flow` |
-| `records-and-settings` | 공통 모델과 `SettingsStore` 계약 | 실제 세션 기록(완료 시각, 카테고리 스냅샷)으로 집계됨. 세션 시작 때 설정값이 세션에 저장됨. 첫 실행과 기록이 없을 때 화면이 동작함. S9의 보관함 진입 → S8이 `TreeManaging.completedTrees()`의 실제 기록과 완성 날짜를 보여 주고, 기록이 없으면 빈 상태를 보여 줌. 트리 완성 직후 목록이 갱신됨 | `session-engine` |
+| `records-and-settings` | 공통 모델과 `SettingsStore` 계약 | 실제 세션 기록(완료 시각, 카테고리 스냅샷)으로 집계됨. 세션 시작 때 설정값이 세션에 저장됨. 첫 실행과 기록이 없을 때 화면이 동작함. S9의 완성 트리 수가 `TreeManaging.completedTrees()`의 실제 기록과 일치하고, 트리 완성 직후 숫자가 갱신됨. 기록이 없으면 빈 상태를 보여 줌 | `session-engine` |
 | `question-management` | 공통 모델과 `MediaFileManaging` 계약 | 미디어 저장과 정리를 `MediaFileManaging`으로만 함. 수정·삭제 후 결과, 오답 노트, 후보 수가 갱신됨 | `session-engine`, `quiz-flow` |
 
 에셋·사운드와 마감(README, GIF, 점검)은 Spec이 아니라 체크리스트입니다. 그래도 담당, 필요한 날짜, 파일 이름 규칙, 확인 방법을 정해서 완료 산출물로 취급합니다.
@@ -42,7 +42,7 @@
 
 | # | 시나리오 | 주 담당 | 연동 | 확인 내용 |
 | --- | --- | --- | --- | --- |
-| 1 | 오늘의 출제(혼합)와 카테고리·태그를 고른 선택 출제(출제 탭) | `task-and-tree` | `session-engine`, `seed-data` | 오늘의 출제가 여러 작업의 문제를 섞음. 태그를 여러 개 고르거나 하나도 안 고를 때 후보가 맞음. 후보가 모자라면 장식이 꺼지고, 선택한 카테고리 중 어느 것도 N문제를 못 채우면 그 문제 수가 잠김. 진행 중 세션이 있을 때 장식을 누르면 이어서 풀기/새로 시작 선택이 나옴 |
+| 1 | 카테고리를 고른 선택 출제(출제 탭의 필터 팝업 → 장식 선택) | `task-and-tree` | `session-engine`, `seed-data` | 카테고리를 여러 개 골라도 켜진 장식 하나의 카테고리로만 세션이 만들어짐. 후보가 0개인 카테고리의 장식은 꺼지고, 후보가 고른 문제 수보다 적으면 가능한 만큼만 출제됨. 진행 중 세션이 있을 때 장식을 누르면 이어서 풀기/새로 시작 선택이 나옴 |
 | 2 | 마지막 답을 저장한 직후 앱을 종료하고 다시 켬 | `quiz-flow` | `session-engine` | 이어서 풀기로 결과 계산부터 진행함. 이미 저장된 답을 다시 채점하지 않음 |
 | 3 | 세션 완료를 두 번 호출함, 12칸 완성 | `session-engine` | `task-and-tree` | 장식이 한 번만 지급됨(항상 1개). 11칸에서 1개를 받으면 트리가 완성되고 빈 트리가 새로 시작됨 |
 | 4 | 미디어 문제를 푼 뒤 문제를 수정하거나 삭제함 | `question-management` | `session-engine`, `quiz-flow` | 진행 중 세션은 이어 풀 수 있음. 삭제한 문제는 오답 노트에서 사라짐. 수정한 문제의 오답 노트는 풀 당시 내용으로 보임. 쓰이지 않는 파일만 정리됨 |
