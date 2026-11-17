@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>산타의 작업실 탈출 · 디자인 시안 v0.3</title>
+<style>
+/* ===== 팔레트: 기존 시안 A(산타의 작업실 탈출)를 그대로 사용 ===== */
+:root{
+  --page:#efe6d6;--pagetext:#2b1a14;--pcard:#fffdf8;--pline:#dccfb8;
+  --bg:#fbf3e6;--card:#fffdf8;--text:#2b1a14;--sub:#8c6f62;--accent:#c8382b;--onacc:#fff;
+  --ok:#2f8f5b;--bad:#d64545;--line:#ecdcc6;--tabbg:#fffaf0;
+  --hero:linear-gradient(135deg,#1b6b42,#0f432b);--herobtn:#ffd96b;--herobtntx:#4a2a00;
+  --wall:#f4dfc0;--soft:#f6ead6;--dis:#d9cfc0;--distx:#a89886;--night:linear-gradient(#17304a,#0b1a2b);
+}
+[data-mode=dark]{
+  --page:#08120d;--pagetext:#f7eedc;--pcard:#14271e;--pline:#254036;
+  --bg:#0c1a14;--card:#14271e;--text:#f7eedc;--sub:#9fb5a7;--accent:#ff6a5c;--onacc:#2a0b07;
+  --ok:#4ed08a;--bad:#ff7a7a;--line:#254036;--tabbg:#0f2019;
+  --hero:linear-gradient(135deg,#1f7a4c,#0f3b27);--wall:#16291f;--soft:#1a3026;--dis:#2a3b33;--distx:#6b7f74;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard",sans-serif;background:var(--page);color:var(--pagetext);transition:background .3s;padding:24px 20px 80px}
+h1{font-size:24px;margin-bottom:6px}
+.lead{color:var(--sub);font-size:14px;line-height:1.6;max-width:900px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}
+.bar button{border:1px solid var(--pline);background:var(--pcard);color:var(--pagetext);padding:8px 14px;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+.bar button.on{background:var(--accent);color:var(--onacc);border-color:var(--accent)}
+.notes{background:var(--pcard);border:1px solid var(--pline);border-radius:16px;padding:16px 20px;max-width:900px;margin-bottom:28px;font-size:13px;line-height:1.7}
+.notes h2{font-size:14px;margin-bottom:6px}
+.notes ul{padding-left:18px}
+h2.sec{font-size:17px;margin:34px 0 4px}
+.secsub{color:var(--sub);font-size:13px;margin-bottom:16px}
+.grid{display:flex;flex-wrap:wrap;gap:34px 28px;align-items:flex-start}
+figure{width:300px}
+figcaption{font-size:12.5px;line-height:1.5;margin-top:10px;color:var(--sub)}
+figcaption b{color:var(--pagetext);font-size:13.5px;display:block;margin-bottom:2px}
+.id{display:inline-block;background:var(--accent);color:var(--onacc);border-radius:6px;padding:1px 6px;font-size:11px;margin-right:6px;font-weight:700}
+
+/* ===== iPhone 프레임 ===== */
+.phone{width:300px;height:620px;border-radius:44px;border:9px solid #1b1b1d;background:#1b1b1d;position:relative;box-shadow:0 14px 34px rgba(0,0,0,.28);overflow:hidden}
+.screen{position:relative;width:100%;height:100%;border-radius:34px;overflow:hidden;background:var(--bg);color:var(--text);font-size:12.5px;display:flex;flex-direction:column}
+.notch{position:absolute;top:7px;left:50%;transform:translateX(-50%);width:84px;height:22px;background:#000;border-radius:14px;z-index:20}
+.status{height:38px;display:flex;justify-content:space-between;align-items:flex-end;padding:0 22px 4px;font-size:11px;font-weight:700;flex:none}
+.body{flex:1;overflow:hidden;padding:6px 16px 10px;display:flex;flex-direction:column;gap:10px;position:relative}
+.tabbar{flex:none;height:58px;background:var(--tabbg);border-top:1px solid var(--line);display:flex;padding:6px 8px 14px}
+.tabbar div{flex:1;text-align:center;font-size:10px;color:var(--sub);display:flex;flex-direction:column;align-items:center;gap:2px}
+.tabbar div i{font-style:normal;font-size:18px;line-height:1}
+.tabbar div.on{color:var(--accent);font-weight:700}
+.home{position:absolute;bottom:5px;left:50%;transform:translateX(-50%);width:100px;height:4px;background:var(--text);opacity:.35;border-radius:2px;z-index:15}
+
+/* ===== 공통 컴포넌트 ===== */
+.navt{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--accent);font-weight:600;min-height:20px}
+.navt .t{color:var(--text);font-weight:700;font-size:13px}
+.title{font-size:22px;font-weight:800;letter-spacing:-.3px}
+.sub{color:var(--sub);font-size:11.5px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px}
+.hero{background:var(--hero);color:#f7eedc;border-radius:16px;padding:12px}
+.btn{display:block;text-align:center;background:var(--accent);color:var(--onacc);border-radius:14px;padding:12px;font-weight:800;font-size:13.5px;border-bottom:3px solid rgba(0,0,0,.18)}
+.btn.gold{background:var(--herobtn);color:var(--herobtntx)}
+.btn.ghost{background:transparent;color:var(--accent);border:1.5px solid var(--accent);border-bottom-width:1.5px}
+.btn.off{background:var(--dis);color:var(--distx);border-bottom-color:transparent}
+.chip{white-space:nowrap;display:inline-block;border-radius:999px;padding:2px 8px;font-size:10px;font-weight:700;background:var(--soft);color:var(--sub);margin-right:4px}
+.chip.red{background:var(--accent);color:var(--onacc)}
+.chip.grn{background:var(--ok);color:#fff}
+.seg{display:flex;background:var(--soft);border-radius:10px;padding:3px;gap:3px}
+.seg span{flex:1;text-align:center;padding:7px 0;border-radius:8px;font-weight:700;font-size:12px;color:var(--sub)}
+.seg span.on{background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.seg span.dis{color:var(--distx);opacity:.7;text-decoration:line-through}
+.row{display:flex;align-items:center;gap:10px}
+.grow{flex:1;min-width:0}
+.pb{height:6px;background:var(--soft);border-radius:4px;overflow:hidden}
+.pb i{display:block;height:100%;background:var(--accent);border-radius:4px}
+.pb.g i{background:var(--ok)}
+.ico{width:38px;height:38px;border-radius:11px;background:var(--soft);display:flex;align-items:center;justify-content:center;font-size:20px;flex:none}
+.k{font-weight:700}
+.dim{opacity:.55}
+.toggle{width:38px;height:22px;border-radius:12px;background:var(--ok);position:relative;flex:none}
+.toggle::after{content:"";position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:#fff}
+.toggle.off{background:var(--dis)}.toggle.off::after{right:auto;left:2px}
+.sheetbg{position:absolute;inset:0;background:rgba(0,0,0,.45);z-index:10}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:11;background:var(--bg);border-radius:22px 22px 0 0;padding:10px 16px 26px;display:flex;flex-direction:column;gap:10px}
+.grab{width:36px;height:4px;border-radius:3px;background:var(--line);margin:0 auto 4px}
+
+/* ===== 트리 ===== */
+.treebox{background:var(--wall);border-radius:14px;display:flex;justify-content:center;align-items:flex-end;position:relative;overflow:hidden}
+.treebox svg{display:block}
+.snow{position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(#fff 1px,transparent 1.5px);background-size:34px 29px;opacity:.35}
+
+/* ===== 퀴즈 ===== */
+.choice{display:flex;align-items:center;gap:10px;background:var(--card);border:1.5px solid var(--line);border-radius:13px;padding:10px 12px;font-weight:600;cursor:pointer;transition:.15s}
+.choice b{width:22px;height:22px;border-radius:50%;background:var(--soft);display:flex;align-items:center;justify-content:center;font-size:11px;flex:none}
+.choice.sel{border-color:var(--accent)}
+.choice.sel b{background:var(--accent);color:var(--onacc)}
+.choice.right{border-color:var(--ok);background:rgba(47,143,91,.14)}
+.choice.right b{background:var(--ok);color:#fff}
+.choice.wrong{border-color:var(--bad);background:rgba(214,69,69,.13);animation:shake .4s}
+.choice.wrong b{background:var(--bad);color:#fff}
+@keyframes shake{20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+pre.code{background:#16181d;color:#e8e6df;border-radius:11px;padding:10px 12px;font:11.5px/1.65 ui-monospace,Menlo,monospace;white-space:pre;overflow:hidden}
+pre.code .ln{display:block;padding:0 4px;margin:0 -4px;border-radius:4px;transition:.25s}
+pre.code .ln.act{background:rgba(255,217,107,.22);box-shadow:inset 3px 0 0 #ffd96b}
+.kw{color:#ff8a7a}.ty{color:#7fd0ff}.st{color:#a5e08a}.nm{color:#ffd96b}
+.fb{position:absolute;left:12px;right:12px;bottom:12px;border-radius:16px;padding:12px;z-index:9;color:#fff;display:none}
+.fb.show{display:block}
+.fb.ok{background:var(--ok)}.fb.no{background:var(--bad)}
+.fb b{font-size:14px}
+.fb p{font-size:11.5px;margin-top:4px;line-height:1.5;opacity:.95}
+
+/* ===== 애니메이션 문제 ===== */
+.scene{height:104px;border-radius:13px;background:linear-gradient(#17304a,#27506f);position:relative;overflow:hidden}
+.scene .ground{position:absolute;left:0;right:0;bottom:0;height:26px;background:#dfe9f2;border-radius:50% 50% 0 0/100% 100% 0 0}
+.scene .actor{position:absolute;bottom:18px;left:8%;font-size:34px;transition:left 1s ease}
+.scene .gift{position:absolute;bottom:18px;right:8%;font-size:28px}
+.scene .bubble{position:absolute;top:8px;left:30%;background:#fff;color:#222;border-radius:10px;padding:3px 8px;font-size:11px;font-weight:700;transition:.3s}
+.vars{display:flex;gap:6px}
+.vars span{background:var(--soft);border-radius:8px;padding:3px 8px;font:700 11px ui-monospace,Menlo,monospace}
+
+/* ===== 결과 ===== */
+.ring{width:96px;height:96px;border-radius:50%;background:conic-gradient(var(--ok) 0 80%,var(--soft) 0);display:flex;align-items:center;justify-content:center;margin:0 auto}
+.ring div{width:76px;height:76px;border-radius:50%;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring b{font-size:22px;line-height:1}
+.stats{display:flex;gap:6px}
+.stats .card{flex:1;text-align:center;padding:8px 4px}
+.stats b{display:block;font-size:14px}
+.reward{display:flex;align-items:center;gap:10px;background:var(--hero);color:#f7eedc;border-radius:14px;padding:10px 12px}
+.reward .big{font-size:26px}
+.item{display:flex;gap:8px;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--line)}
+.item:last-child{border-bottom:0}
+.x{color:var(--bad);font-weight:800}
+
+/* ===== 대시보드 ===== */
+.bars{display:flex;align-items:flex-end;gap:6px;height:70px}
+.bars div{flex:1;background:var(--accent);border-radius:4px 4px 0 0;position:relative;min-height:3px}
+.bars div span{position:absolute;top:-13px;left:0;right:0;text-align:center;font-size:9px;color:var(--sub)}
+.axis{display:flex;gap:6px;font-size:9px;color:var(--sub);text-align:center}
+.axis span{flex:1}
+.wk{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.wk .nm2{width:74px;font-weight:700;font-size:11px;white-space:nowrap}.wk .v{width:30px;text-align:right;font-weight:700;font-size:11px}
+
+/* ===== iPad ===== */
+.pad{width:760px;height:520px;border-radius:26px;border:12px solid #1b1b1d;background:#1b1b1d;overflow:hidden;box-shadow:0 14px 34px rgba(0,0,0,.28)}
+.pad .screen{border-radius:15px;flex-direction:column}
+.split{flex:1;display:flex;min-height:0}
+.split .side{width:250px;border-right:1px solid var(--line);padding:10px 14px;display:flex;flex-direction:column;gap:8px;background:var(--tabbg)}
+.split .main{flex:1;padding:14px 22px;display:flex;flex-direction:column;gap:10px}
+.sidei{display:flex;gap:10px;align-items:center;padding:8px;border-radius:12px}
+.sidei.on{background:var(--soft)}
+.padtab{height:48px;border-top:1px solid var(--line);background:var(--tabbg);display:flex;justify-content:center;gap:60px;padding-top:6px}
+.padtab div{font-size:10px;color:var(--sub);text-align:center}
+.padtab div i{display:block;font-style:normal;font-size:17px}
+.padtab div.on{color:var(--accent);font-weight:700}
+
+.ring.low{background:conic-gradient(var(--accent) 0 60%,var(--soft) 0)}
+.fb.flow{position:static;display:block;border-radius:14px}
+.fbbtn{margin-top:8px;background:rgba(255,255,255,.22);border-radius:10px;padding:8px;text-align:center;font-weight:800;font-size:12.5px}
+.alertbox{position:absolute;left:30px;right:30px;top:50%;transform:translateY(-50%);background:var(--card);border-radius:16px;z-index:12;text-align:center;padding:18px 14px 0;overflow:hidden}
+.alertbox .ab{display:flex;border-top:1px solid var(--line);margin:16px -14px 0}
+.alertbox .ab span{flex:1;padding:12px 0;font-weight:700;color:var(--accent)}
+.alertbox .ab span+span{border-left:1px solid var(--line);color:var(--bad)}
+.popup{position:absolute;left:16px;right:16px;top:50%;transform:translateY(-50%);z-index:11;background:var(--card);border-radius:22px;padding:14px;display:flex;flex-direction:column;gap:8px;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.dcard{flex:1;text-align:center;padding:8px 2px}
+.dcard b{display:block;font-size:17px;margin-top:2px}.dcard b small{font-size:10px;color:var(--sub);font-weight:600}
+.orn{position:absolute;width:50px;height:50px;margin:-25px 0 0 -25px;border-radius:50%;background:var(--card);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 0 0 4px rgba(255,217,107,.55),0 4px 10px rgba(0,0,0,.25)}
+.orn.off{border-color:var(--dis);filter:grayscale(1);opacity:.5;box-shadow:none}
+.orn small{position:absolute;top:100%;margin-top:3px;font-size:9.5px;font-weight:800;white-space:nowrap;color:var(--text);background:var(--card);border-radius:8px;padding:1px 6px;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.tabbar.dim{opacity:.55}
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:8px;padding:0 6px}
+.btn.off{background:var(--dis);color:var(--distx);border-bottom-color:transparent}
+</style>
+</head>
+<body>
+
+<h1>🎅 산타의 작업실 탈출 · 디자인 시안 v0.3</h1>
+<p class="lead">기획서와 와이어프레임 이후에 바뀐 규칙(작업 4개, 장식 12칸, 세션 단위 보상, 출제 탭 분리, 애니메이션 문제 등)을 반영한 시안입니다. 색상과 분위기는 기존 시안 A를 그대로 쓰고, 그림은 이모지·SVG 임시 그림입니다. 실제 제작 단계에서 일러스트로 교체합니다. 기준 문서는 <code>.kiro/steering/project-spec.md</code>입니다.</p>
+
+<div class="bar">
+  <button data-mode-btn="light">☀️ 라이트</button>
+  <button data-mode-btn="dark">🌙 다크</button>
+  <button data-mode-btn="auto">🖥 시스템 설정 따름</button>
+</div>
+
+<div class="notes">
+  <h2>기존 시안(index.html A)에서 바뀐 점</h2>
+  <ul>
+    <li>탭이 <b>4개(작업실·출제·기록·관리)</b>입니다. 작업실은 트리와 "오늘의 출제"만 둔 단순한 메인이고, 선택 출제는 출제 탭으로 분리했습니다.</li>
+    <li>작업실에는 난이도별 <b>남은 문제</b>(아직 풀지 않은 문제 수 / 전체)와 "문제 풀기" 버튼이 있습니다. 누르면 난이도·문제 수를 고르는 <b>작은 팝업</b>이 열립니다(시트 아님).</li>
+    <li>출제 탭은 팝업에서 <b>난이도·카테고리(여러 개)·태그·문제 수</b>를 고른 뒤, 큰 트리의 <b>카테고리 장식</b>(켜진 것만)을 눌러 시작합니다.</li>
+    <li>"방" 대신 <b>작업 4개</b>(소원 접수·선물 생산·포장·썰매 적재)가 장식으로 나타납니다. 각각 AI 활용, Swift 문법, HIG, SwiftUI 실전 카테고리에 대응합니다.</li>
+    <li>열쇠가 없어지고, <b>트리 장식 12칸</b>을 모두 채우면 산타가 선물 배달을 떠납니다.</li>
+    <li>장식은 문제마다가 아니라 <b>세션이 끝난 뒤</b>(정답률 기준 이상일 때) 난이도와 상관없이 <b>1개</b>를 받습니다. 그래서 초과분 이월은 없습니다.</li>
+    <li>작업 추천 배지는 1차에서 뺐습니다.</li>
+    <li>코드 실행을 줄별로 보여 주는 <b>애니메이션 문제</b>가 추가됐습니다. 건너뛰기·다시 보기는 1차에 없습니다.</li>
+    <li>완성한 트리는 <b>기록 탭의 보관함</b>에 쌓입니다.</li>
+    <li>기본 제공(시드) 문제는 수정·삭제 버튼이 보이지만 <b>비활성화</b>됩니다.</li>
+    <li><b>iPad</b>에서 출제 트리는 화면 크기에 맞춰 늘어나고, 문제 관리는 목록과 상세가 나뉜 분할 화면으로 확장합니다.</li>
+    <li>6장에 <b>상태 화면</b>(진행 중 세션이 있을 때의 선택, 조건에 맞는 문제가 없을 때, 오답이 없을 때)이 있습니다.</li>
+  </ul>
+</div>
+
+<h2 class="sec">1. 작업실 · 출제 탭</h2>
+<p class="secsub">작업실은 트리와 "오늘의 출제"만 두어 단순하게, 선택 출제는 출제 탭으로 분리했습니다.</p>
+<div class="grid">
+<!-- S1 -->
+<figure>
+  <div class="phone"><div class="notch"></div><div class="screen">
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="body">
+      <div class="sub" style="text-align:center">크리스마스 · 1번째 트리</div>
+      <div class="title" style="text-align:center">산타의 작업실</div>
+      <div class="treebox" style="height:176px"><div class="snow"></div><svg class="tree" data-n="7" data-size="164" viewBox="0 0 100 112"></svg></div>
+      <div class="card row"><div class="grow"><div class="k">장식 7 / 12</div><div class="pb" style="margin-top:6px"><i style="width:58%"></i></div></div></div>
+      <div class="k">남은 문제 <span class="sub">(아직 풀지 않은 문제)</span></div>
+      <div class="row" style="gap:6px">
+        <div class="card dcard"><span class="sub">쉬움</span><b>5<small> / 12</small></b></div>
+        <div class="card dcard"><span class="sub">보통</span><b>7<small> / 12</small></b></div>
+        <div class="card dcard"><span class="sub">어려움</span><b>4<small> / 10</small></b></div></div>
+      <div class="sub" style="text-align:center">총 16문제</div>
+      <div class="btn">문제 풀기</div>
+    </div>
+
+    <div class="tabbar"><div class="on"><i>🎄</i>작업실</div><div><i>🎁</i>출제</div><div><i>📊</i>기록</div><div><i>🗂</i>관리</div></div>
+    <div class="home"></div>
+  </div></div>
+  <figcaption><b><span class="id">S1</span>작업실 메인</b>트리와 장식 진행도(7/12), 난이도별 "남은 문제"(아직 한 번도 풀지 않은 문제 수 / 전체 문제 수, 4개 작업 합계), "문제 풀기" 버튼. 난이도 카드를 누르면 해당 난이도를 미리 고른 팝업이 열림 <code>[가정]</code>.</figcaption>
+</figure>
+<figure>
+  <div class="phone"><div class="notch"></div><div class="screen">
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="body">
+      <div class="sub" style="text-align:center">크리스마스 · 1번째 트리</div>
+      <div class="title" style="text-align:center">산타의 작업실</div>
+      <div class="treebox" style="height:176px"><div class="snow"></div><svg class="tree" data-n="7" data-size="164" viewBox="0 0 100 112"></svg></div>
+      <div class="card row"><div class="grow"><div class="k">장식 7 / 12</div><div class="pb" style="margin-top:6px"><i style="width:58%"></i></div></div></div>
+      <div class="k">남은 문제 <span class="sub">(아직 풀지 않은 문제)</span></div>
+      <div class="row" style="gap:6px">
+        <div class="card dcard"><span class="sub">쉬움</span><b>5<small> / 12</small></b></div>
+        <div class="card dcard"><span class="sub">보통</span><b>7<small> / 12</small></b></div>
+        <div class="card dcard"><span class="sub">어려움</span><b>4<small> / 10</small></b></div></div>
+      <div class="sub" style="text-align:center">총 16문제</div>
+      <div class="btn gold" style="color:var(--herobtntx)">이어서 풀기 · 6/10</div>
+    </div>
+
+    <div class="tabbar"><div class="on"><i>🎄</i>작업실</div><div><i>🎁</i>출제</div><div><i>📊</i>기록</div><div><i>🗂</i>관리</div></div>
+    <div class="home"></div>
+  </div></div>
+  <figcaption><b><span class="id">S1</span>작업실 메인: 진행 중 세션이 있을 때</b>버튼이 "이어서 풀기"로 바뀜 <code>[가정]</code>.</figcaption>
+</figure>
+<!-- S3a -->
+<figure>
+  <div class="phone"><div class="notch"></div><div class="screen">
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="body dim">
+      <div class="sub" style="text-align:center">크리스마스 · 1번째 트리</div>
+      <div class="title" style="text-align:center">산타의 작업실</div>
+      <div class="treebox" style="height:176px"><div class="snow"></div><svg class="tree" data-n="7" data-size="164" viewBox="0 0 100 112"></svg></div>
+      <div class="card row"><div class="grow"><div class="k">장식 7 / 12</div><div class="pb" style="margin-top:6px"><i style="width:58%"></i></div></div></div>
+      <div class="k">남은 문제 <span class="sub">(아직 풀지 않은 문제)</span></div>
+      <div class="row" style="gap:6px">
+        <div class="card dcard"><span class="sub">쉬움</span><b>5<small> / 12</small></b></div>
+        <div class="card dcard"><span class="sub">보통</span><b>7<small> / 12</small></b></div>
+        <div class="card dcard"><span class="sub">어려움</span><b>4<small> / 10</small></b></div></div>
+      <div class="sub" style="text-align:center">총 16문제</div>
+      <div class="btn">문제 풀기</div>
+    </div>
+    <div class="sheetbg"></div>
+    <div class="popup">
+      <div class="title" style="font-size:17px;text-align:center">오늘의 출제</div>
+      <div class="sub" style="text-align:center">취약한 주제를 섞어서 구성해요</div>
+      <div class="k">난이도</div>
+      <div class="seg"><span>쉬움</span><span class="on">보통</span><span>어려움</span></div>
+      <div class="k">문제 수</div>
+      <div class="seg"><span class="on">5</span><span>10</span><span>15</span></div>
+      <div class="sub">4개 작업의 문제를 합쳐서 고르기 때문에 1차에도 모두 열려 있어요</div>
+      <div class="card" style="background:var(--soft);border:0;padding:8px 12px">정답률 <b>80%</b> 이상이면 장식 1개를 받아요</div>
+      <div class="row" style="gap:8px"><div class="btn ghost grow">취소</div><div class="btn grow" style="flex:2">시작하기</div></div>
+    </div>
+    <div class="tabbar dim"><div class="on"><i>🎄</i>작업실</div><div><i>🎁</i>출제</div><div><i>📊</i>기록</div><div><i>🗂</i>관리</div></div>
+    <div class="home"></div>
+  </div></div>
+  <figcaption><b><span class="id">S3a</span>오늘의 출제 팝업</b>"문제 풀기"를 누르면 열리는 작은 팝업. 난이도와 문제 수만 고르고 앱이 4개 작업을 섞어서 구성. 문제 수 선택지는 실제로는 후보 문제 수(<code>availableCount</code>)에 따라 활성화됨.</figcaption>
+</figure>
+<!-- S2 -->
+<figure>
+  <div class="phone"><div class="notch"></div><div class="screen">
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="body">
+      <div class="title">출제</div>
+      <div class="row" style="justify-content:space-between"><span class="chip red" style="font-size:11px;padding:4px 10px">보통 · 카테고리 4개 · 5문제 ⚙</span><span class="sub">장식 7 / 12</span></div>
+      <div class="treebox" style="height:300px"><div class="snow"></div><svg class="tree" data-n="7" data-size="280" viewBox="0 0 100 112"></svg><div class="orn" style="left:92px;top:118px">🤖<small>소원 접수</small></div><div class="orn" style="left:158px;top:118px">🐦<small>선물 생산</small></div><div class="orn" style="left:62px;top:190px">🎨<small>포장</small></div><div class="orn" style="left:188px;top:190px">🧩<small>썰매 적재</small></div></div>
+      <div class="sub" style="text-align:center">반짝이는 장식을 눌러 문제를 풀어요</div>
+    </div>
+
+    <div class="tabbar"><div><i>🎄</i>작업실</div><div class="on"><i>🎁</i>출제</div><div><i>📊</i>기록</div><div><i>🗂</i>관리</div></div>
+    <div class="home"></div>
+  </div></div>
+  <figcaption><b><span class="id">S2</span>출제 탭: 장식 트리</b>큰 트리에 카테고리 장식 4개(AI 활용/소원 접수, Swift 문법/선물 생산, HIG/포장, SwiftUI 실전/썰매 적재). 켜진 장식을 누르면 그 카테고리 세션이 시작되고, 장식 위치에서 퀴즈 화면이 커지며 열림(1차는 페이드, <code>[가정]</code>). 상단 칩은 현재 설정 요약이며 누르면 팝업이 다시 열림.</figcaption>
+</figure>
+<figure>
+  <div class="phone"><div class="notch"></div><div class="screen">
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="body">
+      <div class="title">출제</div>
+      <div class="row" style="justify-content:space-between"><span class="chip red" style="font-size:11px;padding:4px 10px">보통 · 2개 · #옵셔널 · 5문제 ⚙</span><span class="sub">장식 7 / 12</span></div>
+      <div class="treebox" style="height:300px"><div class="snow"></div><svg class="tree" data-n="7" data-size="280" viewBox="0 0 100 112"></svg><div class="orn off" style="left:92px;top:118px">🤖<small>소원 접수</small></div><div class="orn" style="left:158px;top:118px">🐦<small>선물 생산</small></div><div class="orn off" style="left:62px;top:190px">🎨<small>포장</small></div><div class="orn" style="left:188px;top:190px">🧩<small>썰매 적재</small></div></div>
+      <div class="sub" style="text-align:center">반짝이는 장식을 눌러 문제를 풀어요</div>
+    </div>
+
+    <div class="tabbar"><div><i>🎄</i>작업실</div><div class="on"><i>🎁</i>출제</div><div><i>📊</i>기록</div><div><i>🗂</i>관리</div></div>
+    <div class="home"></div>
+  </div></div>
+  <figcaption><b><span class="id">S2</span>출제 탭: 일부 장식만 켜짐</b>카테고리를 2개만 골랐거나, 고른 난이도·태그·문제 수에 맞는 문제가 부족한 카테고리의 장식은 꺼짐(흐리게 표시, 눌러도 시작 안 됨).</figcaption>
+</figure>
+<!-- S3b -->
+<figure>
+  <div class="phone"><div class="notch"></div><div class="screen">
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="body dim">
+      <div class="title">출제</div>
+      <div class="row" style="justify-content:space-between"><span class="chip red" style="font-size:11px;padding:4px 10px">보통 · 카테고리 4개 · 5문제 ⚙</span><span class="sub">장식 7 / 12</span></div>
+      <div class="treebox" style="height:300px"><div class="snow"></div><svg class="tree" data-n="7" data-size="280" viewBox="0 0 100 112"></svg><div class="orn" style="left:92px;top:118px">🤖<small>소원 접수</small></div><div class="orn" style="left:158px;top:118px">🐦<small>선물 생산</small></div><div class="orn" style="left:62px;top:190px">🎨<small>포장</small></div><div class="orn" style="left:188px;top:190px">🧩<small>썰매 적재</small></div></div>
+      <div class="sub" style="text-align:center">반짝이는 장식을 눌러 문제를 풀어요</div>
+    </div>
+    <div class="sheetbg"></div>
+    <div class="popup" style="gap:7px">
+      <div class="title" style="font-size:17px;text-align:center">출제 설정</div>
+      <div class="k">난이도</div>
+      <div class="seg" style="font-size:10px;white-space:nowrap"><span>★ 쉬움</span><span class="on">★★ 보통</span><span>★★★ 어려움</span></div>
+      <div class="k">카테고리 <span class="sub">(여러 개 선택)</span></div>
+      <div><span class="chip red">🤖 AI 활용</span><span class="chip red">🐦 Swift 문법</span><span class="chip red">🎨 HIG</span><span class="chip red">🧩 SwiftUI 실전</span></div>
+      <div class="k">태그 <span class="sub">(선택, 하나라도 맞으면 포함)</span></div>
+      <div><span class="chip red">전체</span><span class="chip">#옵셔널</span><span class="chip">#클로저</span><span class="chip">#guard</span><span class="chip">#레이아웃</span></div>
+      <div class="k">문제 수</div>
+      <div class="seg"><span class="on">5</span><span class="dis">10</span><span class="dis">15</span></div>
+      <div class="sub">🔒 10개, 15개는 문제가 더 추가되면 열려요</div>
+      <div class="card" style="background:var(--soft);border:0;padding:7px 12px;font-weight:700;text-align:center">보통 · 카테고리 4개 · 5문제</div>
+      <div class="btn">트리에서 장식 고르기</div>
+    </div>
+    <div class="tabbar dim"><div><i>🎄</i>작업실</div><div class="on"><i>🎁</i>출제</div><div><i>📊</i>기록</div><div><i>🗂</i>관리</div></div>
+    <div class="home"></div>
+  </div></div>
+  <figcaption><b><span class="id">S3b</span>출제 설정 팝업</b>출제 탭에 처음 들어오거나 상단 칩을 누르면 열림. 난이도(별 1~3개), 카테고리 다중 선택(기본 4개 모두), 태그(선택한 카테고리의 태그 합집합), 문제 수. 완료하면 트리의 장식 고르기 화면으로.</figcaption>
+</figure>
+
+</div>
+
+<h2 class="sec">2. 퀴즈 진행</h2>
+<p class="secsub">일반 문제와 애니메이션 문제. 보기를 눌러 선택하고 [확인]을 누르면 채점됩니다. (이 시안에서도 직접 눌러 볼 수 있어요)</p>
+<div class="grid">
+
+<!-- S4 + S5 -->
+<figure>
+  <div class="phone"><div class="notch"></div><div class="screen" id="quiz1">
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="body">
+      <div class="navt"><span>✕</span><span class="t">3 / 5</span><span>💡 힌트</span></div>
+      <div class="pb"><i style="width:60%"></i></div>
+      <div><span class="chip">Swift 문법</span><span class="chip">보통</span><span class="chip">#옵셔널</span></div>
+      <div class="k" style="font-size:14.5px;line-height:1.45">다음 코드를 실행했을 때 출력되는 값은?</div>
+      <pre class="code"><span class="kw">let</span> name: <span class="ty">String</span>? = <span class="kw">nil</span>
+<span class="kw">print</span>(name ?? <span class="st">"산타"</span>)</pre>
+      <div class="choice" data-i="0"><b>A</b>nil</div>
+      <div class="choice" data-i="1"><b>B</b>산타</div>
+      <div class="choice" data-i="2"><b>C</b>Optional("산타")</div>
+      <div class="choice" data-i="3"><b>D</b>컴파일 오류</div>
+      <div class="btn off" id="q1btn">확인</div>
+    </div>
+    <div class="fb" id="q1fb"><b></b><p></p></div>
+    <div class="home"></div>
+  </div></div>
+  <figcaption><b><span class="id">S4·S5</span>퀴즈 진행과 피드백</b>보기를 고르고 [확인]. 정답은 초록색+✓, 오답은 빨간색+✕와 좌우 흔들림(진동·효과음 포함). 색 외에 아이콘과 문구도 함께 표시. 해설은 피드백 패널에 표시.</figcaption>
+</figure>
+
+<figure>
+  <div class="phone"><div class="notch"></div><div class="screen">
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="body">
+      <div class="navt"><span>✕</span><span class="t">4 / 5</span><span>💡 힌트</span></div>
+      <div class="pb"><i style="width:80%"></i></div>
+      <div><span class="chip">Swift 문법</span><span class="chip">보통</span><span class="chip">#guard</span></div>
+      <div class="k" style="font-size:14px;line-height:1.45">이 코드를 실행하면 산타는 어떻게 될까요?</div>
+      <pre class="code"><span class="kw">let</span> gifts = <span class="nm">3</span>
+<span class="kw">guard</span> gifts <span class="kw">&gt;</span> <span class="nm">3</span> <span class="kw">else</span> {
+    santa.wait()
+    <span class="kw">return</span>
+}
+santa.deliver()</pre>
+      <div class="choice "><b>A</b>산타가 선물을 배달한다</div>
+      <div class="choice sel"><b>B</b>산타가 기다린다</div>
+      <div class="choice "><b>C</b>컴파일 오류가 난다</div>
+      <div class="choice "><b>D</b>아무 일도 일어나지 않는다</div>
+      <div class="btn">확인</div>
+    </div>
+
+    <div class="home"></div>
+  </div></div>
+  <figcaption><b><span class="id">S4</span>애니메이션 문제: 확인 전</b>코드를 읽고 보기를 고른 뒤 [확인]을 누르는 단계. [확인]을 누르기 전에는 재생하지 않음.</figcaption>
+</figure>
+
+<!-- S4 trace -->
+<figure>
+  <div class="phone"><div class="notch"></div><div class="screen">
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="body">
+      <div class="navt"><span>✕</span><span class="t">4 / 5</span><span class="chip red" style="margin:0">▶ 재생 중</span></div>
+      <div class="pb"><i style="width:80%"></i></div>
+      <div class="k" style="font-size:13.5px">산타는 선물을 배달할까요?</div>
+      <div class="scene" id="scene">
+        <div class="bubble" id="bubble">gifts = 3</div>
+        <div class="actor" id="actor">🎅</div><div class="gift">🏠</div><div class="ground"></div>
+      </div>
+      <pre class="code" id="trace"><span class="ln"><span class="kw">let</span> gifts = <span class="nm">3</span></span><span class="ln"><span class="kw">guard</span> gifts <span class="kw">&gt;</span> <span class="nm">3</span> <span class="kw">else</span> {</span><span class="ln">    santa.wait()</span><span class="ln">    <span class="kw">return</span></span><span class="ln">}</span><span class="ln">santa.deliver()</span></pre>
+      <div class="vars"><span id="v1">gifts = 3</span><span id="v2">조건 = …</span></div>
+      <div class="sub" id="narr">1번째 줄: gifts는 3으로 설정됩니다</div>
+    </div>
+    <div class="home"></div>
+  </div></div>
+  <figcaption><b><span class="id">S4</span>애니메이션 문제: 재생 중</b>[확인] 후 코드가 한 줄씩 강조되며 산타가 그 줄을 실행. 말풍선·변수 값을 표시하고 같은 설명을 VoiceOver에도 제공. 끝나면 정답 여부와 해설이 나옴. (건너뛰기·다시 보기 없음. 이 시안은 데모라서 자동으로 반복 재생하지만, 앱은 확인 후 1회만 재생)</figcaption>
+</figure>
+
+<figure>
+  <div class="phone"><div class="notch"></div><div class="screen">
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="body">
+      <div class="navt"><span>✕</span><span class="t">4 / 5</span><span style="width:30px"></span></div>
+      <div class="pb"><i style="width:80%"></i></div>
+      <div class="scene"><div class="bubble" style="left:38%">return</div><div class="actor" style="left:8%">🎅</div><div class="gift">🏠</div><div class="ground"></div></div>
+      <div class="choice wrong"><b>A</b>산타가 선물을 배달한다</div>
+      <div class="choice right"><b>B</b>산타가 기다린다</div>
+      <div class="choice "><b>C</b>컴파일 오류가 난다</div>
+      <div class="choice "><b>D</b>아무 일도 일어나지 않는다</div>
+      <div class="fb flow no"><b>✕ 아쉬워요</b><p>3 &gt; 3은 거짓이라 guard의 else로 들어가 wait()를 하고 return으로 끝나요. 그래서 배달은 하지 않아요.</p><div class="fbbtn">다음 문제</div></div>
+    </div>
+
+    <div class="home"></div>
+  </div></div>
+  <figcaption><b><span class="id">S4·S5</span>애니메이션 문제: 재생 후 판정</b>재생이 끝나면 내가 고른 보기와 정답을 표시하고 해설을 보여 줌. 화면 아래 해설 패널에서 [다음 문제]로 넘어감. (이 시안은 오답 예시)</figcaption>
+</figure>
+
+</div>
+
+<h2 class="sec">3. 세션 결과</h2>
+<p class="secsub">장식은 이 화면에서 받습니다. 트리가 완성되면 산타가 출발하는 연출이 이어집니다.</p>
+<div class="grid">
+
+<!-- S6 -->
+<figure>
+  <div class="phone"><div class="notch"></div><div class="screen">
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="body" style="gap:8px">
+      <div class="navt"><span>닫기</span><span class="t">세션 결과</span><span style="width:30px"></span></div>
+      <div class="ring"><div><b>80%</b><span class="sub">4 / 5</span></div></div>
+      <div class="stats">
+        <div class="card"><b>3:12</b><span class="sub">소요 시간</span></div>
+        <div class="card"><b>보통</b><span class="sub">난이도</span></div>
+        <div class="card"><b>80%</b><span class="sub">기준 통과</span></div>
+      </div>
+      <div class="reward"><div class="big">🎄</div><div class="grow"><div class="k">장식 +1개를 받았어요!</div><div class="sub" style="color:#cfe3d6">트리 8 / 12 · 4칸 남았어요</div></div></div>
+      <div class="k">오답 노트 <span class="sub">1개</span></div>
+      <div class="card" style="padding:4px 12px">
+        <div class="item"><span class="x">✕</span><div><div class="k">Optional("산타")가 출력되는 경우는?</div><div class="sub">내 선택 C → 정답 B</div></div></div>
+      </div>
+      <div class="k">추천 학습 자료</div>
+      <div class="card row" style="padding:8px 12px"><div class="ico" style="width:30px;height:30px;font-size:15px">📖</div><div class="grow k" style="font-size:11.5px">The Swift Programming Language: Optionals</div><span class="sub">›</span></div>
+    </div>
+    <div class="home"></div>
+  </div></div>
+  <figcaption><b><span class="id">S6</span>세션 결과</b>점수, 소요 시간, 보상 장식(트리로 날아가는 연출), 오답 노트, 추천 학습 자료. 정답률이 기준 미만이면 보상 영역이 "이번에는 장식을 못 받았어요, 벌칙은 없어요"로 바뀜.</figcaption>
+</figure>
+
+<!-- 완성 -->
+<figure>
+  <div class="phone"><div class="notch"></div><div class="screen" style="background:var(--night);color:#f7eedc">
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="body" style="align-items:center;text-align:center;gap:10px">
+      <div style="font-size:11px;opacity:.8;margin-top:4px">트리 완성!</div>
+      <div class="title" style="font-size:20px">메리 크리스마스 🎄</div>
+      <div class="treebox" style="height:200px;background:transparent;width:100%"><svg class="tree" data-n="12" data-size="190" data-glow="1" viewBox="0 0 100 112"></svg></div>
+      <div style="font-size:30px;letter-spacing:4px">🦌🛷🎅</div>
+      <div class="sub" style="color:#cfe3d6">산타가 선물을 주러 출발했어요</div>
+      <div class="card" style="background:rgba(255,255,255,.1);border:0;color:#f7eedc;width:100%;font-size:11.5px">마지막 장식 <b>1개</b>를 달아 트리를 완성했어요. 새 트리는 빈 상태로 시작해요.</div>
+      <div class="btn gold" style="width:100%">새 트리 시작하기</div>
+    </div>
+    <div class="home" style="background:#fff"></div>
+  </div></div>
+  <figcaption><b><span class="id">S6</span>트리 완성</b>12칸이 모두 차면 완성 연출 후 트리를 기록 탭의 보관함에 저장하고 빈 트리를 새로 시작.</figcaption>
+</figure>
+
+<figure>
+  <div class="phone"><div class="notch"></div><div class="screen">
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="body">
+      <div class="navt"><span>닫기</span><span class="t">세션 결과</span><span style="width:30px"></span></div>
+      <div class="ring low"><div><b>60%</b><span class="sub">3 / 5</span></div></div>
+      <div class="stats">
+        <div class="card"><b>3:40</b><span class="sub">소요 시간</span></div>
+        <div class="card"><b>보통</b><span class="sub">난이도</span></div>
+        <div class="card"><b style="color:var(--bad)">80%</b><span class="sub">기준</span></div>
+      </div>
+      <div class="card row" style="padding:10px 12px"><div class="ico">🎁</div><div class="grow"><div class="k">이번에는 장식을 못 받았어요</div><div class="sub">벌칙은 없어요. 80% 이상이면 장식 1개를 받아요</div></div></div>
+      <div class="k">오답 노트 <span class="sub">2개</span></div>
+      <div class="card" style="padding:4px 12px">
+        <div class="item"><span class="x">✕</span><div><div class="k">guard의 else는 언제 실행되나요?</div><div class="sub">내 선택 A → 정답 C</div></div></div>
+        <div class="item"><span class="x">✕</span><div><div class="k">??의 결과 타입은?</div><div class="sub">내 선택 D → 정답 B</div></div></div>
+      </div>
+      <div class="btn ghost">오답 노트 보기</div>
+      <div class="btn">다시 도전</div>
+    </div>
+
+    <div class="home"></div>
+  </div></div>
+  <figcaption><b><span class="id">S6</span>세션 결과: 기준 미만</b>정답률이 기준(80%)에 못 미친 경우. 장식은 받지 못하지만 벌칙은 없고, 다시 도전하도록 안내함.</figcaption>
+</figure>
+
+<figure>
+  <div class="phone"><div class="notch"></div><div class="screen">
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="body">
+      <div class="navt"><span>‹ 결과</span><span class="t">오답 노트</span><span style="width:30px"></span></div>
+      <div class="sub">이번 세션 · 틀린 문제 2개</div>
+      <div class="card" style="padding:4px 12px">
+        <div class="item row" style="align-items:center"><span class="x">✕</span><div class="grow"><div class="k">guard의 else는 언제 실행되나요?</div><div class="sub">Swift 문법 · 내 선택 A → 정답 C</div></div><span class="sub">›</span></div>
+        <div class="item row" style="align-items:center"><span class="x">✕</span><div class="grow"><div class="k">??의 결과 타입은?</div><div class="sub">Swift 문법 · 내 선택 D → 정답 B</div></div><span class="sub">›</span></div>
+      </div>
+      <div class="sub" style="text-align:center">문제를 고치거나 지워도, 푼 당시의 내용으로 보여 줘요</div>
+    </div>
+
+    <div class="home"></div>
+  </div></div>
+  <figcaption><b><span class="id">S7</span>오답 노트: 목록</b>이번 세션에서 틀린 문제 목록. 문제를 누르면 상세로 이동.</figcaption>
+</figure>
+
+<figure>
+  <div class="phone"><div class="notch"></div><div class="screen">
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="body">
+      <div class="navt"><span>‹ 오답 노트</span><span class="t">1 / 2</span><span style="width:30px"></span></div>
+      <div><span class="chip">Swift 문법</span><span class="chip">보통</span><span class="chip">#guard</span></div>
+      <div class="k" style="font-size:14px;line-height:1.45">guard의 else는 언제 실행되나요?</div>
+      <div class="choice wrong"><b>A</b>조건이 참일 때</div>
+      <div class="choice "><b>B</b>항상 실행된다</div>
+      <div class="choice right"><b>C</b>조건이 거짓일 때</div>
+      <div class="choice "><b>D</b>실행되지 않는다</div>
+      <div class="card" style="padding:9px 12px"><div class="sub">해설</div><div style="margin-top:3px;line-height:1.5">guard는 조건이 거짓이면 else로 빠져나가요. else 안에서는 반드시 return 같은 탈출이 필요해요.</div></div>
+      <div class="card row" style="padding:8px 12px"><div class="ico" style="width:30px;height:30px;font-size:15px">📖</div><div class="grow k" style="font-size:11.5px">The Swift Programming Language: Control Flow</div><span class="sub">›</span></div>
+    </div>
+
+    <div class="home"></div>
+  </div></div>
+  <figcaption><b><span class="id">S7</span>오답 노트: 상세</b>풀 당시의 문제 내용으로 내 선택(✕)과 정답(✓), 해설, 추천 학습 자료를 보여 줌.</figcaption>
+</figure>
+
+</div>
+
+<h2 class="sec">4. 기록 · 관리 탭</h2>
+<p class="secsub">통계 확인, 문제 관리, 설정</p>
+<div class="grid">
+
+<!-- S9 -->
+<figure>
+  <div class="phone"><div class="notch"></div><div class="screen">
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="body" style="gap:8px">
+      <div class="navt"><span class="title" style="color:var(--text)">기록</span><span>⚙ 설정</span></div>
+      <div class="seg"><span class="on">주간</span><span>월간</span></div>
+      <div class="stats">
+        <div class="card"><span class="sub">시도</span><b style="font-size:19px">12회</b></div>
+        <div class="card"><span class="sub">평균 점수</span><b style="font-size:19px">76점</b></div>
+        <div class="card"><span class="sub">완성 트리 ›</span><b style="font-size:19px">2그루</b></div>
+      </div>
+      <div class="card"><div class="k" style="margin-bottom:14px">풀이 문제 수</div>
+        <div class="bars"><div style="height:30%"><span>4</span></div><div style="height:55%"><span>7</span></div><div style="height:40%"><span>5</span></div><div style="height:100%"><span>12</span></div><div style="height:70%"><span>9</span></div><div style="height:25%"><span>3</span></div><div style="height:50%"><span>6</span></div></div>
+        <div class="axis" style="margin-top:3px"><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span><span>일</span></div></div>
+      <div class="card"><div class="k" style="margin-bottom:8px">취약 카테고리</div>
+        <div class="wk"><span class="nm2">Swift 문법</span><div class="pb grow"><i style="width:54%"></i></div><span class="v" style="color:var(--bad)">54%</span></div>
+        <div class="wk"><span class="nm2">SwiftUI 실전</span><div class="pb grow"><i style="width:66%"></i></div><span class="v">66%</span></div>
+        <div class="wk" style="margin:0"><span class="nm2">HIG</span><div class="pb g grow"><i style="width:81%"></i></div><span class="v" style="color:var(--ok)">81%</span></div></div>
+    </div>
+    <div class="tabbar"><div><i>🎄</i>작업실</div><div><i>🎁</i>출제</div><div class="on"><i>📊</i>기록</div><div><i>🗂</i>관리</div></div>
+    <div class="home"></div>
+  </div></div>
+  <figcaption><b><span class="id">S9</span>기록 대시보드</b>주/월 전환, 시도 횟수, 평균 점수, 풀이 문제 수 차트, 취약 카테고리. 완성한 트리 기록을 함께 표시. (시안에는 평균 점수 추이 선 차트를 생략)</figcaption>
+</figure>
+
+<!-- S8 -->
+<figure>
+  <div class="phone"><div class="notch"></div><div class="screen">
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="body">
+      <div class="navt"><span>‹ 기록</span><span class="t">보관함</span><span style="width:30px"></span></div>
+      <div class="sub">완성한 트리 2그루 · 산타가 선물을 배달하고 왔어요</div>
+      <div class="card">
+        <div class="treebox" style="height:112px"><svg class="tree" data-n="12" data-size="100" viewBox="0 0 100 112"></svg></div>
+        <div class="row" style="margin-top:8px"><div class="grow"><div class="k">2번째 트리</div><div class="sub">11월 20일 완성</div></div><span class="chip grn">완성</span></div>
+      </div>
+      <div class="card">
+        <div class="treebox" style="height:112px"><svg class="tree" data-n="12" data-size="100" viewBox="0 0 100 112"></svg></div>
+        <div class="row" style="margin-top:8px"><div class="grow"><div class="k">1번째 트리</div><div class="sub">11월 17일 완성</div></div><span class="chip grn">완성</span></div>
+      </div>
+    </div>
+    <div class="tabbar"><div><i>🎄</i>작업실</div><div><i>🎁</i>출제</div><div class="on"><i>📊</i>기록</div><div><i>🗂</i>관리</div></div>
+    <div class="home"></div>
+  </div></div>
+  <figcaption><b><span class="id">S8</span>보관함</b>완성한 트리를 모아 보는 화면. 기록 탭의 "보관함"에서 들어옴. 그동안의 노력을 남기기 위한 기록.</figcaption>
+</figure>
+
+<!-- S10 -->
+<figure>
+  <div class="phone"><div class="notch"></div><div class="screen">
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="body" style="gap:8px">
+      <div class="navt"><span class="title" style="color:var(--text)">문제 관리</span><span style="font-size:20px">＋</span></div>
+      <div class="card" style="padding:8px 12px;color:var(--sub)">🔍 문제 검색</div>
+      <div><span class="chip red">전체</span><span class="chip">소원 접수</span><span class="chip">선물 생산</span><span class="chip">포장</span></div>
+      <div class="card" style="padding:4px 12px">
+        <div class="item"><div class="grow"><div class="k" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Optional 체이닝이 nil인 경우</div><div class="sub">Swift 문법 · 보통 · 내 문제</div></div>
+          <div style="display:flex;gap:6px"><span class="chip" style="margin:0">수정</span><span class="chip" style="margin:0;color:var(--bad)">삭제</span></div></div>
+        <div class="item"><div class="grow"><div class="k" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">🎬 guard의 else 실행 조건</div><div class="sub">Swift 문법 · 보통 · 기본 🔒</div></div>
+          <div style="display:flex;gap:6px"><span class="chip" style="margin:0;background:var(--dis);color:var(--distx)">수정</span><span class="chip" style="margin:0;background:var(--dis);color:var(--distx)">삭제</span></div></div>
+        <div class="item"><div class="grow"><div class="k" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">HIG 최소 터치 영역은?</div><div class="sub">포장 · 쉬움 · 기본 🔒</div></div>
+          <div style="display:flex;gap:6px"><span class="chip" style="margin:0;background:var(--dis);color:var(--distx)">수정</span><span class="chip" style="margin:0;background:var(--dis);color:var(--distx)">삭제</span></div></div>
+      </div>
+      <div class="sub" style="text-align:center">🔒 기본 문제는 수정할 수 없어요</div>
+    </div>
+    <div class="tabbar"><div><i>🎄</i>작업실</div><div><i>🎁</i>출제</div><div><i>📊</i>기록</div><div class="on"><i>🗂</i>관리</div></div>
+    <div class="home"></div>
+  </div></div>
+  <figcaption><b><span class="id">S10</span>문제 관리</b>검색·필터·삭제. 기본(시드) 문제의 수정/삭제 버튼은 보이지만 비활성화. 🎬는 애니메이션 문제(편집 불가).</figcaption>
+</figure>
+
+<!-- S11 -->
+<figure>
+  <div class="phone"><div class="notch"></div><div class="screen">
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="body" style="gap:7px">
+      <div class="navt"><span>취소</span><span class="t">문제 편집</span><span>저장</span></div>
+      <div class="card" style="padding:9px 12px"><div class="sub">문제</div><div class="k">Optional 체이닝이 nil을 반환하는 경우는?</div></div>
+      <div class="row"><div class="card grow row" style="padding:9px 12px">🖼 이미지 추가</div><div class="card grow row" style="padding:9px 12px">🎞 영상 추가</div></div>
+      <div class="card" style="padding:6px 12px">
+        <div class="item" style="padding:5px 0"><span>◉</span><span>A. 값이 없을 때</span></div>
+        <div class="item" style="padding:5px 0"><span class="sub">○</span><span>B. 값이 있을 때</span></div>
+        <div class="item" style="padding:5px 0"><span class="sub">○</span><span>C. 항상</span></div>
+        <div class="item" style="padding:5px 0"><span class="sub">○</span><span>D. 컴파일 오류가 날 때</span></div>
+      </div>
+      <div class="card row" style="padding:9px 12px"><span class="grow">카테고리</span><span class="sub">Swift 문법 ›</span></div>
+      <div class="card row" style="padding:9px 12px"><span class="grow">난이도</span><span class="sub">보통 ›</span></div>
+      <div class="card row" style="padding:9px 12px"><span class="grow">해설 · 힌트 · 학습 자료</span><span class="sub">›</span></div>
+    </div>
+    <div class="home"></div>
+  </div></div>
+  <figcaption><b><span class="id">S11</span>문제 편집</b>보기는 4개 고정, 정답 1개 선택. 이미지·영상은 사진 보관함에서 골라 앱 안에 복사 저장.</figcaption>
+</figure>
+
+<!-- S12 -->
+<figure>
+  <div class="phone"><div class="notch"></div><div class="screen">
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="body" style="gap:10px">
+      <div class="navt"><span>‹ 기록</span><span class="t">설정</span><span style="width:30px"></span></div>
+      <div class="sub" style="margin-top:4px">보상</div>
+      <div class="card">
+        <div class="row"><div class="grow k">장식을 받는 정답률</div><b style="font-size:16px;color:var(--accent)">80%</b></div>
+        <div class="seg" style="margin-top:8px"><span>50</span><span>60</span><span>70</span><span class="on">80</span><span>90</span><span>100</span></div>
+        <div class="sub" style="margin-top:6px">이 정답률 이상으로 세션을 마치면 장식을 받아요</div>
+      </div>
+      <div class="sub">피드백</div>
+      <div class="card" style="padding:4px 12px">
+        <div class="item row" style="align-items:center"><span class="grow">효과음</span><div class="toggle"></div></div>
+        <div class="item row" style="align-items:center"><span class="grow">진동</span><div class="toggle"></div></div>
+      </div>
+      <div class="sub">화면</div>
+      <div class="card" style="padding:4px 12px">
+        <div class="item"><span class="grow">테마</span><span class="sub">시스템 설정을 따라요</span></div>
+        <div class="item"><span class="grow">글자 크기</span><span class="sub">시스템 설정을 따라요</span></div>
+      </div>
+    </div>
+    <div class="tabbar"><div><i>🎄</i>작업실</div><div><i>🎁</i>출제</div><div class="on"><i>📊</i>기록</div><div><i>🗂</i>관리</div></div>
+    <div class="home"></div>
+  </div></div>
+  <figcaption><b><span class="id">S12</span>설정</b>정답률 기준(50~100%, 10% 단위), 효과음, 진동. 테마와 글자 크기는 시스템 설정을 따름(앱 안에 별도 설정 없음).</figcaption>
+</figure>
+
+</div>
+
+<h2 class="sec">5. iPad</h2>
+<p class="secsub">가로·세로를 모두 지원합니다. 출제 트리는 화면 크기에 맞춰 늘어나고, 문제 관리(S10)는 왼쪽 목록·오른쪽 상세의 분할 화면으로 확장합니다(분할 화면 시안은 생략).</p>
+<div class="grid">
+<figure style="width:760px">
+  <div class="pad"><div class="screen">
+    <div class="status" style="height:26px;padding-top:6px"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="main" style="flex:1;padding:12px 40px;display:flex;flex-direction:column;gap:8px;align-items:center">
+      <div class="row" style="width:100%;justify-content:space-between"><div class="title" style="font-size:19px">출제</div><span class="chip red" style="font-size:12px;padding:4px 12px">보통 · 카테고리 4개 · 5문제 ⚙</span></div>
+      <div class="treebox" style="height:340px;width:640px"><div class="snow"></div><svg class="tree" data-n="7" data-size="330" viewBox="0 0 100 112"></svg><div class="orn" style="left:270px;top:150px;width:64px;height:64px;margin:-32px 0 0 -32px;font-size:30px">🤖<small style="font-size:11px">소원 접수</small></div><div class="orn" style="left:370px;top:150px;width:64px;height:64px;margin:-32px 0 0 -32px;font-size:30px">🐦<small style="font-size:11px">선물 생산</small></div><div class="orn" style="left:210px;top:260px;width:64px;height:64px;margin:-32px 0 0 -32px;font-size:30px">🎨<small style="font-size:11px">포장</small></div><div class="orn" style="left:430px;top:260px;width:64px;height:64px;margin:-32px 0 0 -32px;font-size:30px">🧩<small style="font-size:11px">썰매 적재</small></div></div>
+    </div>
+    <div class="padtab"><div><i>🎄</i>작업실</div><div class="on"><i>🎁</i>출제</div><div><i>📊</i>기록</div><div><i>🗂</i>관리</div></div>
+  </div></div>
+  <figcaption><b><span class="id">S2</span>iPad 가로: 출제 탭</b>iPhone과 같은 구성이고 트리와 장식이 화면에 맞춰 커집니다. 퀴즈 진행 화면은 iPad에서도 가운데 한 컬럼으로 폭을 제한합니다.</figcaption>
+</figure>
+</div>
+
+<h2 class="sec">6. 상태 화면</h2>
+<p class="secsub">진행 중 세션이 있을 때의 선택, 조건에 맞는 문제가 없을 때, 오답이 없을 때의 안내 화면</p>
+<div class="grid">
+<figure>
+  <div class="phone"><div class="notch"></div><div class="screen">
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="body dim" style="gap:10px">
+      <div class="navt"><span class="sub">크리스마스 · 1번째 트리</span><span></span></div>
+      <div class="title">산타의 작업실</div>
+      <div class="card" style="height:120px"></div>
+    </div>
+    <div class="sheetbg"></div>
+    <div class="sheet">
+      <div class="grab"></div>
+      <div class="title" style="font-size:17px">진행 중인 세션이 있어요</div>
+      <div class="card row" style="padding:10px 12px"><div class="ico">🎁</div><div class="grow"><div class="k">선물 생산 · 보통</div><div class="sub">6 / 10 문제까지 풀었어요</div></div></div>
+      <div class="btn">이어서 풀기</div>
+      <div class="btn ghost">새로 시작</div>
+    </div>
+
+    <div class="home"></div>
+  </div></div>
+  <figcaption><b><span class="id">S1</span>진행 중 세션이 있을 때 새 세션 시작</b>이미 진행 중인 세션이 있는데 새 세션을 시작하려고 하면 먼저 이 선택이 나옴. 진행 중 세션은 동시에 1개만 허용.</figcaption>
+</figure>
+
+<figure>
+  <div class="phone"><div class="notch"></div><div class="screen">
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="body dim">
+      <div class="navt"><span class="sub">크리스마스 · 1번째 트리</span><span></span></div>
+      <div class="title">산타의 작업실</div>
+      <div class="card" style="height:120px"></div>
+    </div>
+    <div class="sheetbg"></div>
+    <div class="alertbox">
+      <div class="k" style="font-size:15px">새로 시작할까요?</div>
+      <div class="sub" style="margin-top:6px;line-height:1.5">진행 중이던 세션(선물 생산 · 6/10)은 이어서 풀 수 없게 돼요.</div>
+      <div class="ab"><span>취소</span><span>새로 시작</span></div>
+    </div>
+
+    <div class="home"></div>
+  </div></div>
+  <figcaption><b><span class="id">S1</span>새로 시작 확인</b>"새로 시작"을 고르면 한 번 더 확인한 뒤 기존 세션을 중단 처리함. 중단한 세션은 이어서 풀 수 없음.</figcaption>
+</figure>
+
+<figure>
+  <div class="phone"><div class="notch"></div><div class="screen">
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="body dim"><div class="title">출제</div><div class="treebox" style="height:300px"></div></div>
+    <div class="sheetbg"></div>
+    <div class="popup" style="gap:7px">
+      <div class="title" style="font-size:17px;text-align:center">출제 설정</div>
+      <div class="k">난이도</div>
+      <div class="seg" style="font-size:10px;white-space:nowrap"><span>★ 쉬움</span><span class="on">★★ 보통</span><span>★★★ 어려움</span></div>
+      <div class="k">카테고리</div>
+      <div><span class="chip red">🤖 AI 활용</span><span class="chip">🐦 Swift 문법</span><span class="chip">🎨 HIG</span><span class="chip">🧩 SwiftUI 실전</span></div>
+      <div class="k">태그</div>
+      <div><span class="chip">전체</span><span class="chip red">#프롬프트</span></div>
+      <div class="k">문제 수</div>
+      <div class="seg"><span class="dis">5</span><span class="dis">10</span><span class="dis">15</span></div>
+      <div class="card" style="background:var(--soft);border:0;padding:8px 12px">🔍 조건에 맞는 문제가 없어요. 태그나 카테고리를 바꿔 보세요.</div>
+      <div class="btn off">트리에서 장식 고르기</div>
+    </div>
+    <div class="home"></div>
+  </div></div>
+  <figcaption><b><span class="id">S3b</span>출제 설정: 조건에 맞는 문제 없음</b>선택한 조건의 후보가 0개일 때. 문제 수는 모두 잠기고 버튼이 비활성화되며, 태그나 카테고리를 바꾸도록 안내함.</figcaption>
+</figure>
+
+<figure>
+  <div class="phone"><div class="notch"></div><div class="screen">
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="body">
+      <div class="navt"><span class="title" style="color:var(--text)">문제 관리</span><span style="font-size:20px">＋</span></div>
+      <div class="card" style="padding:8px 12px;color:var(--sub)">🔍 프로토콜</div>
+      <div><span class="chip red">포장</span><span class="chip">쉬움</span></div>
+      <div class="empty"><div style="font-size:34px">🗂</div><div class="k" style="font-size:14px">조건에 맞는 문제가 없어요</div><div class="sub">필터를 초기화하거나 새 문제를 만들어 보세요</div>
+        <div class="btn ghost" style="width:100%;margin-top:6px">필터 초기화</div><div class="btn" style="width:100%">＋ 새 문제 만들기</div></div>
+    </div>
+<div class="tabbar"><div><i>🎄</i>작업실</div><div><i>🎁</i>출제</div><div><i>📊</i>기록</div><div class="on"><i>🗂</i>관리</div></div>
+    <div class="home"></div>
+  </div></div>
+  <figcaption><b><span class="id">S10</span>문제 관리: 결과 없음</b>검색이나 필터 결과가 0개이거나 문제가 하나도 없을 때. 안내 문구와 다음 행동 버튼을 보여 줌.</figcaption>
+</figure>
+
+<figure>
+  <div class="phone"><div class="notch"></div><div class="screen">
+    <div class="status"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="body">
+      <div class="navt"><span>‹ 결과</span><span class="t">오답 노트</span><span style="width:30px"></span></div>
+      <div class="empty"><div style="font-size:34px">🎉</div><div class="k" style="font-size:14px">틀린 문제가 없어요</div><div class="sub">이번 세션을 모두 맞혔어요</div>
+        <div class="btn" style="width:100%;margin-top:6px">작업실로 돌아가기</div></div>
+    </div>
+
+    <div class="home"></div>
+  </div></div>
+  <figcaption><b><span class="id">S7</span>오답 노트: 오답 없음</b>틀린 문제가 하나도 없을 때. 오답 노트 대신 안내 문구와 돌아가기 버튼을 보여 줌.</figcaption>
+</figure>
+
+</div>
+
+<script>
+/* ===== 라이트/다크 전환 ===== */
+const root=document.documentElement;
+function setMode(m){
+  if(m==='auto'){root.removeAttribute('data-mode');
+    if(matchMedia('(prefers-color-scheme:dark)').matches)root.setAttribute('data-mode','dark');}
+  else root.setAttribute('data-mode',m);
+  document.querySelectorAll('[data-mode-btn]').forEach(b=>b.classList.toggle('on',b.dataset.modeBtn===m));
+}
+document.querySelectorAll('[data-mode-btn]').forEach(b=>b.onclick=()=>setMode(b.dataset.modeBtn));
+setMode('auto');
+
+/* ===== 트리 SVG: 장식 12칸 중 n개를 채움 ===== */
+const SLOTS=[[50,17],[41,32],[59,32],[32,47],[50,47],[68,47],[26,62],[50,62],[74,62],[18,77],[50,77],[82,77]];
+const COLORS=['#ff6a5c','#ffd96b','#6ec6ff','#ff9ad5','#8ce3a6','#ffb15c'];
+document.querySelectorAll('svg.tree').forEach(svg=>{
+  const n=+svg.dataset.n,size=+svg.dataset.size;
+  svg.setAttribute('width',size*100/112);svg.setAttribute('height',size);
+  let h='<polygon points="50,6 30,38 70,38" fill="#1f7a4c"/><polygon points="50,24 18,62 82,62" fill="#1b6b42"/><polygon points="50,44 8,90 92,90" fill="#165a37"/><rect x="45" y="90" width="10" height="14" fill="#7a4a2a"/>';
+  h+='<polygon points="50,0 52,5 57,5 53,8 55,13 50,10 45,13 47,8 43,5 48,5" fill="#ffd96b"/>';
+  SLOTS.forEach(([x,y],i)=>{
+    if(i<n) h+=`<circle cx="${x}" cy="${y}" r="4.4" fill="${COLORS[i%6]}"${svg.dataset.glow?' style="filter:drop-shadow(0 0 3px #fff8)"':''}/><circle cx="${x-1.3}" cy="${y-1.3}" r="1.2" fill="#fff" opacity=".6"/>`;
+    else h+=`<circle cx="${x}" cy="${y}" r="4.2" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1" stroke-dasharray="2 2"/>`;
+  });
+  svg.innerHTML=h;
+});
+
+/* ===== 퀴즈 체험 (S4·S5) ===== */
+(function(){
+  const scr=document.getElementById('quiz1'),cs=[...scr.querySelectorAll('.choice')],btn=document.getElementById('q1btn'),fb=document.getElementById('q1fb');
+  let sel=-1,done=false;const RIGHT=1;
+  cs.forEach(c=>c.onclick=()=>{
+    if(done){reset();return;}
+    sel=+c.dataset.i;cs.forEach(x=>x.classList.toggle('sel',x===c));
+    btn.classList.remove('off');
+  });
+  btn.onclick=()=>{
+    if(done){reset();return;}
+    if(sel<0)return;
+    done=true;
+    cs.forEach(x=>x.classList.remove('sel'));
+    cs[RIGHT].classList.add('right');
+    const ok=sel===RIGHT;
+    if(!ok)cs[sel].classList.add('wrong');
+    fb.className='fb show '+(ok?'ok':'no');
+    fb.querySelector('b').textContent=ok?'✓ 정답입니다!':'✕ 아쉬워요';
+    fb.querySelector('p').textContent='nil이면 ?? 오른쪽 기본값이 쓰여서 "산타"가 출력돼요. 눌러서 다시 해 보기';
+    fb.onclick=reset;
+    btn.textContent='다음 문제';
+  };
+  function reset(){done=false;sel=-1;cs.forEach(x=>x.className='choice');fb.className='fb';btn.textContent='확인';btn.classList.add('off');}
+})();
+
+/* ===== 애니메이션 문제 반복 재생 (S4) ===== */
+(function(){
+  const lines=document.querySelectorAll('#trace .ln'),actor=document.getElementById('actor'),bubble=document.getElementById('bubble');
+  const v2=document.getElementById('v2'),narr=document.getElementById('narr');
+  const steps=[
+    {l:0,x:'8%',b:'gifts = 3',v:'조건 = …',n:'1번째 줄: gifts는 3으로 설정됩니다'},
+    {l:1,x:'30%',b:'3 > 3 ?',v:'조건 = …',n:'2번째 줄: 3 > 3 인지 확인합니다'},
+    {l:1,x:'30%',b:'false',v:'조건 = false',n:'2번째 줄: 3은 3보다 크지 않아서 거짓입니다'},
+    {l:2,x:'30%',b:'기다려요',v:'조건 = false',n:'3번째 줄: 조건이 거짓이라 else로 들어가 산타가 기다립니다'},
+    {l:3,x:'8%',b:'return',v:'조건 = false',n:'4번째 줄: return으로 함수가 끝납니다. 배달은 하지 않아요'}
+  ];
+  let i=0;
+  function play(){
+    const s=steps[i];
+    lines.forEach((e,k)=>e.classList.toggle('act',k===s.l));
+    actor.style.left=s.x;bubble.textContent=s.b;v2.textContent=s.v;narr.textContent=s.n;
+    i=(i+1)%steps.length;
+  }
+  play();setInterval(play,1800);
+})();
+</script>
+</body>
+</html>
