@@ -1,5 +1,6 @@
 # 작업 7. 문제 관리
 
+- 담당: **D** ([팀 업무 분담](../team-work-assignment.md))
 - 상위 문서: [프로젝트 스펙](../../.kiro/steering/project-spec.md). 이 문서에서 말하는 5장, 8장, 9장, 11장은 그 문서의 장입니다. 데이터 모델(8장)과 모듈 인터페이스(9장)는 모든 작업이 맞춰야 하는 공통 계약이라 그쪽에 있습니다.
 - 통합 완료 조건과 확인 담당: [통합 계약표](../integration-contracts.md)
 - 디자인 기준: [디자인 매뉴얼](../design/santa-workshop-main-manual.html) 3장(문제 관리), [화면 설계서](../design/screen-spec.html)의 S10, S10-A1, S11, S11-A1

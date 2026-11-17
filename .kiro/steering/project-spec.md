@@ -7,7 +7,7 @@ inclusion: always
 - 상태: 초안 v0.3 (디자인 시안 기준으로 정리, 팀 리뷰 전)
 - 마감: 2026-11-22
 - 디자인 기준: [디자인 매뉴얼](../../docs/design/santa-workshop-main-manual.html) / [화면 설계서](../../docs/design/screen-spec.html). 화면 구성은 이 둘을 따르고, 규칙은 이 문서와 작업별 문서를 따릅니다. 서로 다르면 담당자가 임의로 정하지 말고 팀에 확인합니다.
-- 관련 문서: [작업별 상세 스펙](../../docs/specs) / [통합 계약표](../../docs/integration-contracts.md) / [확정 내역과 질의응답](../../docs/project-understanding.md) / [추가 구현 목록](../../docs/future-work.md) / [원본 기획 자료](../../docs/references/planning)
+- 관련 문서: [팀 업무 분담](../../docs/team-work-assignment.md) / [작업별 상세 스펙](../../docs/specs) / [통합 계약표](../../docs/integration-contracts.md) / [확정 내역과 질의응답](../../docs/project-understanding.md) / [추가 구현 목록](../../docs/future-work.md) / [원본 기획 자료](../../docs/references/planning)
 - 표기
   - **[가정]**: 문서를 쓰면서 제안했지만 팀이 아직 확정하지 않은 내용입니다.
   - **미정**: 제안 없이 팀의 결정을 기다리는 내용입니다.
@@ -424,20 +424,20 @@ Santa'sDeliveryCrisis/
 
 ## 15. 작업 분리
 
-작업 0이 끝나기 전에는 다른 작업이 서로 의존합니다. 작업 0만 먼저 진행하고, 나머지는 병렬로 진행합니다.
+작업 0(완료)이 끝나기 전에는 다른 작업이 서로 의존합니다. 담당 A~D의 업무와 협업 방식은 [팀 업무 분담](../../docs/team-work-assignment.md)에 있습니다.
 
-| 번호 | 작업 | 포함 | 의존 | 병렬 가능 |
-| --- | --- | --- | --- | --- |
-| 0 | [기반](../../docs/specs/00-foundation.md) | Xcode 프로젝트 설정(iOS 17, iPad 방향), 폴더 구조, 8장 모델, enum, 9장 프로토콜과 결과 타입(`SessionResult`, `TreeGrantResult`, `QuestionSnapshot`, `TraceSceneAction` 빈 자리), 화면 미리보기용 가짜(mock) 구현, `MediaFileManaging`, `SettingsStore`(설정 키와 기본값), 테스트 타깃, iOS 17 배포 설정 확인, 색상 Asset 기본 틀, 탭 뼈대 | 없음 | 가장 먼저, 가능한 한 빨리 develop에 병합 |
-| 1 | [시드 데이터](../../docs/specs/01-seed-data.md) | 시드 JSON 스키마, 로더, 첫 실행 주입, 문제 작성(60문제 이상) | 0 | 문제 작성은 작업 0 중에도 시작 가능 |
-| 2 | [세션 로직](../../docs/specs/02-session-engine.md) | `QuestionSelector`, `TaskRecommending`, `SessionManager`, 보상 계산, `TreeManager`, 단위 테스트 | 0 | 1, 3, 4와 병렬 |
-| 3 | [퀴즈 화면](../../docs/specs/03-quiz-flow.md) | S4, S5, S6, S7, 피드백(햅틱, 효과음), 이어서 풀기 UI | 0, 2의 프로토콜 | 작업 0의 가짜(mock) 구현으로 개발하고, 작업 2의 실제 구현이 준비되면 교체 |
-| 4 | [작업실·출제 화면](../../docs/specs/04-task-and-select.md) | S1, S2(필터 팝업), S2-B(장식 선택), 진행 중 세션 시트·알림, 트리 렌더링, 장식 켜짐/꺼짐, 완성 연출 | 0, 2의 프로토콜 | |
-| 5 | [애니메이션 문제](../../docs/specs/05-code-trace.md) | `TraceStep`, 코드 하이라이트·변수 표시·말풍선 컴포넌트, 장면 3~5개, 접근성(모션 줄이기, VoiceOver) | 0, 에셋 | 3의 S4와 연결하는 시점만 조율 |
-| 6 | [기록·설정](../../docs/specs/06-records-settings.md) | S9(차트, 완성 트리 수), S12, @AppStorage 키 | 0 | |
-| 7 | [문제 관리](../../docs/specs/07-question-management.md) | S10, S11, 사진 보관함 선택, 파일 복사 저장 | 0 | |
-| 8 | [에셋·사운드](../../docs/specs/08-assets.md) | 캐릭터, 트리, 장식, 배경, 효과음, 앱 아이콘 | 없음 | 처음부터 병렬 |
-| 9 | [마감](../../docs/specs/09-finish.md) | README(글꼴 크기를 시스템 설정에 맡긴 해석 설명 포함), 스크린샷·GIF, 문서화 주석 점검, 접근성·iPad 점검, 크래시 점검 | 전체 | 마지막 |
+| 번호 | 작업 | 담당 | 포함 | 의존 | 병렬 가능 |
+| --- | --- | --- | --- | --- | --- |
+| 0 | [기반](../../docs/specs/00-foundation.md) | 완료 | Xcode 프로젝트 설정(iOS 17, iPad 방향), 폴더 구조, 8장 모델, enum, 9장 프로토콜과 결과 타입(`SessionResult`, `TreeGrantResult`, `QuestionSnapshot`, `TraceSceneAction` 빈 자리), 화면 미리보기용 가짜(mock) 구현, `MediaFileManaging`, `SettingsStore`(설정 키와 기본값), 테스트 타깃, iOS 17 배포 설정 확인, 색상 Asset 기본 틀, 탭 뼈대 | 없음 | 가장 먼저, 가능한 한 빨리 develop에 병합 |
+| 1 | [시드 데이터](../../docs/specs/01-seed-data.md) | A | 시드 JSON 스키마, 로더, 첫 실행 주입, 문제 작성(60문제 이상) | 0 | 문제 작성은 작업 0 중에도 시작 가능 |
+| 2 | [세션 로직](../../docs/specs/02-session-engine.md) | A | `QuestionSelector`, `TaskRecommending`, `SessionManager`, 보상 계산, `TreeManager`, 단위 테스트 | 0 | 1, 3, 4와 병렬 |
+| 3 | [퀴즈 화면](../../docs/specs/03-quiz-flow.md) | B | S4, S5, S6, S7, 피드백(햅틱, 효과음), 이어서 풀기 UI | 0, 2의 프로토콜 | 작업 0의 가짜(mock) 구현으로 개발하고, 작업 2의 실제 구현이 준비되면 교체 |
+| 4 | [작업실·출제 화면](../../docs/specs/04-task-and-select.md) | C | S1, S2(필터 팝업), S2-B(장식 선택), 진행 중 세션 시트·알림, 트리 렌더링, 장식 켜짐/꺼짐, 완성 연출 | 0, 2의 프로토콜 | |
+| 5 | [애니메이션 문제](../../docs/specs/05-code-trace.md) | B | `TraceStep`, 코드 하이라이트·변수 표시·말풍선 컴포넌트, 장면 3~5개, 접근성(모션 줄이기, VoiceOver) | 0, 에셋 | 3의 S4와 연결하는 시점만 조율 |
+| 6 | [기록·설정](../../docs/specs/06-records-settings.md) | D | S9(차트, 완성 트리 수), S12, @AppStorage 키 | 0 | |
+| 7 | [문제 관리](../../docs/specs/07-question-management.md) | D | S10, S11, 사진 보관함 선택, 파일 복사 저장 | 0 | |
+| 8 | [에셋·사운드](../../docs/specs/08-assets.md) | C | 캐릭터, 트리, 장식, 배경, 효과음, 앱 아이콘 | 없음 | 처음부터 병렬 |
+| 9 | [마감](../../docs/specs/09-finish.md) | D·전원 | README(글꼴 크기를 시스템 설정에 맡긴 해석 설명 포함), 스크린샷·GIF, 문서화 주석 점검, 접근성·iPad 점검, 크래시 점검 | 전체 | 마지막 |
 
 연결 지점 (여기가 어긋나기 쉽습니다)
 - 작업 3, 4는 작업 2의 프로토콜(9장)만 보고 개발하고, 실제 구현이 준비되면 교체합니다.
