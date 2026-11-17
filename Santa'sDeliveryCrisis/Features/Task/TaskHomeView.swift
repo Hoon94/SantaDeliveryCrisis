@@ -60,6 +60,10 @@ struct TaskHomeView: View {
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(TaskHomeCopy.remainingText(filledCount: filledCount))
 
+            if let session = services.sessions.resumableSession() {
+                TaskResumeCard(session: session)
+            }
+
             UnsolvedQuestionTiles(stats: stats)
         }
     }
@@ -76,14 +80,17 @@ struct TaskHomeView: View {
     }
 }
 
-private func taskHomePreview(filledCount: Int, empty: Bool = false) -> some View {
+private func taskHomePreview(
+    filledCount: Int, empty: Bool = false, resume: Bool = false
+) -> some View {
     let source = AppServices.preview
     let trees = MockTreeManager()
+    let sessions = MockSessionManager()
     trees.currentTree().decorationCount = filledCount
     let services = AppServices(
         settings: source.settings,
         selector: source.selector,
-        sessions: source.sessions,
+        sessions: sessions,
         trees: trees,
         feedback: source.feedback,
         media: source.media,
@@ -115,16 +122,36 @@ private func taskHomePreview(filledCount: Int, empty: Bool = false) -> some View
                     }
                 }
             }
-            try container.mainContext.save()
         }
+        if resume {
+            let session = try sessions.startSession(
+                category: .swiftSyntax, difficulty: .normal, tags: [], count: 10
+            )
+            // FIXME: [mock 교체] mock은 문제 수를 무시하므로 프리뷰에서만 시안의 10문제를 구성
+            session.questionSnapshots = (0..<10).map { index in
+                QuestionSnapshot(Question(
+                    text: "이어서 풀기 미리보기 \(index + 1)", choices: ["하나", "둘", "셋", "넷"],
+                    correctIndex: 0, explanation: "미리보기 해설",
+                    category: .swiftSyntax, difficulty: .normal
+                ))
+            }
+            session.questionIDs = session.questionSnapshots.map(\.questionID)
+            for index in 0..<6 {
+                _ = try sessions.submit(answerIndex: 0, forQuestionAt: index, in: session)
+            }
+            container.mainContext.insert(session)
+        }
+        try container.mainContext.save()
         return container
     }
     return Group {
         switch container {
         case .success(let container):
-            TaskHomeView()
-                .modelContainer(container)
-                .environment(\.services, services)
+            NavigationStack {
+                TaskHomeView()
+            }
+            .modelContainer(container)
+            .environment(\.services, services)
         case .failure:
             ContentUnavailableView(
                 "미리보기 데이터를 준비하지 못했어요",
@@ -158,4 +185,21 @@ private func taskHomePreview(filledCount: Int, empty: Bool = false) -> some View
 
 #Preview("작업실 · 문제 없음") {
     taskHomePreview(filledCount: 0, empty: true)
+}
+
+#Preview("작업실 · 이어서 풀기") {
+    TabView {
+        taskHomePreview(filledCount: 6, resume: true)
+            .tabItem { Label("작업실", systemImage: "gift") }
+    }
+}
+
+#Preview("작업실 · 이어서 풀기 다크") {
+    taskHomePreview(filledCount: 6, resume: true)
+        .preferredColorScheme(.dark)
+}
+
+#Preview("작업실 · 이어서 풀기 큰 글자") {
+    taskHomePreview(filledCount: 6, resume: true)
+        .dynamicTypeSize(.accessibility3)
 }
