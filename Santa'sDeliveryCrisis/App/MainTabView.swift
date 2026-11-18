@@ -12,9 +12,7 @@ struct MainTabView: View {
     /// 선택 상태를 공유하며 각 탭의 독립된 화면 이동 경로를 유지한다.
     var body: some View {
         TabView(selection: $selectedTab) {
-            TabRoot(title: "작업실") {
-                TaskHomeView(onSelectQuestions: { selectedTab = .select })
-            }
+            TaskHomeNavigationView(onSelectQuestions: { selectedTab = .select })
                 .tabItem { Label("작업실", systemImage: "gift") }
                 .tag(Tab.task)
             TabRoot(title: "출제") { SelectView() }

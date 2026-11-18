@@ -1,6 +1,24 @@
 import SwiftData
 import SwiftUI
 
+/// 작업실의 이동 경로와 탭 바 표시를 한곳에서 관리한다.
+struct TaskHomeNavigationView: View {
+    @State private var sessionPath: [UUID] = []
+
+    /// 오늘의 출제 버튼에서 출제 탭으로 이동하는 동작.
+    let onSelectQuestions: () -> Void
+
+    /// 작업실에서는 탭 바를 표시하고 세션으로 이동한 동안에는 숨긴다.
+    var body: some View {
+        NavigationStack(path: $sessionPath) {
+            TaskHomeView(onSelectQuestions: onSelectQuestions)
+                .navigationTitle("작업실")
+                .navigationBarTitleDisplayMode(.inline)
+        }
+        .toolbar(sessionPath.isEmpty ? .visible : .hidden, for: .tabBar)
+    }
+}
+
 /// 현재 트리와 남은 장식을 보여 주는 작업실 화면.
 struct TaskHomeView: View {
     @Environment(\.services) private var services
@@ -37,6 +55,18 @@ struct TaskHomeView: View {
         .padding(.vertical, 10)
         .background(Color.roomBackground)
         .toolbar(.hidden, for: .navigationBar)
+        .navigationDestination(for: UUID.self) { sessionID in
+            // FIXME: [B 교체] 실제 퀴즈 화면 연결 시 같은 세션을 전달한다.
+            if let session = history.first(where: { $0.id == sessionID }) {
+                QuizEntryPlaceholderView(session: session)
+            } else {
+                ContentUnavailableView(
+                    "세션을 찾을 수 없어요", systemImage: "exclamationmark.triangle"
+                )
+                .navigationTitle("세션 정보")
+                .toolbar(.visible, for: .navigationBar)
+            }
+        }
     }
 
     private func content(
@@ -136,7 +166,7 @@ private func taskHomePreview(
         questions: questions, sessions: history + resumable,
         trees: [TreeRecord(decorationCount: filledCount)]
     ) {
-        NavigationStack { TaskHomeView(onSelectQuestions: {}) }
+        TaskHomeNavigationView(onSelectQuestions: {})
             .modelContainer(preview.container)
             .environment(\.services, preview.services)
     } else {

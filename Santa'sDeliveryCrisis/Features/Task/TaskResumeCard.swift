@@ -7,11 +7,7 @@ struct TaskResumeCard: View {
 
     /// 작업별 아이콘과 진행 정보를 표시하는 이동 링크.
     var body: some View {
-        NavigationLink {
-            QuizEntryPlaceholderView(session: session)
-                // FIXME: [B 교체] 실제 퀴즈 전체 화면 연결 전까지 목적지에서 탭 바만 숨김
-                .toolbar(.hidden, for: .tabBar)
-        } label: {
+        NavigationLink(value: session.id) {
             HStack(spacing: 10) {
                 Text(session.category?.taskEmoji ?? "🎁")
                     .font(.title3)
@@ -55,12 +51,16 @@ struct TaskResumeCard: View {
 
 #if DEBUG
 #Preview("이어서 풀기 · 작업 없음") {
+    let session = QuizSession(
+        category: nil, difficulty: .normal, questionSnapshots: [], passThresholdPercent: 80
+    )
     NavigationStack {
-        TaskResumeCard(session: QuizSession(
-            category: nil, difficulty: .normal, questionSnapshots: [], passThresholdPercent: 80
-        ))
+        TaskResumeCard(session: session)
         .padding()
         .background(Color.roomBackground)
+        .navigationDestination(for: UUID.self) { _ in
+            QuizEntryPlaceholderView(session: session)
+        }
     }
 }
 #endif
