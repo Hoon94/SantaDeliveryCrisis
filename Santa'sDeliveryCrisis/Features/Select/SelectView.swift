@@ -1,3 +1,4 @@
+import SwiftData
 import SwiftUI
 
 /// 흐려진 나이트 트리 위에서 출제 조건을 편집하는 화면.
@@ -7,11 +8,20 @@ struct SelectView: View {
     }
 
     @Environment(\.colorScheme) private var colorScheme
+    @Query private var sessions: [QuizSession]
     @State private var filterState = SelectFilterState()
     @State private var phase: Phase = .editing
+    private let recommender: any TaskRecommending
+
+    /// 추천기를 주입받으며 실제 서비스 연결 전 기본값은 추천 없는 임시 구현이다.
+    init(recommender: any TaskRecommending = TempTaskRecommender()) {
+        self.recommender = recommender
+    }
 
     /// 나이트 배경과 중앙 팝업을 표시하고 편집 중인 출제 조건을 연결한다.
     var body: some View {
+        // FIXME: [가정 2] 추천 계산은 추천기에 위임하며 화면은 반환된 카테고리만 표시
+        let recommendedCategory = recommender.recommendedCategory(sessions: sessions)
         // FIXME: [가정 7] 출제 탭만 나이트 글로우 색 사용. 최종 색이 정해지면 정리
         GeometryReader { geometry in
             ZStack {
@@ -55,6 +65,7 @@ struct SelectView: View {
 
                             SelectSetupPopup(
                                 filter: $filterState.editing,
+                                recommendedCategory: recommendedCategory,
                                 onApply: applyEditing,
                                 onCancel: cancelEditing
                             )
@@ -88,17 +99,37 @@ struct SelectView: View {
     }
 }
 
+@ViewBuilder
+private func selectPreview(recommender: any TaskRecommending = TempTaskRecommender()) -> some View {
+    if let container = try? ModelContainerFactory.make(inMemory: true) {
+        NavigationStack { SelectView(recommender: recommender) }
+            .modelContainer(container)
+    } else {
+        ContentUnavailableView(
+            "미리보기 저장소를 준비하지 못했어요", systemImage: "exclamationmark.triangle"
+        )
+    }
+}
+
 #Preview("출제 설정 · 라이트") {
-    NavigationStack { SelectView() }
+    selectPreview()
         .preferredColorScheme(.light)
 }
 
 #Preview("출제 설정 · 다크") {
-    NavigationStack { SelectView() }
+    selectPreview()
         .preferredColorScheme(.dark)
 }
 
 #Preview("출제 설정 · 큰 글자") {
-    NavigationStack { SelectView() }
+    selectPreview()
         .dynamicTypeSize(.accessibility5)
+}
+
+#Preview("출제 설정 · 추천 있음") {
+    selectPreview(recommender: TempTaskRecommender(category: .swiftSyntax))
+}
+
+#Preview("출제 설정 · 추천 없음") {
+    selectPreview(recommender: TempTaskRecommender(category: nil))
 }

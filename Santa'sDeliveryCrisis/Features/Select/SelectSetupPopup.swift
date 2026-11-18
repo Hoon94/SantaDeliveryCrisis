@@ -9,6 +9,9 @@ struct SelectSetupPopup: View {
     /// Task 12 규칙을 사용하는 편집 중 출제 설정.
     @Binding var filter: SelectFilter
 
+    /// 추천기가 선택한 카테고리. nil이면 추천 배지를 표시하지 않는다.
+    var recommendedCategory: QuizCategory? = nil
+
     /// 편집한 조건을 적용하고 팝업을 닫는 동작.
     let onApply: () -> Void
 
@@ -43,7 +46,7 @@ struct SelectSetupPopup: View {
                 }
             }
 
-            SelectCategoryCards(filter: $filter)
+            SelectCategoryCards(filter: $filter, recommendedCategory: recommendedCategory)
 
             SelectQuestionOptions(
                 filter: $filter,

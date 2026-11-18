@@ -8,6 +8,9 @@ struct SelectCategoryCards: View {
     /// 팝업에서 편집 중인 필터. 카테고리 변경 규칙은 SelectFilter에 맡긴다.
     @Binding var filter: SelectFilter
 
+    /// 외부 추천 결과. 선택 여부와 관계없이 해당 카드에만 추천을 표시한다.
+    var recommendedCategory: QuizCategory? = nil
+
     /// 일반 글자에서는 두 열, 접근성 글자에서는 한 열로 카드를 배치한다.
     var body: some View {
         VStack(alignment: .leading, spacing: 7) {
@@ -33,6 +36,7 @@ struct SelectCategoryCards: View {
     private func categoryCard(_ category: QuizCategory) -> some View {
         let isSelected = filter.categories.contains(category)
         let isLastSelection = isSelected && filter.categories.count == 1
+        let isRecommended = recommendedCategory == category
         return Button {
             filter.toggleCategory(category)
             if isLastSelection {
@@ -46,11 +50,21 @@ struct SelectCategoryCards: View {
                 Text(emoji(category))
                     .font(.body)
                     .accessibilityHidden(true)
-                Text(category.categoryName)
-                    .font(.caption.weight(.bold))
-                    .foregroundStyle(Color.nightText)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .fixedSize(horizontal: false, vertical: true)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(category.categoryName)
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(Color.nightText)
+                    if isRecommended {
+                        Text("추천")
+                            .font(.caption2.weight(.bold))
+                            .foregroundStyle(Color.nightOnAccent)
+                            .padding(.horizontal, 7)
+                            .padding(.vertical, 1)
+                            .background(Color.nightAccent, in: Capsule())
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .fixedSize(horizontal: false, vertical: true)
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                     .font(.body)
                     .foregroundStyle(isSelected ? category.themeColor : .nightLine)
@@ -73,7 +87,7 @@ struct SelectCategoryCards: View {
             .contentShape(RoundedRectangle(cornerRadius: 20))
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(category.categoryName)
+        .accessibilityLabel(isRecommended ? "\(category.categoryName), 추천" : category.categoryName)
         .accessibilityValue(isSelected ? "선택됨" : "선택 안 됨")
         .accessibilityAddTraits(isSelected ? .isSelected : [])
         .accessibilityHint(isLastSelection ? "마지막 하나는 해제할 수 없어요" : "선택을 변경합니다")
