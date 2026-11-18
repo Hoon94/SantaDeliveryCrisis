@@ -9,7 +9,16 @@ import SwiftUI
         do {
             let container = try ModelContainerFactory.make()
             self.container = container
-            self.services = AppServices.make(context: container.mainContext)
+            // 첫 실행에 시드 문제를 넣는다. 이미 있는 문제는 건너뛰므로 매번 호출해도 된다.
+            do {
+                try SeedLoader.seed(into: container.mainContext)
+            } catch {
+                print("시드 문제 주입 실패: \(error.localizedDescription)")
+            }
+            let services = AppServices.make(context: container.mainContext)
+            self.services = services
+            // 쓰지 않는 미디어 파일을 앱 시작 때 한 번 정리한다. 실패해도 앱 실행에는 영향이 없다.
+            try? services.media.cleanUnreferencedFiles()
         } catch {
             self.container = nil
             self.services = nil
