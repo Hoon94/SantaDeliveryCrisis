@@ -6,15 +6,23 @@ struct TaskHomeView: View {
     @Environment(\.services) private var services
     @Query private var questions: [Question]
     @Query private var history: [QuizSession]
+    /// 현재 트리는 서비스와 동일하게 가장 먼저 시작한 기록을 사용한다.
+    @Query(
+        filter: #Predicate<TreeRecord> { $0.completedAt == nil },
+        sort: \TreeRecord.startedAt
+    ) private var activeTrees: [TreeRecord]
+    /// 완성한 트리 기록을 관찰해 표시 번호를 갱신한다.
+    @Query(filter: #Predicate<TreeRecord> { $0.completedAt != nil })
+    private var completedTrees: [TreeRecord]
 
     /// 오늘의 출제 버튼에서 출제 탭으로 이동하는 동작.
     let onSelectQuestions: () -> Void
 
-    /// 서비스에서 현재 진행도와 완성한 트리 수를 읽어 화면을 구성한다.
+    /// 저장된 트리 기록을 읽어 화면을 구성하며 트리가 없으면 0칸으로 표시한다.
     var body: some View {
-        let filledCount = TreeSlots.clampedCount(services.trees.currentTree().decorationCount)
+        let filledCount = TreeSlots.clampedCount(activeTrees.first?.decorationCount ?? 0)
         // FIXME: [가정] 시안의 N번째 트리 번호를 완성한 트리 수 + 1로 계산. 팀 확인 필요
-        let treeNumber = services.trees.completedTrees().count + 1
+        let treeNumber = completedTrees.count + 1
 
         let stats = UnsolvedQuestionStats.calculate(questions: questions, history: history)
 
@@ -101,7 +109,6 @@ private func taskHomePreview(
     let source = AppServices.preview
     let trees = MockTreeManager()
     let sessions = MockSessionManager()
-    trees.currentTree().decorationCount = filledCount
     let services = AppServices(
         settings: source.settings,
         selector: source.selector,
@@ -114,6 +121,7 @@ private func taskHomePreview(
     )
     let container = Result {
         let container = try ModelContainerFactory.make(inMemory: true)
+        container.mainContext.insert(TreeRecord(decorationCount: filledCount))
         if empty == false {
             for difficulty in Difficulty.allCases {
                 for category in QuizCategory.allCases {
