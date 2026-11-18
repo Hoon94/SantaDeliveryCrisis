@@ -5,6 +5,7 @@ struct ResumeChoiceSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showsRestartConfirmation = false
     @State private var isResolving = false
+    @State private var contentHeight: CGFloat = 320
 
     /// 이어서 풀 수 있는 기존 세션.
     let session: QuizSession
@@ -29,14 +30,22 @@ struct ResumeChoiceSheet: View {
             .font(.body.weight(.bold))
             .buttonStyle(.plain)
             .disabled(isResolving)
-            .padding(.top, 18)
+            .padding(.top, 44)
             .padding(.horizontal, 16)
-            .padding(.bottom, 16)
+            .padding(.bottom, 24)
             .frame(maxWidth: .infinity, alignment: .leading)
+            .fixedSize(horizontal: false, vertical: true)
+            .onGeometryChange(for: CGFloat.self) { geometry in
+                geometry.size.height.rounded(.up)
+            } action: { height in
+                guard height > 0 else { return }
+                contentHeight = height
+            }
         }
+        .scrollBounceBehavior(.basedOnSize, axes: .vertical)
         .background(Color.nightCardBackground)
         .presentationBackground(Color.nightCardBackground)
-        .presentationDetents([.medium, .large])
+        .presentationDetents([.height(contentHeight), .large])
         .presentationDragIndicator(.visible)
         .interactiveDismissDisabled(isResolving)
         .accessibilityAction(.escape, closeWithoutChoosing)
