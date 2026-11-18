@@ -27,6 +27,13 @@ enum MockData {
     }
 }
 
+/// 항상 같은 카테고리를 추천하는 가짜 구현
+struct MockTaskRecommender: TaskRecommending {
+    var category: QuizCategory? = .swiftSyntax
+
+    func recommendedCategory(sessions: [QuizSession]) -> QuizCategory? { category }
+}
+
 struct MockQuestionSelector: QuestionSelecting {
     func select(
         category: QuizCategory?, difficulty: Difficulty, tags: Set<String>,

@@ -1,5 +1,12 @@
 import SwiftUI
 
+/// 카테고리 추천 (S2 팝업의 [추천] 배지)
+protocol TaskRecommending {
+    /// 답한 기록이 있는 카테고리 중 정답률이 가장 낮은 카테고리.
+    /// 동률이면 작업 순서(소원 접수, 선물 생산, 포장, 썰매 적재)가 앞선 쪽, 기록이 없으면 nil
+    func recommendedCategory(sessions: [QuizSession]) -> QuizCategory?
+}
+
 /// 세션용 문제 선택. 선택 출제는 category를 하나만 넘긴다.
 protocol QuestionSelecting {
     /// 조건에 맞는 문제를 `count`개 고른다.
