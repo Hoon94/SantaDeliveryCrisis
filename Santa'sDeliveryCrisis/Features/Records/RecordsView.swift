@@ -8,7 +8,9 @@ struct RecordsView: View {
     var onGoToSelect: (() -> Void)?
 
     @Query private var sessions: [QuizSession]
-    @Environment(\.services) private var services
+    /// 완성한 트리. 트리가 완성되면 화면이 바로 갱신되도록 서비스 호출 대신 직접 관찰한다.
+    @Query(filter: #Predicate<TreeRecord> { $0.completedAt != nil })
+    private var completedTrees: [TreeRecord]
     @State private var period: RecordsPeriod = .week
     /// 빈 상태 아이콘 크기. 시안은 38이고 글자 크기 설정에 따라 함께 커진다.
     @ScaledMetric(relativeTo: .largeTitle) private var emptyIconSize: CGFloat = 38
@@ -17,22 +19,37 @@ struct RecordsView: View {
 
     var body: some View {
         let summary = statistics.summary(sessions: sessions, period: period)
+        let hasAnyRecord = sessions.contains { $0.status == .completed }
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
                 RoomSegmentedControl(
                     options: RecordsPeriod.allCases.map { ($0, $0.displayName, $0.displayName) },
                     selection: $period
                 )
-                if summary.isEmpty {
-                    emptyState
+                if !hasAnyRecord {
+                    // 끝낸 세션이 한 번도 없을 때
+                    emptyState(
+                        title: "아직 기록이 없어요",
+                        message: "세션을 한 번 마치면\n여기에서 통계를 볼 수 있어요",
+                        topPadding: 80
+                    )
                 } else {
                     RecordsSummaryCards(
                         attemptCount: summary.attemptCount,
                         averageScore: summary.averageScore,
-                        completedTreeCount: services.trees.completedTrees().count
+                        completedTreeCount: completedTrees.count
                     )
-                    SolvedCountChart(days: summary.days, period: period)
-                    WeakCategoryList(categories: summary.weakCategories)
+                    if summary.isEmpty {
+                        // 다른 기간에는 기록이 있지만 선택한 기간에는 없을 때
+                        emptyState(
+                            title: "이 기간에는 기록이 없어요",
+                            message: "다른 기간을 고르거나\n새 세션을 풀어 보세요",
+                            topPadding: 24
+                        )
+                    } else {
+                        SolvedCountChart(days: summary.days, period: period)
+                        WeakCategoryList(categories: summary.weakCategories)
+                    }
                 }
             }
             .padding()
@@ -46,14 +63,15 @@ struct RecordsView: View {
         .toolbar { RecordsToolbar() }
     }
 
-    private var emptyState: some View {
+    /// 기록이 없을 때의 안내. `topPadding`으로 위쪽 간격을 조절한다.
+    private func emptyState(title: String, message: String, topPadding: CGFloat) -> some View {
         VStack(spacing: 8) {
             Text("📊")
                 .font(.system(size: emptyIconSize))
                 .accessibilityHidden(true)
-            Text("아직 기록이 없어요")
+            Text(title)
                 .font(.headline)
-            Text("세션을 한 번 마치면\n여기에서 통계를 볼 수 있어요")
+            Text(message)
                 .font(.subheadline)
                 .foregroundStyle(Color.roomSub)
                 .multilineTextAlignment(.center)
@@ -70,7 +88,7 @@ struct RecordsView: View {
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(.top, 80)
+        .padding(.top, topPadding)
     }
 }
 
@@ -123,5 +141,10 @@ private struct RecordsToolbar: ToolbarContent {
 #Preview("기록 없음") {
     NavigationStack { RecordsView(onGoToSelect: {}) }
         .modelContainer(RecordsPreviewData.container(withSessions: false))
+}
+
+#Preview("선택한 기간에만 기록 없음") {
+    NavigationStack { RecordsView(onGoToSelect: {}) }
+        .modelContainer(RecordsPreviewData.container(withSessions: true, ageInDays: 60))
 }
 #endif
