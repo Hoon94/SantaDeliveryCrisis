@@ -40,7 +40,7 @@ struct CategoryAccuracy: Identifiable, Equatable {
 struct RecordsSummary: Equatable {
     /// 끝낸 세션 수
     let attemptCount: Int
-    /// 세션별 정답률의 평균(반올림). 끝낸 세션이 없으면 nil
+    /// 세션별 정답률의 평균(소수점 버림). 끝낸 세션이 없으면 nil
     let averageScore: Int?
     /// 푼 문제 수
     let solvedCount: Int
@@ -90,12 +90,13 @@ struct RecordsStatistics {
         )
     }
 
-    /// 세션 하나의 정답률(0...100, 반올림). 문제가 없는 세션은 nil
+    /// 세션 하나의 정답률(0...100, 소수점 버림). 문제가 없는 세션은 nil.
+    /// 결과 화면과 같은 값이 나오도록 정수 나눗셈으로 내림한다. 예: 7/9 → 77
     func score(of session: QuizSession) -> Int? {
         let total = session.questionIDs.count
         guard total > 0 else { return nil }
         let correct = session.answers.filter(\.isCorrect).count
-        return Int((Double(correct) / Double(total) * 100).rounded())
+        return correct * 100 / total
     }
 
     // MARK: - 내부 계산
@@ -109,7 +110,7 @@ struct RecordsStatistics {
 
     private func average(of values: [Int]) -> Int? {
         guard !values.isEmpty else { return nil }
-        return Int((Double(values.reduce(0, +)) / Double(values.count)).rounded())
+        return values.reduce(0, +) / values.count
     }
 
     private func days(in interval: DateInterval, sessions: [QuizSession]) -> [DailyRecord] {
@@ -152,7 +153,7 @@ struct RecordsStatistics {
                 guard count > 0 else {
                     return CategoryAccuracy(category: category, accuracyPercent: nil, answeredCount: 0)
                 }
-                let percent = Int((Double(correct[category] ?? 0) / Double(count) * 100).rounded())
+                let percent = (correct[category] ?? 0) * 100 / count
                 return CategoryAccuracy(category: category, accuracyPercent: percent, answeredCount: count)
             }
             .enumerated()
