@@ -3,6 +3,10 @@ import SwiftUI
 /// 기존 트리 위에 네 카테고리 장식과 적용된 출제 조건을 표시하는 화면.
 struct DecorationSelectView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    private let forceReduceMotion: Bool
+
+    private var reduceMotion: Bool { systemReduceMotion || forceReduceMotion }
 
     /// 마지막으로 적용한 출제 설정.
     let filter: SelectFilter
@@ -16,12 +20,31 @@ struct DecorationSelectView: View {
     /// 활성 장식을 눌렀을 때 호출하는 동작. 세션 연결은 Task 22에서 제공한다.
     let onSelect: (QuizCategory) -> Void
 
+    /// 프리뷰에서 정적 연출을 강제할 수 있으며 시스템의 모션 줄이기는 항상 우선한다.
+    init(
+        filter: SelectFilter, availability: [DecorationAvailability],
+        onEdit: @escaping () -> Void, onSelect: @escaping (QuizCategory) -> Void,
+        forceReduceMotion: Bool = false
+    ) {
+        self.filter = filter
+        self.availability = availability
+        self.onEdit = onEdit
+        self.onSelect = onSelect
+        self.forceReduceMotion = forceReduceMotion
+    }
+
     /// 조건 칩과 안내, 화면 너비에 맞춰 늘어나는 트리 및 장식을 배치한다.
     var body: some View {
+        TimelineView(.animation(minimumInterval: 1.0 / 30, paused: reduceMotion)) { timeline in
+            content(time: reduceMotion ? 0 : timeline.date.timeIntervalSinceReferenceDate)
+        }
+    }
+
+    private func content(time: TimeInterval) -> some View {
         let headerLayout = dynamicTypeSize.isAccessibilitySize
             ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
             : AnyLayout(HStackLayout(spacing: 8))
-        ScrollView {
+        return ScrollView {
             VStack(spacing: 14) {
                 headerLayout {
                     Text("출제")
@@ -44,17 +67,26 @@ struct DecorationSelectView: View {
                             SelectableDecoration(availability: result) {
                                 onSelect(result.category)
                             }
+                            .offset(y: reduceMotion ? 0 : DecorationAmbientMotion.bobOffset(
+                                time: time, category: result.category
+                            ))
                             .containerRelativeFrame(.horizontal) { width, _ in width * 0.6 }
                             .frame(maxWidth: .infinity)
                         }
                     }
                     .background {
                         TreeView(filledCount: 0, skin: .night)
+                            .overlay {
+                                DecorationAmbientEffects(time: time, isAnimated: reduceMotion == false)
+                            }
                             .accessibilityHidden(true)
                             .allowsHitTesting(false)
                     }
                 } else {
-                    DecorationSelectTree(availability: availability, onSelect: onSelect)
+                    DecorationSelectTree(
+                        availability: availability, onSelect: onSelect,
+                        time: time, reduceMotion: reduceMotion
+                    )
                 }
                 // FIXME: [가정 8] 초기화·n/4 알약·범례·문 열림·통과 점·체크 배지는 표시하지 않음
             }
@@ -86,6 +118,8 @@ struct DecorationSelectView: View {
 private struct DecorationSelectTree: View {
     let availability: [DecorationAvailability]
     let onSelect: (QuizCategory) -> Void
+    let time: TimeInterval
+    let reduceMotion: Bool
 
     var body: some View {
         GeometryReader { geometry in
@@ -98,6 +132,9 @@ private struct DecorationSelectTree: View {
             ZStack(alignment: .topLeading) {
                 TreeView(filledCount: 0, skin: .night)
                     .frame(width: geometry.size.width, height: treeHeight)
+                    .overlay {
+                        DecorationAmbientEffects(time: time, isAnimated: reduceMotion == false)
+                    }
                     .offset(y: top)
                     .accessibilityHidden(true)
                     .allowsHitTesting(false)
@@ -107,6 +144,9 @@ private struct DecorationSelectTree: View {
                     SelectableDecoration(availability: result) {
                         onSelect(result.category)
                     }
+                    .offset(y: reduceMotion ? 0 : DecorationAmbientMotion.bobOffset(
+                        time: time, category: result.category
+                    ))
                     .frame(width: ornamentWidth)
                     .offset(
                         x: point.x * scale - ornamentWidth / 2,
@@ -132,6 +172,7 @@ private struct DecorationSelectTree: View {
 
 private struct DecorationSelectPreview: View {
     let filter: SelectFilter
+    var forceReduceMotion = false
 
     var body: some View {
         let questions = zip(QuizCategory.allCases, [5, 3, 0, 7]).flatMap { category, count in
@@ -148,7 +189,10 @@ private struct DecorationSelectPreview: View {
         let results = DecorationAvailability.calculate(
             filter: filter, questions: questions, selector: PreviewQuestionSelector()
         )
-        DecorationSelectView(filter: filter, availability: results, onEdit: {}, onSelect: { _ in })
+        DecorationSelectView(
+            filter: filter, availability: results, onEdit: {}, onSelect: { _ in },
+            forceReduceMotion: forceReduceMotion
+        )
             .background {
                 LinearGradient(
                     colors: [.nightBackgroundTop, .nightBackgroundBottom],
@@ -179,4 +223,12 @@ private struct DecorationSelectPreview: View {
 
 #Preview("장식 선택 · iPad 폭", traits: .fixedLayout(width: 1024, height: 768)) {
     DecorationSelectPreview(filter: SelectFilter(difficulty: .easy))
+}
+
+#Preview("장식 선택 · 연출과 시스템 모션 설정") {
+    DecorationSelectPreview(filter: SelectFilter(difficulty: .easy))
+}
+
+#Preview("장식 선택 · 모션 줄이기") {
+    DecorationSelectPreview(filter: SelectFilter(difficulty: .easy), forceReduceMotion: true)
 }
