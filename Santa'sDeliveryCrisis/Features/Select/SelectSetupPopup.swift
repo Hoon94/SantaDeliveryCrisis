@@ -1,8 +1,9 @@
 import SwiftUI
 
-/// 출제 설정 팝업의 머리말과 난이도·카테고리 선택 영역.
+/// 출제 조건과 세션 보상 기준을 표시하는 설정 팝업.
 struct SelectSetupPopup: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.services) private var services
 
     /// Task 12 규칙을 사용하는 편집 중 출제 설정.
     @Binding var filter: SelectFilter
@@ -35,6 +36,11 @@ struct SelectSetupPopup: View {
             }
 
             SelectCategoryCards(filter: $filter)
+
+            SelectQuestionOptions(
+                filter: $filter,
+                passThresholdPercent: services.settings.passThresholdPercent
+            )
         }
         .fixedSize(horizontal: false, vertical: true)
         .padding(.top, 18)
