@@ -95,9 +95,9 @@ struct TaskHomeView: View {
 
             if let session = services.sessions.resumableSession() {
                 TaskResumeCard(session: session)
+            } else {
+                selectQuestionsButton
             }
-
-            selectQuestionsButton
 
             UnsolvedQuestionTiles(stats: stats)
         }
