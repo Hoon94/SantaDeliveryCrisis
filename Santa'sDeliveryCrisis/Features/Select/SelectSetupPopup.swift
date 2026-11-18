@@ -4,9 +4,16 @@ import SwiftUI
 struct SelectSetupPopup: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.services) private var services
+    @AccessibilityFocusState private var isTitleFocused: Bool
 
     /// Task 12 규칙을 사용하는 편집 중 출제 설정.
     @Binding var filter: SelectFilter
+
+    /// 편집한 조건을 적용하고 팝업을 닫는 동작.
+    let onApply: () -> Void
+
+    /// 편집을 취소하고 팝업을 닫는 동작.
+    let onCancel: () -> Void
 
     /// 가이드의 팝업 여백과 나이트 색을 사용해 설정 항목을 배치한다.
     var body: some View {
@@ -19,6 +26,7 @@ struct SelectSetupPopup: View {
                     .font(.title3.weight(.heavy))
                     .foregroundStyle(Color.nightText)
                     .accessibilityAddTraits(.isHeader)
+                    .accessibilityFocused($isTitleFocused)
                 Text("설정을 마치고 켜진 장식을 눌러 시작해요")
                     .font(.caption)
                     .foregroundStyle(Color.nightSubText)
@@ -41,6 +49,17 @@ struct SelectSetupPopup: View {
                 filter: $filter,
                 passThresholdPercent: services.settings.passThresholdPercent
             )
+
+            Button(action: onApply) {
+                Text("장식 선택")
+                    .font(.body.weight(.heavy))
+                    .frame(maxWidth: .infinity)
+                    .padding(14)
+                    .foregroundStyle(Color.nightOnAccent)
+                    .background(Color.nightAccent, in: Capsule())
+            }
+            .buttonStyle(.plain)
+            .accessibilityHint("출제 조건을 적용하고 장식 선택 화면으로 이동합니다")
         }
         .fixedSize(horizontal: false, vertical: true)
         .padding(.top, 18)
@@ -52,6 +71,14 @@ struct SelectSetupPopup: View {
                 .strokeBorder(Color.nightLine, lineWidth: 1)
         }
         .shadow(color: .black.opacity(0.35), radius: 30, x: 0, y: 20)
+        .accessibilityElement(children: .contain)
+        .accessibilityAddTraits(.isModal)
+        .accessibilityAction(.escape, onCancel)
+        .accessibilityAction(named: Text("출제 설정 취소하고 닫기"), onCancel)
+        .task {
+            await Task.yield()
+            isTitleFocused = true
+        }
     }
 
     private func difficultyButton(_ option: Difficulty) -> some View {
