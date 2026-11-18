@@ -25,22 +25,17 @@ struct SelectView: View {
     @State private var pendingStart: PendingStart?
     @State private var deferredOutcome: StartSessionCoordinator.Outcome?
     @State private var showsStartFailure = false
-    private let recommender: any TaskRecommending
     private let selector: (any QuestionSelecting)?
 
-    /// 추천기를 주입받으며 실제 서비스 연결 전 기본값은 추천 없는 임시 구현이다.
-    init(
-        recommender: any TaskRecommending = TempTaskRecommender(),
-        selector: (any QuestionSelecting)? = nil
-    ) {
-        self.recommender = recommender
+    /// 프리뷰에서는 별도 선택기를 주입하고 앱에서는 연결된 서비스를 사용한다.
+    init(selector: (any QuestionSelecting)? = nil) {
         self.selector = selector
     }
 
     /// 나이트 배경과 중앙 팝업을 표시하고 편집 중인 출제 조건을 연결한다.
     var body: some View {
         // FIXME: [가정 2] 추천 계산은 추천기에 위임하며 화면은 반환된 카테고리만 표시
-        let recommendedCategory = recommender.recommendedCategory(sessions: sessions)
+        let recommendedCategory = services.recommender.recommendedCategory(sessions: sessions)
         let availability = DecorationAvailability.calculate(
             filter: filterState.applied, questions: questions, selector: selector ?? services.selector
         )
@@ -188,12 +183,14 @@ struct SelectView: View {
 
 @ViewBuilder
 private func selectPreview(
-    recommender: any TaskRecommending = TempTaskRecommender(), existingSession: Bool = false,
+    recommender: any TaskRecommending = MockTaskRecommender(category: nil), existingSession: Bool = false,
     failure: FailingPreviewSessionManager.Failure? = nil
 ) -> some View {
     if let container = try? selectPreviewContainer(),
-       let previewServices = try? selectPreviewServices(existingSession: existingSession, failure: failure) {
-        NavigationStack { SelectView(recommender: recommender, selector: PreviewQuestionSelector()) }
+       let previewServices = try? selectPreviewServices(
+           recommender: recommender, existingSession: existingSession, failure: failure
+       ) {
+        NavigationStack { SelectView(selector: PreviewQuestionSelector()) }
             .modelContainer(container)
             .environment(\.services, previewServices)
     } else {
@@ -204,6 +201,7 @@ private func selectPreview(
 }
 
 private func selectPreviewServices(
+    recommender: any TaskRecommending,
     existingSession: Bool, failure: FailingPreviewSessionManager.Failure?
 ) throws -> AppServices {
     let source = AppServices.preview
@@ -219,6 +217,7 @@ private func selectPreviewServices(
     }
     return AppServices(
         settings: source.settings, selector: PreviewQuestionSelector(),
+        recommender: recommender,
         sessions: sessionManager, trees: source.trees,
         feedback: source.feedback, media: source.media, traceScenes: source.traceScenes
     )
@@ -257,11 +256,11 @@ private func selectPreviewContainer() throws -> ModelContainer {
 }
 
 #Preview("출제 설정 · 추천 있음") {
-    selectPreview(recommender: TempTaskRecommender(category: .swiftSyntax))
+    selectPreview(recommender: MockTaskRecommender(category: .swiftSyntax))
 }
 
 #Preview("출제 설정 · 추천 없음") {
-    selectPreview(recommender: TempTaskRecommender(category: nil))
+    selectPreview(recommender: MockTaskRecommender(category: nil))
 }
 
 #Preview("출제 설정 · 적용 후 퀴즈 진입") {

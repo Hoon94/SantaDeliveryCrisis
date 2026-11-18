@@ -105,6 +105,7 @@ private func taskHomePreview(
     let services = AppServices(
         settings: source.settings,
         selector: source.selector,
+        recommender: source.recommender,
         sessions: sessions,
         trees: trees,
         feedback: source.feedback,
