@@ -25,6 +25,7 @@ swiftc -swift-version 5 -default-isolation MainActor -suppress-warnings \
   "$APP/Services/Protocols.swift" \
   "$APP/Services/SettingsStore.swift" \
   "$APP/Services/SelectionCriteria.swift" \
+  "$APP/Services/Accuracy.swift" \
   "$APP/Services/SeedLoader.swift" \
   "$APP/Services/QuestionSelector.swift" \
   "$APP/Services/TaskRecommender.swift" \

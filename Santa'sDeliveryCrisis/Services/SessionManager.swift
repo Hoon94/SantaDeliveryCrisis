@@ -118,7 +118,7 @@ final class SessionManager: SessionManaging {
     /// 세션을 끝내고 결과를 돌려준다.
     /// - 이미 `completed`이면 저장된 결과만 돌려주고 장식을 다시 지급하지 않는다.
     /// - 모든 문제에 답이 저장되어 있어야 한다. 아니면 `notAllAnswered`를 던진다.
-    /// - 정답률이 세션에 저장된 기준 이상이면 장식 1개를 지급한다. 비교는 정수로 정확하게 한다(79.5%는 80% 기준 미달).
+    /// - 정답률이 세션에 저장된 기준 이상이면 장식 1개를 지급한다. 비교는 정확하게 한다(79.5%는 80% 기준 미달). 규칙은 `Accuracy`에 있다.
     /// - 세션 완료, 장식 지급, 트리 갱신은 한 번의 저장으로 처리한다. 실패하면 전부 되돌리고 세션은 `inProgress`로 남는다.
     func finish(_ session: QuizSession) throws -> SessionResult {
         switch session.status {
@@ -137,7 +137,9 @@ final class SessionManager: SessionManaging {
         }
 
         let correct = session.answers.filter(\.isCorrect).count
-        let passed = total > 0 && correct * 100 >= session.passThresholdPercent * total
+        let passed = Accuracy.meetsThreshold(
+            correct: correct, total: total, thresholdPercent: session.passThresholdPercent
+        )
         let earned = passed ? 1 : 0
 
         do {
@@ -204,7 +206,7 @@ final class SessionManager: SessionManaging {
         return SessionResult(
             correctCount: correct,
             totalCount: total,
-            accuracyPercent: total == 0 ? 0 : correct * 100 / total,
+            accuracyPercent: Accuracy.percent(correct: correct, total: total),
             elapsed: session.elapsedSeconds,
             earnedDecorations: session.earnedDecorations,
             treeCompleted: session.treeCompleted,

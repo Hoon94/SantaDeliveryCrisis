@@ -14,6 +14,20 @@ func session(for qs: [Question], answers: [(Int, Bool, Date)]) -> QuizSession {
     return s
 }
 func run() throws {
+    // ---- Accuracy (정답률은 내림, 지급 판정은 정확한 비교)
+    check(Accuracy.percent(correct: 7, total: 9) == 77, "정답률: 7/9 = 77% (내림)")
+    check(Accuracy.percent(correct: 159, total: 200) == 79, "정답률: 79.5% → 79")
+    check(Accuracy.percent(correct: 0, total: 0) == 0, "정답률: 문제 0개는 0")
+    check(Accuracy.percent(correct: 5, total: 5) == 100, "정답률: 5/5 = 100")
+    check(Accuracy.meetsThreshold(correct: 4, total: 5, thresholdPercent: 80), "기준: 80%는 80% 기준 충족")
+    check(!Accuracy.meetsThreshold(correct: 159, total: 200, thresholdPercent: 80), "기준: 79.5%는 80% 기준 미달")
+    check(!Accuracy.meetsThreshold(correct: 0, total: 0, thresholdPercent: 50), "기준: 문제 0개는 미달")
+    var consistent = true
+    for total in 1...30 { for correct in 0...total { for t in stride(from: 50, through: 100, by: 10) {
+        if Accuracy.percent(correct: correct, total: total) >= t && !Accuracy.meetsThreshold(correct: correct, total: total, thresholdPercent: t) { consistent = false }
+        if Accuracy.meetsThreshold(correct: correct, total: total, thresholdPercent: t) != (Accuracy.percent(correct: correct, total: total) >= t) { consistent = false }
+    } } }
+    check(consistent, "정답률: 내림한 값 비교와 정확한 비교가 모든 경우(문제 1~30개, 기준 50~100%)에서 같음")
     // ---- SeedLoader (실제 시드 파일)
     let seedPath = CommandLine.arguments.count > 1 ? CommandLine.arguments[1] : ""
     let seedItems = try SeedLoader.decode(Data(contentsOf: URL(fileURLWithPath: seedPath)))
