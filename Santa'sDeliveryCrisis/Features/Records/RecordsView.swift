@@ -56,7 +56,7 @@ struct RecordsView: View {
             .frame(maxWidth: 720)
             .frame(maxWidth: .infinity)
         }
-        .foregroundStyle(Color.roomText)
+        .foregroundStyle(Color.roomPrimaryText)
         .background(Color.roomBackground)
         .toolbarBackground(Color.roomBackground, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
@@ -73,13 +73,13 @@ struct RecordsView: View {
                 .font(.headline)
             Text(message)
                 .font(.subheadline)
-                .foregroundStyle(Color.roomSub)
+                .foregroundStyle(Color.roomSecondaryText)
                 .multilineTextAlignment(.center)
             if let onGoToSelect {
                 Button(action: onGoToSelect) {
                     Text("문제풀러 가기")
                         .font(.body.bold())
-                        .foregroundStyle(Color.roomOnAccent)
+                        .foregroundStyle(Color.roomOnAccentText)
                         .frame(maxWidth: .infinity, minHeight: 48)
                         .background(Color.roomAccent, in: RoundedRectangle(cornerRadius: 14))
                 }
@@ -125,7 +125,7 @@ private struct RecordsToolbar: ToolbarContent {
     private var title: some View {
         Text("기록")
             .font(.title2.bold())
-            .foregroundStyle(Color.roomText)
+            .foregroundStyle(Color.roomPrimaryText)
             .lineLimit(1)
             .fixedSize()
             .accessibilityAddTraits(.isHeader)

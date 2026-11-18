@@ -1,7 +1,7 @@
 import SwiftUI
 
 // 기록·설정 화면이 공유하는 시안(작업실 팔레트) 컴포넌트.
-// 색은 모두 Asset 카탈로그의 `Room*` 색 세트(라이트/다크)를 쓴다. 카드 스타일은 `Extensions/View+RoomCard.swift`.
+// 색은 모두 Asset 카탈로그의 `Room*` 색 세트(라이트/다크)를 쓴다. 카드 스타일은 `Extensions/View+RoomCardBackground.swift`.
 
 /// 시안의 세그먼트 컨트롤. 배경은 soft, 선택된 칸은 카드 색으로 떠 보인다.
 struct RoomSegmentedControl<Value: Hashable>: View {
@@ -18,13 +18,13 @@ struct RoomSegmentedControl<Value: Hashable>: View {
                 } label: {
                     Text(option.title)
                         .font(.footnote.bold())
-                        .foregroundStyle(isSelected ? Color.roomText : Color.roomSub)
+                        .foregroundStyle(isSelected ? Color.roomPrimaryText : Color.roomSecondaryText)
                         .frame(maxWidth: .infinity, minHeight: 32)
                         .background {
                             if isSelected {
                                 RoundedRectangle(cornerRadius: 11)
-                                    .fill(Color.roomCard)
-                                    .shadow(color: Color.roomText.opacity(0.15), radius: 1.5, y: 1)
+                                    .fill(Color.roomCardBackground)
+                                    .shadow(color: Color.roomPrimaryText.opacity(0.15), radius: 1.5, y: 1)
                             }
                         }
                         .contentShape(Rectangle())
@@ -35,7 +35,7 @@ struct RoomSegmentedControl<Value: Hashable>: View {
             }
         }
         .padding(3)
-        .background(Color.roomSoft, in: RoundedRectangle(cornerRadius: 14))
+        .background(Color.roomSubtleBackground, in: RoundedRectangle(cornerRadius: 14))
     }
 }
 
@@ -48,7 +48,7 @@ struct RoomProgressBar: View {
     var body: some View {
         GeometryReader { proxy in
             ZStack(alignment: .leading) {
-                Capsule().fill(Color.roomSoft)
+                Capsule().fill(Color.roomSubtleBackground)
                 Capsule()
                     .fill(fill)
                     .frame(width: proxy.size.width * min(max(fraction, 0), 1))

@@ -25,7 +25,7 @@ struct SelectableDecoration: View {
             if let count = availability.shortageCount {
                 Text("\(count)문제만 있어요")
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(Color.nightText)
+                    .foregroundStyle(Color.nightPrimaryText)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityLabel("\(availability.category.taskName), \(count)문제만 있어요")
@@ -57,7 +57,7 @@ private struct SelectableDecorationPreview: View {
             if didSelect {
                 Text("퀴즈 진입을 선택했어요")
                     .font(.caption)
-                    .foregroundStyle(Color.nightText)
+                    .foregroundStyle(Color.nightPrimaryText)
             }
         }
         .padding(30)

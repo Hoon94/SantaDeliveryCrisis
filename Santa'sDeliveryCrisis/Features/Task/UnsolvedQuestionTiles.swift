@@ -29,11 +29,11 @@ struct UnsolvedQuestionTiles: View {
                         .font(.subheadline.weight(.semibold))
                     Text("문제가 추가되면 난이도별 진행도를 볼 수 있어요.")
                         .font(.caption)
-                        .foregroundStyle(Color.roomSubText)
+                        .foregroundStyle(Color.roomSecondaryText)
                 }
                 .padding(12)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.roomCard, in: RoundedRectangle(cornerRadius: 14))
+                .background(Color.roomCardBackground, in: RoundedRectangle(cornerRadius: 14))
             } else {
                 LazyVGrid(
                     columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: Difficulty.allCases.count),
@@ -45,7 +45,7 @@ struct UnsolvedQuestionTiles: View {
                 }
             }
         }
-        .foregroundStyle(Color.roomText)
+        .foregroundStyle(Color.roomPrimaryText)
         .fixedSize(horizontal: false, vertical: true)
     }
 
@@ -59,7 +59,7 @@ struct UnsolvedQuestionTiles: View {
     private var totalLabel: some View {
         Text("총 \(stats.unsolved)문제")
             .font(.caption.weight(.semibold))
-            .foregroundStyle(Color.roomSubText)
+            .foregroundStyle(Color.roomSecondaryText)
             .fixedSize(horizontal: false, vertical: true)
     }
 
@@ -67,7 +67,7 @@ struct UnsolvedQuestionTiles: View {
         VStack(spacing: 4) {
             Text(entry.difficulty.displayName)
                 .font(.caption2.weight(.bold))
-                .foregroundStyle(Color.treeHighlight)
+                .foregroundStyle(Color.white)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)
                 .background(difficultyColor(entry.difficulty), in: Capsule())
@@ -76,11 +76,11 @@ struct UnsolvedQuestionTiles: View {
                 .font(.title2.weight(.heavy))
             Text("/ \(entry.total)문제")
                 .font(.caption)
-                .foregroundStyle(Color.roomSubText)
+                .foregroundStyle(Color.roomSecondaryText)
 
             GeometryReader { geometry in
                 Capsule()
-                    .fill(Color.roomSoft)
+                    .fill(Color.roomSubtleBackground)
                     .overlay(alignment: .leading) {
                         Capsule()
                             .fill(difficultyColor(entry.difficulty))
@@ -95,8 +95,8 @@ struct UnsolvedQuestionTiles: View {
         .frame(maxWidth: .infinity)
         .padding(.horizontal, 4)
         .padding(.vertical, 8)
-        .background(Color.roomCard, in: RoundedRectangle(cornerRadius: 14))
-        .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Color.roomLine))
+        .background(Color.roomCardBackground, in: RoundedRectangle(cornerRadius: 14))
+        .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Color.roomBorder))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(
             "\(entry.difficulty.displayName), 안 푼 문제 \(entry.unsolved)개, 전체 \(entry.total)문제"
@@ -105,9 +105,9 @@ struct UnsolvedQuestionTiles: View {
 
     private func difficultyColor(_ difficulty: Difficulty) -> Color {
         switch difficulty {
-        case .easy: .difficultyEasy
-        case .normal: .difficultyNormal
-        case .hard: .difficultyHard
+        case .easy: .roomPositive
+        case .normal: .roomWarning
+        case .hard: .roomAccent
         }
     }
 }

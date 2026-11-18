@@ -16,7 +16,7 @@ struct SelectCategoryCards: View {
         VStack(alignment: .leading, spacing: 7) {
             Text("카테고리 (여러 개 선택 가능)")
                 .font(.caption.weight(.heavy))
-                .foregroundStyle(Color.nightSubText)
+                .foregroundStyle(Color.nightSecondaryText)
                 .accessibilityAddTraits(.isHeader)
 
             LazyVGrid(
@@ -53,11 +53,11 @@ struct SelectCategoryCards: View {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(category.categoryName)
                         .font(.caption.weight(.bold))
-                        .foregroundStyle(Color.nightText)
+                        .foregroundStyle(Color.nightPrimaryText)
                     if isRecommended {
                         Text("추천")
                             .font(.caption2.weight(.bold))
-                            .foregroundStyle(Color.nightOnAccent)
+                            .foregroundStyle(Color.nightOnAccentText)
                             .padding(.horizontal, 7)
                             .padding(.vertical, 1)
                             .background(Color.nightAccent, in: Capsule())
@@ -67,14 +67,14 @@ struct SelectCategoryCards: View {
                 .fixedSize(horizontal: false, vertical: true)
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                     .font(.body)
-                    .foregroundStyle(isSelected ? category.themeColor : .nightLine)
+                    .foregroundStyle(isSelected ? category.themeColor : .nightBorder)
                     .accessibilityHidden(true)
             }
             .padding(.horizontal, 6)
             .padding(.vertical, 9)
             .background {
                 RoundedRectangle(cornerRadius: 20)
-                    .fill(Color.nightSoft)
+                    .fill(Color.nightSubtleBackground)
                 if isSelected {
                     RoundedRectangle(cornerRadius: 20)
                         .fill(category.themeColor.opacity(0.16))
@@ -82,7 +82,7 @@ struct SelectCategoryCards: View {
             }
             .overlay {
                 RoundedRectangle(cornerRadius: 20)
-                    .strokeBorder(isSelected ? category.themeColor : .nightLine, lineWidth: 2)
+                    .strokeBorder(isSelected ? category.themeColor : .nightBorder, lineWidth: 2)
             }
             .contentShape(RoundedRectangle(cornerRadius: 20))
         }
@@ -115,7 +115,7 @@ private struct SelectCategoryCardsPreview: View {
             SelectCategoryCards(filter: $filter)
                 .padding(16)
         }
-        .background(Color.nightCard)
+        .background(Color.nightCardBackground)
     }
 }
 

@@ -52,8 +52,8 @@ struct ChristmasTreeImage: View {
         Canvas { context, size in
             let scale = size.width / TreeSlots.designSize.width
             let colors: [Color] = [
-                .ornament1, .ornament2, .ornament3,
-                .ornament4, .ornament5, .ornament6
+                .ornamentRed, .ornamentGold, .ornamentBlue,
+                .ornamentPink, .ornamentGreen, .ornamentOrange
             ]
             for (index, point) in TreeSlots.positions.enumerated() {
                 let center = CGPoint(x: point.x * size.width, y: point.y * size.height)
@@ -65,18 +65,18 @@ struct ChristmasTreeImage: View {
                 ))
                 if isFilled {
                     context.fill(circle, with: .color(colors[index % colors.count]))
-                    context.stroke(circle, with: .color(.treeHighlight), lineWidth: 1.5 * scale)
+                    context.stroke(circle, with: .color(.white), lineWidth: 1.5 * scale)
                     context.fill(
                         Path(ellipseIn: CGRect(
                             x: center.x - 3.8 * scale, y: center.y - 3.8 * scale,
                             width: 3.6 * scale, height: 3.6 * scale
                         )),
-                        with: .color(Color.treeHighlight.opacity(0.8))
+                        with: .color(Color.white.opacity(0.8))
                     )
                 } else {
                     context.stroke(
                         circle,
-                        with: .color(Color.treeHighlight.opacity(0.75)),
+                        with: .color(Color.white.opacity(0.75)),
                         style: StrokeStyle(lineWidth: 1.5 * scale, dash: [3 * scale, 3 * scale])
                     )
                 }

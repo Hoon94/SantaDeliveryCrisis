@@ -16,9 +16,9 @@ struct QuizEntryPlaceholderView: View {
                 LabeledContent("현재 위치", value: "\(session.currentIndex)")
             }
             .font(.body)
-            .foregroundStyle(Color.roomText)
+            .foregroundStyle(Color.roomPrimaryText)
             .padding()
-            .background(Color.roomCard, in: RoundedRectangle(cornerRadius: 14))
+            .background(Color.roomCardBackground, in: RoundedRectangle(cornerRadius: 14))
             .padding()
         }
         .background(Color.roomBackground)

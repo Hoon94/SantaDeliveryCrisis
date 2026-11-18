@@ -13,7 +13,7 @@ struct SelectQuestionOptions: View {
         VStack(alignment: .leading, spacing: 7) {
             Text("문제 수")
                 .font(.caption.weight(.heavy))
-                .foregroundStyle(Color.nightSubText)
+                .foregroundStyle(Color.nightSecondaryText)
                 .accessibilityAddTraits(.isHeader)
 
             HStack(spacing: 6) {
@@ -22,25 +22,25 @@ struct SelectQuestionOptions: View {
                 }
             }
             .padding(4)
-            .background(Color.nightSoft, in: RoundedRectangle(cornerRadius: 20))
+            .background(Color.nightSubtleBackground, in: RoundedRectangle(cornerRadius: 20))
             .overlay {
                 RoundedRectangle(cornerRadius: 20)
-                    .strokeBorder(Color.nightLine, lineWidth: 1)
+                    .strokeBorder(Color.nightBorder, lineWidth: 1)
             }
 
             summary
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(Color.nightSubText)
+                .foregroundStyle(Color.nightSecondaryText)
                 .fixedSize(horizontal: false, vertical: true)
 
             Text("정답률 \(passThresholdPercent)% 이상이면 장식 1개를 받아요")
                 .font(.caption)
-                .foregroundStyle(Color.nightText)
+                .foregroundStyle(Color.nightPrimaryText)
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 7)
-                .background(Color.nightSoft, in: RoundedRectangle(cornerRadius: 20))
+                .background(Color.nightSubtleBackground, in: RoundedRectangle(cornerRadius: 20))
         }
     }
 
@@ -49,7 +49,7 @@ struct SelectQuestionOptions: View {
         return Text("\(names)에서 총 ")
             + Text("\(filter.count)문제")
                 .bold()
-                .foregroundColor(.nightText)
+                .foregroundColor(.nightPrimaryText)
             + Text(" · 선택 안 한 장식은 흐려져요")
     }
 
@@ -65,7 +65,7 @@ struct SelectQuestionOptions: View {
                     .font(.caption.weight(.bold))
                     .opacity(isSelected ? 1 : 0)
             }
-            .foregroundStyle(isSelected ? Color.nightOnAccent : .nightSubText)
+            .foregroundStyle(isSelected ? Color.nightOnAccentText : .nightSecondaryText)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 7)
             .background {
@@ -97,7 +97,7 @@ private struct SelectQuestionOptionsPreview: View {
             SelectQuestionOptions(filter: $filter, passThresholdPercent: threshold)
                 .padding(16)
         }
-        .background(Color.nightCard)
+        .background(Color.nightCardBackground)
     }
 }
 

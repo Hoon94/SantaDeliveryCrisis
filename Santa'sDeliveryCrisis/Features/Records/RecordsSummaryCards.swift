@@ -26,13 +26,13 @@ struct RecordsSummaryCards: View {
         VStack(spacing: 4) {
             Text(title)
                 .font(.caption)
-                .foregroundStyle(Color.roomSub)
+                .foregroundStyle(Color.roomSecondaryText)
             Text(value)
                 .font(.title3.bold())
                 .minimumScaleFactor(0.7)
         }
         .frame(maxWidth: .infinity)
-        .roomCard(padding: EdgeInsets(top: 10, leading: 4, bottom: 10, trailing: 4))
+        .roomCardBackground(padding: EdgeInsets(top: 10, leading: 4, bottom: 10, trailing: 4))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(title)
         .accessibilityValue(value)

@@ -22,7 +22,7 @@ struct ResumeChoiceSheet: View {
                 VStack(alignment: .leading, spacing: 14) {
                     Text("진행 중인 세션이 있어요")
                         .font(.headline.weight(.heavy))
-                        .foregroundStyle(Color.nightText)
+                        .foregroundStyle(Color.nightPrimaryText)
                         .accessibilityAddTraits(.isHeader)
 
                     HStack(spacing: 10) {
@@ -32,15 +32,15 @@ struct ResumeChoiceSheet: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("\(taskName) · \(session.difficulty.displayName)")
                                 .font(.subheadline.weight(.bold))
-                                .foregroundStyle(Color.nightText)
+                                .foregroundStyle(Color.nightPrimaryText)
                             Text("\(session.answers.count) / \(session.questionSnapshots.count) 문제까지 풀었어요")
                                 .font(.caption)
-                                .foregroundStyle(Color.nightSubText)
+                                .foregroundStyle(Color.nightSecondaryText)
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(12)
-                    .background(Color.nightSoft, in: RoundedRectangle(cornerRadius: 20))
+                    .background(Color.nightSubtleBackground, in: RoundedRectangle(cornerRadius: 20))
 
                     Button {
                         guard isResolving == false else { return }
@@ -50,7 +50,7 @@ struct ResumeChoiceSheet: View {
                         Text("이어서 풀기")
                             .frame(maxWidth: .infinity)
                             .padding(14)
-                            .foregroundStyle(Color.nightOnAccent)
+                            .foregroundStyle(Color.nightOnAccentText)
                             .background(Color.nightAccent, in: Capsule())
                     }
 
@@ -60,8 +60,8 @@ struct ResumeChoiceSheet: View {
                         Text("새로 시작")
                             .frame(maxWidth: .infinity)
                             .padding(14)
-                            .foregroundStyle(Color.nightText)
-                            .overlay { Capsule().strokeBorder(Color.nightLine, lineWidth: 1) }
+                            .foregroundStyle(Color.nightPrimaryText)
+                            .overlay { Capsule().strokeBorder(Color.nightBorder, lineWidth: 1) }
                     }
                 }
                 .font(.body.weight(.bold))
@@ -74,8 +74,8 @@ struct ResumeChoiceSheet: View {
                 .frame(maxWidth: .infinity, minHeight: geometry.size.height)
             }
         }
-        .background(Color.nightCard)
-        .presentationBackground(Color.nightCard)
+        .background(Color.nightCardBackground)
+        .presentationBackground(Color.nightCardBackground)
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
         .interactiveDismissDisabled(isResolving)

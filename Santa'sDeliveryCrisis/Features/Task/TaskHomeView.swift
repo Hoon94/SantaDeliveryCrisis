@@ -45,11 +45,11 @@ struct TaskHomeView: View {
             VStack(alignment: .leading, spacing: 1) {
                 Text("산타의 작업실")
                     .font(.title2.weight(.heavy))
-                    .foregroundStyle(Color.roomText)
+                    .foregroundStyle(Color.roomPrimaryText)
                     .accessibilityAddTraits(.isHeader)
                 Text("크리스마스 · \(treeNumber)번째 트리")
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(Color.roomSubText)
+                    .foregroundStyle(Color.roomSecondaryText)
             }
             .fixedSize(horizontal: false, vertical: true)
 
@@ -64,7 +64,7 @@ struct TaskHomeView: View {
 
             remainingMessage(filledCount: filledCount)
                 .font(.subheadline)
-                .foregroundStyle(Color.roomSubText)
+                .foregroundStyle(Color.roomSecondaryText)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity)
@@ -81,7 +81,7 @@ struct TaskHomeView: View {
                     .font(.body.weight(.heavy))
                     .frame(maxWidth: .infinity)
                     .padding(14)
-                    .foregroundStyle(Color.roomOnAccent)
+                    .foregroundStyle(Color.roomOnAccentText)
                     .background(Color.roomAccent, in: RoundedRectangle(cornerRadius: 14))
             }
             .buttonStyle(.plain)

@@ -16,16 +16,16 @@ struct TaskResumeCard: View {
                 Text(taskEmoji)
                     .font(.title3)
                     .padding(8)
-                    .background(Color.roomSoft, in: RoundedRectangle(cornerRadius: 11))
+                    .background(Color.roomSubtleBackground, in: RoundedRectangle(cornerRadius: 11))
                     .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text("이어서 풀기")
                         .font(.subheadline.weight(.bold))
-                        .foregroundStyle(Color.roomText)
+                        .foregroundStyle(Color.roomPrimaryText)
                     Text("\(taskName) · \(session.difficulty.displayName) · \(session.answers.count) / \(session.questionSnapshots.count) 문제")
                         .font(.caption)
-                        .foregroundStyle(Color.roomSubText)
+                        .foregroundStyle(Color.roomSecondaryText)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .fixedSize(horizontal: false, vertical: true)
@@ -37,7 +37,7 @@ struct TaskResumeCard: View {
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 9)
-            .background(Color.roomCard, in: RoundedRectangle(cornerRadius: 14))
+            .background(Color.roomCardBackground, in: RoundedRectangle(cornerRadius: 14))
             .overlay {
                 RoundedRectangle(cornerRadius: 14)
                     .strokeBorder(Color.roomAccent, lineWidth: 1.5)

@@ -27,17 +27,17 @@ struct SelectSetupPopup: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("오늘의 출제 설정")
                     .font(.title3.weight(.heavy))
-                    .foregroundStyle(Color.nightText)
+                    .foregroundStyle(Color.nightPrimaryText)
                     .accessibilityAddTraits(.isHeader)
                     .accessibilityFocused($isTitleFocused)
                 Text("설정을 마치고 켜진 장식을 눌러 시작해요")
                     .font(.caption)
-                    .foregroundStyle(Color.nightSubText)
+                    .foregroundStyle(Color.nightSecondaryText)
             }
 
             Text("난이도")
                 .font(.caption.weight(.heavy))
-                .foregroundStyle(Color.nightSubText)
+                .foregroundStyle(Color.nightSecondaryText)
                 .accessibilityAddTraits(.isHeader)
 
             optionsLayout {
@@ -58,7 +58,7 @@ struct SelectSetupPopup: View {
                     .font(.body.weight(.heavy))
                     .frame(maxWidth: .infinity)
                     .padding(14)
-                    .foregroundStyle(Color.nightOnAccent)
+                    .foregroundStyle(Color.nightOnAccentText)
                     .background(Color.nightAccent, in: Capsule())
             }
             .buttonStyle(.plain)
@@ -68,10 +68,10 @@ struct SelectSetupPopup: View {
         .padding(.top, 18)
         .padding(.horizontal, 16)
         .padding(.bottom, 16)
-        .background(Color.nightCard, in: RoundedRectangle(cornerRadius: 28))
+        .background(Color.nightCardBackground, in: RoundedRectangle(cornerRadius: 28))
         .overlay {
             RoundedRectangle(cornerRadius: 28)
-                .strokeBorder(Color.nightLine, lineWidth: 1)
+                .strokeBorder(Color.nightBorder, lineWidth: 1)
         }
         .shadow(color: .black.opacity(0.35), radius: 30, x: 0, y: 20)
         .accessibilityElement(children: .contain)
@@ -100,7 +100,7 @@ struct SelectSetupPopup: View {
                     .accessibilityHidden(true)
                 Text(option.displayName)
                     .font(.subheadline.weight(.heavy))
-                    .foregroundStyle(Color.nightText)
+                    .foregroundStyle(Color.nightPrimaryText)
                 Image(systemName: "checkmark.circle.fill")
                     .font(.caption)
                     .foregroundStyle(color)
@@ -111,7 +111,7 @@ struct SelectSetupPopup: View {
             .padding(.bottom, 6)
             .background {
                 RoundedRectangle(cornerRadius: 20)
-                    .fill(Color.nightSoft)
+                    .fill(Color.nightSubtleBackground)
                 if isSelected {
                     RoundedRectangle(cornerRadius: 20)
                         .fill(color.opacity(0.12))
@@ -119,7 +119,7 @@ struct SelectSetupPopup: View {
             }
             .overlay {
                 RoundedRectangle(cornerRadius: 20)
-                    .strokeBorder(isSelected ? color : .nightLine, lineWidth: isSelected ? 3 : 1)
+                    .strokeBorder(isSelected ? color : .nightBorder, lineWidth: isSelected ? 3 : 1)
             }
             .contentShape(RoundedRectangle(cornerRadius: 20))
         }

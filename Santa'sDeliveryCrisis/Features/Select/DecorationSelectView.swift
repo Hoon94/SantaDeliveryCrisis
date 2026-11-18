@@ -49,7 +49,7 @@ struct DecorationSelectView: View {
                 headerLayout {
                     Text("출제")
                         .font(.title2.weight(.heavy))
-                        .foregroundStyle(Color.nightText)
+                        .foregroundStyle(Color.nightPrimaryText)
                         .accessibilityAddTraits(.isHeader)
                     conditionChip
                 }
@@ -57,7 +57,7 @@ struct DecorationSelectView: View {
 
                 Text("장식을 눌러 퀴즈를 시작하세요")
                     .font(.subheadline.weight(.bold))
-                    .foregroundStyle(Color.nightSubText)
+                    .foregroundStyle(Color.nightSecondaryText)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
 
@@ -102,12 +102,12 @@ struct DecorationSelectView: View {
                 systemImage: "gearshape"
             )
             .font(.caption.weight(.bold))
-            .foregroundStyle(Color.nightText)
+            .foregroundStyle(Color.nightPrimaryText)
             .fixedSize(horizontal: false, vertical: true)
             .padding(.horizontal, 11)
             .padding(.vertical, 6)
-            .background(Color.nightCard, in: Capsule())
-            .overlay { Capsule().strokeBorder(Color.nightLine, lineWidth: 1) }
+            .background(Color.nightCardBackground, in: Capsule())
+            .overlay { Capsule().strokeBorder(Color.nightBorder, lineWidth: 1) }
         }
         .buttonStyle(.plain)
         .accessibilityLabel("출제 설정, \(filter.difficulty.displayName), 카테고리 \(filter.categories.count)개, \(filter.count)문제")

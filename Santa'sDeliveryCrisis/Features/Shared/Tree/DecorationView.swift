@@ -36,13 +36,13 @@ struct DecorationView: View {
                     .position(center)
 
                 Ellipse()
-                    .fill(Color.treeHighlight.opacity(0.45))
+                    .fill(Color.white.opacity(0.45))
                     .frame(width: 24 * scale, height: 14 * scale)
                     .position(x: center.x - 15 * scale, y: center.y - 24 * scale)
 
                 Text(category.taskName)
                     .font(.subheadline.weight(.heavy))
-                    .foregroundStyle(Color.treeHighlight)
+                    .foregroundStyle(Color.white)
                     .lineLimit(1)
                     .minimumScaleFactor(0.5)
                     .allowsTightening(true)

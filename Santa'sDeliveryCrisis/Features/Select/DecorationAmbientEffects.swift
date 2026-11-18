@@ -27,13 +27,13 @@ struct DecorationAmbientEffects: View {
                     Path(ellipseIn: CGRect(
                         x: x - radius, y: y - radius, width: radius * 2, height: radius * 2
                     )),
-                    with: .color(Color.treeHighlight.opacity(opacity))
+                    with: .color(Color.white.opacity(opacity))
                 )
             }
 
             let scale = min(size.width / 220, size.height / 214)
             let origin = CGPoint(x: (size.width - 220 * scale) / 2, y: (size.height - 214 * scale) / 2)
-            let colors: [Color] = [.ornament3, .treeStar, .ornament4]
+            let colors: [Color] = [.ornamentBlue, .ornamentGold, .ornamentPink]
             let shifts = [1.4, 0.0, 0.7]
             var lightIndex = 0
             for row in 0..<6 {

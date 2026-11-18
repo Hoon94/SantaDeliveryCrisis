@@ -27,7 +27,7 @@ struct MainTabView: View {
                 .tabItem { Label("관리", systemImage: "list.bullet.rectangle") }
                 .tag(Tab.manage)
         }
-        .tint(.appPrimary)
+        .tint(.appTint)
     }
 }
 
