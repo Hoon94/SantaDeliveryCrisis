@@ -27,6 +27,13 @@ enum MockData {
     }
 }
 
+/// 항상 같은 카테고리를 추천하는 가짜 구현
+struct MockTaskRecommender: TaskRecommending {
+    var category: QuizCategory? = .swiftSyntax
+
+    func recommendedCategory(sessions: [QuizSession]) -> QuizCategory? { category }
+}
+
 struct MockQuestionSelector: QuestionSelecting {
     func select(
         category: QuizCategory?, difficulty: Difficulty, tags: Set<String>,
@@ -73,14 +80,16 @@ final class MockSessionManager: SessionManaging {
     func finish(_ session: QuizSession) throws -> SessionResult {
         let correct = session.answers.filter(\.isCorrect).count
         let total = session.questionSnapshots.count
-        let percent = total == 0 ? 0 : Int((Double(correct) / Double(total) * 100).rounded())
+        let percent = Accuracy.percent(correct: correct, total: total)
         session.status = .completed
         return SessionResult(
             correctCount: correct,
             totalCount: total,
             accuracyPercent: percent,
             elapsed: session.elapsedSeconds,
-            earnedDecorations: percent >= session.passThresholdPercent ? 1 : 0,
+            earnedDecorations: Accuracy.meetsThreshold(
+                correct: correct, total: total, thresholdPercent: session.passThresholdPercent
+            ) ? 1 : 0,
             treeCompleted: false,
             wrongAnswers: session.answers.filter { !$0.isCorrect }
         )

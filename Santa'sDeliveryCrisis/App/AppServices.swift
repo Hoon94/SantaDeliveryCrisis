@@ -6,21 +6,34 @@ import SwiftUI
 struct AppServices {
     let settings: SettingsStore
     let selector: QuestionSelecting
+    let recommender: TaskRecommending
     let sessions: SessionManaging
     let trees: TreeManaging
     let feedback: FeedbackPlaying
     let media: MediaFileManaging
     let traceScenes: TraceSceneRegistry
 
-    /// 실제 저장소(`MediaFileManager`, `SettingsStore`)와 아직 구현되지 않은 mock을 조립한다.
+    /// 실제 구현(출제, 추천, 세션, 트리, 미디어, 설정)과 아직 구현되지 않은 mock(피드백, 장면)을 조립한다.
+    /// 세션과 트리는 같은 `ModelContext`를 써야 세션 완료와 장식 지급이 한 번의 저장으로 묶인다.
     static func make(context: ModelContext) -> AppServices {
-        AppServices(
-            settings: SettingsStore(),
-            selector: MockQuestionSelector(),
-            sessions: MockSessionManager(),
-            trees: MockTreeManager(),
+        let settings = SettingsStore()
+        let selector = QuestionSelector()
+        let trees = TreeManager(context: context)
+        let media = MediaFileManager(context: context)
+        return AppServices(
+            settings: settings,
+            selector: selector,
+            recommender: TaskRecommender(),
+            sessions: SessionManager(
+                context: context,
+                selector: selector,
+                trees: trees,
+                settings: settings,
+                media: media
+            ),
+            trees: trees,
             feedback: MockFeedbackPlayer(),
-            media: MediaFileManager(context: context),
+            media: media,
             traceScenes: MockTraceSceneRegistry()
         )
     }
@@ -29,6 +42,7 @@ struct AppServices {
     static let preview = AppServices(
         settings: SettingsStore(defaults: UserDefaults(suiteName: "preview") ?? .standard),
         selector: MockQuestionSelector(),
+        recommender: MockTaskRecommender(),
         sessions: MockSessionManager(),
         trees: MockTreeManager(),
         feedback: MockFeedbackPlayer(),
