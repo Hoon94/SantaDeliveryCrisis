@@ -13,6 +13,8 @@ struct SelectView: View {
     @Query private var questions: [Question]
     @State private var filterState = SelectFilterState()
     @State private var phase: Phase = .editing
+    @State private var activeQuizSession: QuizSession?
+    @State private var startOutcome: StartSessionCoordinator.Outcome?
     private let recommender: any TaskRecommending
     private let selector: (any QuestionSelecting)?
 
@@ -46,7 +48,7 @@ struct SelectView: View {
 
                 DecorationSelectView(
                     filter: filterState.applied, availability: availability,
-                    onEdit: beginEditing, onSelect: { _ in }
+                    onEdit: beginEditing, onSelect: startSession
                 )
                 .blur(radius: phase == .editing ? 5 : 0)
                 .accessibilityHidden(phase == .editing)
@@ -83,6 +85,37 @@ struct SelectView: View {
                 }
             }
         }
+        .fullScreenCover(item: quizPresentation) { session in
+            QuizEntryPresentation(session: session)
+                .presentationBackground(.clear)
+        }
+    }
+
+    private var quizPresentation: Binding<QuizSession?> {
+        Binding(
+            get: { activeQuizSession },
+            set: { session in
+                var transaction = Transaction(animation: nil)
+                transaction.disablesAnimations = true
+                withTransaction(transaction) {
+                    activeQuizSession = session
+                }
+            }
+        )
+    }
+
+    private func startSession(category: QuizCategory) {
+        guard activeQuizSession == nil else { return }
+        let coordinator = StartSessionCoordinator(
+            sessions: services.sessions, selector: selector ?? services.selector
+        )
+        startOutcome = coordinator.start(
+            category: category, filter: filterState.applied, questions: questions
+        )
+        if case .started(let session) = startOutcome {
+            quizPresentation.wrappedValue = session
+        }
+        // needsResumeChoice와 failed의 표시는 각각 Task 24·25에서 연결한다.
     }
 
     // FIXME: [가정 4] 바깥 탭과 접근성 닫기는 편집을 취소하고 마지막 적용값을 유지
@@ -104,14 +137,38 @@ struct SelectView: View {
 
 @ViewBuilder
 private func selectPreview(recommender: any TaskRecommending = TempTaskRecommender()) -> some View {
-    if let container = try? ModelContainerFactory.make(inMemory: true) {
+    if let container = try? selectPreviewContainer() {
+        let source = AppServices.preview
+        let previewServices = AppServices(
+            settings: source.settings, selector: PreviewQuestionSelector(),
+            sessions: MockSessionManager(), trees: source.trees,
+            feedback: source.feedback, media: source.media, traceScenes: source.traceScenes
+        )
         NavigationStack { SelectView(recommender: recommender, selector: PreviewQuestionSelector()) }
             .modelContainer(container)
+            .environment(\.services, previewServices)
     } else {
         ContentUnavailableView(
             "미리보기 저장소를 준비하지 못했어요", systemImage: "exclamationmark.triangle"
         )
     }
+}
+
+private func selectPreviewContainer() throws -> ModelContainer {
+    let container = try ModelContainerFactory.make(inMemory: true)
+    for category in QuizCategory.allCases {
+        for difficulty in Difficulty.allCases {
+            for index in 0..<5 {
+                container.mainContext.insert(Question(
+                    text: "출제 전환 미리보기 \(index + 1)", choices: ["하나", "둘", "셋", "넷"],
+                    correctIndex: 0, explanation: "미리보기 해설",
+                    category: category, difficulty: difficulty
+                ))
+            }
+        }
+    }
+    try container.mainContext.save()
+    return container
 }
 
 #Preview("출제 설정 · 라이트") {
@@ -135,4 +192,8 @@ private func selectPreview(recommender: any TaskRecommending = TempTaskRecommend
 
 #Preview("출제 설정 · 추천 없음") {
     selectPreview(recommender: TempTaskRecommender(category: nil))
+}
+
+#Preview("출제 설정 · 적용 후 퀴즈 진입") {
+    selectPreview()
 }
