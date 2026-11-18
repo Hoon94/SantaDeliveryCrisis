@@ -1,11 +1,11 @@
 import SwiftUI
 
-/// 출제 설정 팝업의 머리말과 난이도 선택 영역.
+/// 출제 설정 팝업의 머리말과 난이도·카테고리 선택 영역.
 struct SelectSetupPopup: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
-    /// Task 12 설정 값에서 편집 중인 난이도.
-    @Binding var difficulty: Difficulty
+    /// Task 12 규칙을 사용하는 편집 중 출제 설정.
+    @Binding var filter: SelectFilter
 
     /// 가이드의 팝업 여백과 나이트 색을 사용해 설정 항목을 배치한다.
     var body: some View {
@@ -33,6 +33,8 @@ struct SelectSetupPopup: View {
                     difficultyButton(option)
                 }
             }
+
+            SelectCategoryCards(filter: $filter)
         }
         .fixedSize(horizontal: false, vertical: true)
         .padding(.top, 18)
@@ -47,13 +49,13 @@ struct SelectSetupPopup: View {
     }
 
     private func difficultyButton(_ option: Difficulty) -> some View {
-        let isSelected = difficulty == option
+        let isSelected = filter.difficulty == option
         let color = difficultyColor(option)
         let labelLayout = dynamicTypeSize.isAccessibilitySize
             ? AnyLayout(HStackLayout(spacing: 8))
             : AnyLayout(VStackLayout(spacing: 1))
         return Button {
-            difficulty = option
+            filter.difficulty = option
         } label: {
             labelLayout {
                 Text(stars(option))
