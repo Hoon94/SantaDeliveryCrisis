@@ -13,7 +13,7 @@ struct TaskResumeCard: View {
                 .toolbar(.hidden, for: .tabBar)
         } label: {
             HStack(spacing: 10) {
-                Text(taskEmoji)
+                Text(session.category?.taskEmoji ?? "🎁")
                     .font(.title3)
                     .padding(8)
                     .background(Color.roomSubtleBackground, in: RoundedRectangle(cornerRadius: 11))
@@ -51,18 +51,9 @@ struct TaskResumeCard: View {
     private var taskName: String {
         session.category?.taskName ?? "작업 정보 없음"
     }
-
-    private var taskEmoji: String {
-        switch session.category {
-        case .aiUsage: "📮"
-        case .swiftSyntax: "🎁"
-        case .hig: "🎀"
-        case .swiftUIPractice: "🛷"
-        case nil: "🎁"
-        }
-    }
 }
 
+#if DEBUG
 #Preview("이어서 풀기 · 작업 없음") {
     NavigationStack {
         TaskResumeCard(session: QuizSession(
@@ -72,3 +63,4 @@ struct TaskResumeCard: View {
         .background(Color.roomBackground)
     }
 }
+#endif

@@ -24,19 +24,20 @@ struct QuizEntryPlaceholderView: View {
         .background(Color.roomBackground)
         .navigationTitle("세션 정보")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.visible, for: .navigationBar)
     }
 }
 
+#if DEBUG
 private func quizEntryPreview(
     category: QuizCategory? = .swiftSyntax, empty: Bool = false, currentIndex: Int = 0
 ) -> some View {
-    let session = QuizSession(
-        category: category,
-        difficulty: .easy,
-        questionSnapshots: empty ? [] : [QuestionSnapshot(MockData.question)],
-        passThresholdPercent: 80
+    let session = TaskSelectPreviewData.session(
+        questions: TaskSelectPreviewData.questions(
+            category: category ?? .swiftSyntax, difficulty: .easy, count: empty ? 0 : 1
+        ),
+        category: category, difficulty: .easy, answered: currentIndex
     )
-    session.currentIndex = currentIndex
     return NavigationStack {
         QuizEntryPlaceholderView(session: session)
     }
@@ -63,3 +64,4 @@ private func quizEntryPreview(
     quizEntryPreview()
         .dynamicTypeSize(.accessibility3)
 }
+#endif

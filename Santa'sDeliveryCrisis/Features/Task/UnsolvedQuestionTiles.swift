@@ -10,18 +10,7 @@ struct UnsolvedQuestionTiles: View {
     /// 세 난이도 타일 또는 문제가 없을 때의 안내.
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            if dynamicTypeSize.isAccessibilitySize {
-                VStack(alignment: .leading, spacing: 4) {
-                    heading
-                    totalLabel
-                }
-            } else {
-                HStack(alignment: .firstTextBaseline) {
-                    heading
-                    Spacer(minLength: 8)
-                    totalLabel
-                }
-            }
+            header
 
             if stats.total == 0 {
                 VStack(alignment: .leading, spacing: 4) {
@@ -47,6 +36,19 @@ struct UnsolvedQuestionTiles: View {
         }
         .foregroundStyle(Color.roomPrimaryText)
         .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private var header: some View {
+        let layout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4))
+            : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 8))
+        return layout {
+            heading
+            if dynamicTypeSize.isAccessibilitySize == false {
+                Spacer(minLength: 0)
+            }
+            totalLabel
+        }
     }
 
     private var heading: some View {
@@ -78,18 +80,11 @@ struct UnsolvedQuestionTiles: View {
                 .font(.caption)
                 .foregroundStyle(Color.roomSecondaryText)
 
-            GeometryReader { geometry in
-                Capsule()
-                    .fill(Color.roomSubtleBackground)
-                    .overlay(alignment: .leading) {
-                        Capsule()
-                            .fill(difficultyColor(entry.difficulty))
-                            .frame(width: geometry.size.width * entry.solvedFraction)
-                    }
-            }
-            .frame(height: 5)
-            .padding(.horizontal, 8)
-            .padding(.top, 2)
+            ProgressView(value: entry.solvedFraction)
+                .progressViewStyle(.linear)
+                .tint(difficultyColor(entry.difficulty))
+                .padding(.horizontal, 8)
+                .padding(.top, 2)
         }
         .multilineTextAlignment(.center)
         .frame(maxWidth: .infinity)
@@ -112,6 +107,7 @@ struct UnsolvedQuestionTiles: View {
     }
 }
 
+#if DEBUG
 #Preview("문제 타일 · 일부 풀이") {
     UnsolvedQuestionTiles(stats: UnsolvedQuestionStats(byDifficulty: [
         .init(difficulty: .easy, unsolved: 8, total: 20),
@@ -127,3 +123,4 @@ struct UnsolvedQuestionTiles: View {
         .padding()
         .background(Color.roomBackground)
 }
+#endif

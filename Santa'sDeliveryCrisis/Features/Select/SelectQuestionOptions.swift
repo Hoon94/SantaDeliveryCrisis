@@ -68,12 +68,10 @@ struct SelectQuestionOptions: View {
             .foregroundStyle(isSelected ? Color.nightOnAccentText : .nightSecondaryText)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 7)
-            .background {
-                if isSelected {
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(Color.nightAccent)
-                }
-            }
+            .background(
+                isSelected ? Color.nightAccent : .clear,
+                in: RoundedRectangle(cornerRadius: 16)
+            )
             .contentShape(RoundedRectangle(cornerRadius: 16))
         }
         .buttonStyle(.plain)
@@ -83,6 +81,7 @@ struct SelectQuestionOptions: View {
     }
 }
 
+#if DEBUG
 private struct SelectQuestionOptionsPreview: View {
     @State private var filter: SelectFilter
     let threshold: Int
@@ -125,3 +124,4 @@ private struct SelectQuestionOptionsPreview: View {
     SelectQuestionOptionsPreview(count: 10)
         .dynamicTypeSize(.accessibility5)
 }
+#endif

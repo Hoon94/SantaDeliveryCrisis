@@ -31,8 +31,11 @@ struct DecorationAmbientEffects: View {
                 )
             }
 
-            let scale = min(size.width / 220, size.height / 214)
-            let origin = CGPoint(x: (size.width - 220 * scale) / 2, y: (size.height - 214 * scale) / 2)
+            let scale = TreeSlots.scale(in: size)
+            let origin = CGPoint(
+                x: (size.width - TreeSlots.designSize.width * scale) / 2,
+                y: (size.height - TreeSlots.designSize.height * scale) / 2
+            )
             let colors: [Color] = [.ornamentBlue, .ornamentGold, .ornamentPink]
             let shifts = [1.4, 0.0, 0.7]
             var lightIndex = 0

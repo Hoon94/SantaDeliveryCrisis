@@ -18,6 +18,10 @@ struct SelectFilter: Equatable {
     }
 
     /// 기본 설정은 보통, 전체 카테고리, 5문제다. 빈 카테고리는 전체 선택으로 보정한다.
+    /// - Parameters:
+    ///   - difficulty: 출제할 난이도.
+    ///   - categories: 하나 이상의 카테고리. 비어 있으면 전체 카테고리를 사용한다.
+    ///   - count: 5·10·15 중 문제 수. 그 외 값은 5로 보정한다.
     init(
         difficulty: Difficulty = .normal,
         categories: Set<QuizCategory> = Set(QuizCategory.allCases),
@@ -29,6 +33,7 @@ struct SelectFilter: Equatable {
     }
 
     /// 선택을 반전하되 마지막으로 남은 카테고리의 해제는 무시한다.
+    /// - Parameter category: 선택 또는 해제할 카테고리.
     mutating func toggleCategory(_ category: QuizCategory) {
         if categories.contains(category) {
             guard categories.count > 1 else { return }
@@ -39,13 +44,14 @@ struct SelectFilter: Equatable {
     }
 
     /// 문제 수를 변경하며 허용되지 않은 값은 5로 보정한다.
+    /// - Parameter count: 요청한 문제 수.
     mutating func setCount(_ count: Int) {
         self.count = Self.allowedCounts.contains(count) ? count : 5
     }
 }
 
 /// 마지막 적용값과 팝업에서 편집 중인 값을 독립적으로 관리한다.
-// FIXME: [가정 4] 적용·취소 복원만 구현. 탭 왕복 유지 및 세션 시작 시 초기화는 구현하지 않음
+/// 탭 이동이나 세션 시작에 따른 초기화는 수행하지 않는다.
 struct SelectFilterState {
     /// 장식 선택과 세션 시작에 사용할 마지막 적용값.
     private(set) var applied: SelectFilter
@@ -54,6 +60,7 @@ struct SelectFilterState {
     var editing: SelectFilter
 
     /// 처음 취소해도 기본 설정이 남도록 두 값을 같은 유효한 설정으로 시작한다.
+    /// - Parameter applied: 최초 적용값. 생략하면 기본 출제 설정을 사용한다.
     init(applied: SelectFilter = SelectFilter()) {
         self.applied = applied
         self.editing = applied

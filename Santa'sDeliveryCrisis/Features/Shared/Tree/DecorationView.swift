@@ -5,17 +5,20 @@ import SwiftUI
 // FIXME: [자산 교체] 임시 도형으로 그린 구슬을 실제 장식 이미지로 교체
 // FIXME: [가정 8] 시안 v3의 통과 점 3개, 체크 배지, 작업실 문 열림은 1차에서 제외. 팀이 확정하면 여기에 추가
 struct DecorationView: View {
+    /// 금색 캡을 포함한 장식의 기준 크기.
+    static let designSize = CGSize(width: 84, height: 94)
+
     /// 장식이 나타내는 작업.
     let category: QuizCategory
-    /// 켜짐(선택됨, 눌러서 시작 가능) 여부. false면 흐리게 표시.
+    /// 눌러서 시작할 수 있는 상태. 카테고리를 선택했어도 후보가 부족하면 false다.
     let isLit: Bool
 
     /// 부모 공간에 맞춰 원본 비율을 유지하는 장식.
     var body: some View {
         GeometryReader { geometry in
             let scale = min(
-                geometry.size.width / 84,
-                geometry.size.height / 94
+                geometry.size.width / Self.designSize.width,
+                geometry.size.height / Self.designSize.height
             )
             // 캡을 포함한 원본 세로 범위(-52...42)의 중앙은 -5다.
             let center = CGPoint(
@@ -53,12 +56,13 @@ struct DecorationView: View {
             }
             .opacity(isLit ? 1 : 0.3)
         }
-        .aspectRatio(84.0 / 94.0, contentMode: .fit)
+        .aspectRatio(Self.designSize.width / Self.designSize.height, contentMode: .fit)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(category.taskName), \(isLit ? "켜짐" : "꺼짐")")
     }
 }
 
+#if DEBUG
 #Preview("네 작업 · 켜짐") {
     VStack(spacing: 44) {
         ForEach(QuizCategory.allCases, id: \.self) { category in
@@ -109,3 +113,4 @@ struct DecorationView: View {
         .padding(30)
         .background(Color.nightBackgroundTop)
 }
+#endif

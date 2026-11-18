@@ -1,5 +1,5 @@
-/// 시작 또는 포기 오류를 재현하고 나머지는 기존 mock에 위임하는 프리뷰용 관리자.
-// FIXME: [mock 교체] 실제 SessionManaging 통합 후 프리뷰 오류 주입을 실제 서비스 오류 시나리오로 교체
+#if DEBUG
+/// 시작 또는 포기 오류를 재현하고 나머지는 주입된 서비스에 위임하는 프리뷰용 관리자.
 struct FailingPreviewSessionManager: SessionManaging {
     /// 프리뷰에서 오류를 발생시킬 서비스 호출.
     enum Failure {
@@ -13,8 +13,11 @@ struct FailingPreviewSessionManager: SessionManaging {
     private let base: any SessionManaging
     private let failure: Failure
 
-    /// 프리뷰마다 독립된 기존 관리자와 실패 지점을 받는다.
-    init(base: any SessionManaging = MockSessionManager(), failure: Failure = .start) {
+    /// 프리뷰마다 독립된 관리자와 실패 지점을 받는다.
+    /// - Parameters:
+    ///   - base: 오류를 강제하지 않는 호출을 처리할 서비스.
+    ///   - failure: 상태를 바꾸기 전에 오류를 던질 호출.
+    init(base: any SessionManaging, failure: Failure) {
         self.base = base
         self.failure = failure
     }
@@ -27,12 +30,12 @@ struct FailingPreviewSessionManager: SessionManaging {
         return try base.startSession(category: category, difficulty: difficulty, tags: tags, count: count)
     }
 
-    /// 답 제출 동작은 기존 mock을 사용한다.
+    /// 답 제출은 주입된 서비스에 위임하며 오류를 그대로 전달한다.
     func submit(answerIndex: Int, forQuestionAt questionIndex: Int, in session: QuizSession) throws -> SessionAnswer {
         try base.submit(answerIndex: answerIndex, forQuestionAt: questionIndex, in: session)
     }
 
-    /// 결과 확정 동작은 기존 mock을 사용한다.
+    /// 결과 확정은 주입된 서비스에 위임하며 오류를 그대로 전달한다.
     func finish(_ session: QuizSession) throws -> SessionResult {
         try base.finish(session)
     }
@@ -48,3 +51,4 @@ struct FailingPreviewSessionManager: SessionManaging {
         try base.abandon(session)
     }
 }
+#endif

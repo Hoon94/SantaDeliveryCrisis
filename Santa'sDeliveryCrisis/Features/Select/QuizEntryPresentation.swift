@@ -41,6 +41,7 @@ struct QuizEntryPresentation: View {
     }
 }
 
+#if DEBUG
 #Preview("퀴즈 진입 · 페이드") {
     QuizEntryPresentation(session: MockData.session())
 }
@@ -49,3 +50,4 @@ struct QuizEntryPresentation: View {
     QuizEntryPresentation(session: MockData.session())
         .preferredColorScheme(.dark)
 }
+#endif

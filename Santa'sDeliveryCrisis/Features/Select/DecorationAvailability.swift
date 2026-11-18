@@ -24,6 +24,11 @@ struct DecorationAvailability {
     }
 
     /// 네 카테고리를 모델 순서대로 각각 조회하고 비선택 카테고리도 결과에 포함한다.
+    /// - Parameters:
+    ///   - filter: 화면에서 적용한 카테고리·난이도·문제 수.
+    ///   - questions: 현재 저장된 전체 문제.
+    ///   - selector: 카테고리별 후보 수를 계산하는 서비스.
+    /// - Returns: 카테고리 순서가 고정된 장식 표시 정보.
     static func calculate(
         filter: SelectFilter,
         questions: [Question],
@@ -34,8 +39,13 @@ struct DecorationAvailability {
         }
     }
 
-    /// 카테고리가 선택됐고 후보 수가 요청 수 이상일 때만 진입을 허용한다.
-    /// 사용자 결정: 후보 부족 시 가능한 만큼 출제하지 않고 장식을 끈다.
+    /// 카테고리 하나의 후보 수를 조회해 활성 여부와 부족 안내를 구성한다.
+    /// - Parameters:
+    ///   - category: 조회할 카테고리.
+    ///   - filter: 적용한 설정. 후보 수가 요청 수보다 작으면 장식을 끈다.
+    ///   - questions: 선택기에 전달할 전체 문제.
+    ///   - selector: 실제 후보 필터를 적용하는 서비스.
+    /// - Returns: 음수 후보 수를 0으로 보정한 표시 정보. 모델은 변경하지 않는다.
     static func calculate(
         category: QuizCategory,
         filter: SelectFilter,

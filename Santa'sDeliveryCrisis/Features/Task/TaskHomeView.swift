@@ -36,26 +36,18 @@ struct TaskHomeView: View {
         .padding(.horizontal, 20)
         .padding(.vertical, 10)
         .background(Color.roomBackground)
+        .toolbar(.hidden, for: .navigationBar)
     }
 
     private func content(
         filledCount: Int, treeNumber: Int, stats: UnsolvedQuestionStats, scrollable: Bool = false
     ) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            VStack(alignment: .leading, spacing: 1) {
-                Text("산타의 작업실")
-                    .font(.title2.weight(.heavy))
-                    .foregroundStyle(Color.roomPrimaryText)
-                    .accessibilityAddTraits(.isHeader)
-                Text("크리스마스 · \(treeNumber)번째 트리")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(Color.roomSecondaryText)
-            }
-            .fixedSize(horizontal: false, vertical: true)
+            header(treeNumber: treeNumber)
 
             if scrollable {
                 TaskTreePanel(filledCount: filledCount)
-                    .aspectRatio(TreeSlots.designSize.width / TreeSlots.designSize.height, contentMode: .fit)
+                    .aspectRatio(TreeSlots.aspectRatio, contentMode: .fit)
             } else {
                 TaskTreePanel(filledCount: filledCount)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -75,20 +67,36 @@ struct TaskHomeView: View {
                 TaskResumeCard(session: session)
             }
 
-            // FIXME: [가정 1] 4개 작업 혼합 세션은 1차에 없음. 이동만 한다
-            Button(action: onSelectQuestions) {
-                Text("오늘의 출제")
-                    .font(.body.weight(.heavy))
-                    .frame(maxWidth: .infinity)
-                    .padding(14)
-                    .foregroundStyle(Color.roomOnAccentText)
-                    .background(Color.roomAccent, in: RoundedRectangle(cornerRadius: 14))
-            }
-            .buttonStyle(.plain)
-            .accessibilityHint("출제 탭으로 이동합니다")
+            selectQuestionsButton
 
             UnsolvedQuestionTiles(stats: stats)
         }
+    }
+
+    private func header(treeNumber: Int) -> some View {
+        VStack(alignment: .leading, spacing: 1) {
+            Text("산타의 작업실")
+                .font(.title2.weight(.heavy))
+                .foregroundStyle(Color.roomPrimaryText)
+                .accessibilityAddTraits(.isHeader)
+            Text("크리스마스 · \(treeNumber)번째 트리")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(Color.roomSecondaryText)
+        }
+        .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private var selectQuestionsButton: some View {
+        Button(action: onSelectQuestions) {
+            Text("오늘의 출제")
+                .font(.body.weight(.heavy))
+                .frame(maxWidth: .infinity)
+                .padding(14)
+                .foregroundStyle(Color.roomOnAccentText)
+                .background(Color.roomAccent, in: RoundedRectangle(cornerRadius: 14))
+        }
+        .buttonStyle(.plain)
+        .accessibilityHint("출제 탭으로 이동합니다")
     }
 
     private func remainingMessage(filledCount: Int) -> Text {
@@ -103,85 +111,38 @@ struct TaskHomeView: View {
     }
 }
 
+#if DEBUG
+@ViewBuilder
 private func taskHomePreview(
     filledCount: Int, empty: Bool = false, resume: Bool = false
 ) -> some View {
-    let source = AppServices.preview
-    let trees = MockTreeManager()
-    let sessions = MockSessionManager()
-    let services = AppServices(
-        settings: source.settings,
-        selector: source.selector,
-        recommender: source.recommender,
-        sessions: sessions,
-        trees: trees,
-        feedback: source.feedback,
-        media: source.media,
-        traceScenes: source.traceScenes
-    )
-    let container = Result {
-        let container = try ModelContainerFactory.make(inMemory: true)
-        container.mainContext.insert(TreeRecord(decorationCount: filledCount))
-        if empty == false {
-            for difficulty in Difficulty.allCases {
-                for category in QuizCategory.allCases {
-                    let question = Question(
-                        text: "미리보기 문제", choices: ["하나", "둘", "셋", "넷"],
-                        correctIndex: 0, explanation: "미리보기 해설",
-                        category: category, difficulty: difficulty
-                    )
-                    container.mainContext.insert(question)
-                    if difficulty == .easy || category == .aiUsage {
-                        let session = QuizSession(
-                            category: category, difficulty: difficulty,
-                            questionSnapshots: [QuestionSnapshot(question)],
-                            passThresholdPercent: 80
-                        )
-                        session.answers = [
-                            SessionAnswer(questionID: question.id, selectedIndex: 0, isCorrect: true)
-                        ]
-                        session.currentIndex = session.answers.count
-                        session.status = .completed
-                        container.mainContext.insert(session)
-                    }
-                }
-            }
+    let questions = empty ? [] : Difficulty.allCases.flatMap { difficulty in
+        QuizCategory.allCases.flatMap { category in
+            TaskSelectPreviewData.questions(category: category, difficulty: difficulty, count: 1)
         }
-        if resume {
-            let session = try sessions.startSession(
-                category: .swiftSyntax, difficulty: .normal, tags: [], count: 10
-            )
-            // FIXME: [mock 교체] mock은 문제 수를 무시하므로 프리뷰에서만 시안의 10문제를 구성
-            session.questionSnapshots = (0..<10).map { index in
-                QuestionSnapshot(Question(
-                    text: "이어서 풀기 미리보기 \(index + 1)", choices: ["하나", "둘", "셋", "넷"],
-                    correctIndex: 0, explanation: "미리보기 해설",
-                    category: .swiftSyntax, difficulty: .normal
-                ))
-            }
-            session.questionIDs = session.questionSnapshots.map(\.questionID)
-            for index in 0..<6 {
-                _ = try sessions.submit(answerIndex: 0, forQuestionAt: index, in: session)
-            }
-            container.mainContext.insert(session)
-        }
-        try container.mainContext.save()
-        return container
     }
-    return Group {
-        switch container {
-        case .success(let container):
-            NavigationStack {
-                TaskHomeView(onSelectQuestions: {})
-            }
-            .modelContainer(container)
-            .environment(\.services, services)
-        case .failure:
-            ContentUnavailableView(
-                "미리보기 데이터를 준비하지 못했어요",
-                systemImage: "exclamationmark.triangle"
-            )
-        }
+    let history = questions.filter { $0.difficulty == .easy || $0.category == .aiUsage }.map { question in
+        TaskSelectPreviewData.session(
+            questions: [question], category: question.category, difficulty: question.difficulty,
+            answered: 1, status: .completed
+        )
+    }
+    let resumable = resume ? [TaskSelectPreviewData.session(
+        questions: TaskSelectPreviewData.questions(category: .swiftSyntax, difficulty: .normal, count: 10),
+        category: .swiftSyntax, difficulty: .normal, answered: 6
+    )] : []
+
+    if let preview = try? TaskSelectPreviewData.environment(
+        questions: questions, sessions: history + resumable,
+        trees: [TreeRecord(decorationCount: filledCount)]
+    ) {
+        NavigationStack { TaskHomeView(onSelectQuestions: {}) }
+            .modelContainer(preview.container)
+            .environment(\.services, preview.services)
+    } else {
+        ContentUnavailableView(
+            "미리보기 데이터를 준비하지 못했어요", systemImage: "exclamationmark.triangle"
+        )
     }
 }
 
@@ -227,3 +188,4 @@ private func taskHomePreview(
     taskHomePreview(filledCount: 6, resume: true)
         .dynamicTypeSize(.accessibility3)
 }
+#endif

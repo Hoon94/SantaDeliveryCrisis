@@ -34,6 +34,7 @@ struct SelectableDecoration: View {
     }
 }
 
+#if DEBUG
 private struct SelectableDecorationPreview: View {
     let availableCount: Int
     let requestedCount: Int
@@ -47,8 +48,8 @@ private struct SelectableDecorationPreview: View {
         )
         let availability = DecorationAvailability.calculate(
             category: category, filter: filter,
-            questions: previewQuestions(category: category, difficulty: .normal, count: availableCount),
-            selector: PreviewQuestionSelector()
+            questions: TaskSelectPreviewData.questions(category: category, difficulty: .normal, count: availableCount),
+            selector: QuestionSelector()
         )
         VStack(spacing: 12) {
             SelectableDecoration(availability: availability) {
@@ -65,29 +66,17 @@ private struct SelectableDecorationPreview: View {
     }
 }
 
-private func previewQuestions(
-    category: QuizCategory, difficulty: Difficulty, count: Int
-) -> [Question] {
-    (0..<max(0, count)).map { index in
-        Question(
-            text: "장식 미리보기 문제 \(index + 1)", choices: ["하나", "둘", "셋", "넷"],
-            correctIndex: 0, explanation: "미리보기 해설",
-            category: category, difficulty: difficulty
-        )
-    }
-}
-
 private struct DecorationAvailabilityPreview: View {
     let filter: SelectFilter
 
     var body: some View {
         let normalCounts = [5, 3, 0, 7]
         let questions = zip(QuizCategory.allCases, normalCounts).flatMap { category, count in
-            previewQuestions(category: category, difficulty: .normal, count: count)
-                + previewQuestions(category: category, difficulty: .easy, count: 5)
+            TaskSelectPreviewData.questions(category: category, difficulty: .normal, count: count)
+                + TaskSelectPreviewData.questions(category: category, difficulty: .easy, count: 5)
         }
         let results = DecorationAvailability.calculate(
-            filter: filter, questions: questions, selector: PreviewQuestionSelector()
+            filter: filter, questions: questions, selector: QuestionSelector()
         )
         ScrollView {
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 30) {
@@ -142,3 +131,4 @@ private struct DecorationAvailabilityPreview: View {
 #Preview("네 장식 · 10문제 요청 모두 꺼짐") {
     DecorationAvailabilityPreview(filter: SelectFilter(count: 10))
 }
+#endif

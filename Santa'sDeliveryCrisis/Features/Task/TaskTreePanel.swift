@@ -10,7 +10,7 @@ struct TaskTreePanel: View {
         ZStack(alignment: .topTrailing) {
             GeometryReader { geometry in
                 let design = TreeSlots.designSize
-                let scale = min(geometry.size.width / design.width, geometry.size.height / design.height)
+                let scale = TreeSlots.scale(in: geometry.size)
                 let sceneSize = CGSize(width: design.width * scale, height: design.height * scale)
 
                 ZStack {
@@ -77,6 +77,8 @@ struct TaskTreePanel: View {
     }
 }
 
+#if DEBUG
 #Preview("트리 영역") {
     TaskTreePanel(filledCount: 6)
 }
+#endif

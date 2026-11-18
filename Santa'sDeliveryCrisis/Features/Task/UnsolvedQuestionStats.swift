@@ -32,9 +32,12 @@ struct UnsolvedQuestionStats {
     }
 
     /// 모델을 변경하거나 저장하지 않고 현재 문제의 미풀이 통계를 계산한다.
-    /// 정오답과 무관하게 답이 있으면 푼 문제로 보고, 삭제된 문제의 답은 집계에 영향을 주지 않는다.
+    /// 완료·진행 중·중단 상태와 정오답에 관계없이 저장된 답이 있으면 푼 문제로 본다.
+    /// - Parameters:
+    ///   - questions: 현재 저장된 문제. 삭제된 문제의 답은 집계에서 제외한다.
+    ///   - history: 세션 상태로 거르지 않은 전체 풀이 기록.
+    /// - Returns: 모든 난이도를 포함하고 문제 ID를 중복 집계하지 않는 통계.
     static func calculate(questions: [Question], history: [QuizSession]) -> UnsolvedQuestionStats {
-        // FIXME: [가정] 중단(abandoned)한 세션에서 답한 문제도 "푼 문제"로 볼지는 A와 확인 필요
         let answeredIDs = Set(history.flatMap { session in
             session.answers.map(\.questionID)
         })

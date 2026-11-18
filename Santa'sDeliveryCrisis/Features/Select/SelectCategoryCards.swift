@@ -47,7 +47,7 @@ struct SelectCategoryCards: View {
             }
         } label: {
             HStack(spacing: 4) {
-                Text(emoji(category))
+                Text(category.categoryEmoji)
                     .font(.body)
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 3) {
@@ -92,17 +92,9 @@ struct SelectCategoryCards: View {
         .accessibilityAddTraits(isSelected ? .isSelected : [])
         .accessibilityHint(isLastSelection ? "마지막 하나는 해제할 수 없어요" : "선택을 변경합니다")
     }
-
-    private func emoji(_ category: QuizCategory) -> String {
-        switch category {
-        case .aiUsage: "🤖"
-        case .swiftSyntax: "🐦"
-        case .hig: "🎨"
-        case .swiftUIPractice: "🧩"
-        }
-    }
 }
 
+#if DEBUG
 private struct SelectCategoryCardsPreview: View {
     @State private var filter: SelectFilter
 
@@ -136,3 +128,4 @@ private struct SelectCategoryCardsPreview: View {
     SelectCategoryCardsPreview(categories: Set(QuizCategory.allCases))
         .preferredColorScheme(.dark)
 }
+#endif

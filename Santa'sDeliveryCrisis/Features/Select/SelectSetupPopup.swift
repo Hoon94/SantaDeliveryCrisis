@@ -6,7 +6,7 @@ struct SelectSetupPopup: View {
     @Environment(\.services) private var services
     @AccessibilityFocusState private var isTitleFocused: Bool
 
-    /// Task 12 규칙을 사용하는 편집 중 출제 설정.
+    /// 적용 전 편집 중인 설정. 취소·확정 처리는 호출자가 담당한다.
     @Binding var filter: SelectFilter
 
     /// 추천기가 선택한 카테고리. nil이면 추천 배지를 표시하지 않는다.
@@ -18,36 +18,12 @@ struct SelectSetupPopup: View {
     /// 편집을 취소하고 팝업을 닫는 동작.
     let onCancel: () -> Void
 
-    /// 가이드의 팝업 여백과 나이트 색을 사용해 설정 항목을 배치한다.
+    /// 난이도·카테고리·문제 수를 편집하고 장식 선택으로 진행한다.
     var body: some View {
-        let optionsLayout = dynamicTypeSize.isAccessibilitySize
-            ? AnyLayout(VStackLayout(spacing: 6))
-            : AnyLayout(HStackLayout(spacing: 6))
         VStack(alignment: .leading, spacing: 7) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text("오늘의 출제 설정")
-                    .font(.title3.weight(.heavy))
-                    .foregroundStyle(Color.nightPrimaryText)
-                    .accessibilityAddTraits(.isHeader)
-                    .accessibilityFocused($isTitleFocused)
-                Text("설정을 마치고 켜진 장식을 눌러 시작해요")
-                    .font(.caption)
-                    .foregroundStyle(Color.nightSecondaryText)
-            }
-
-            Text("난이도")
-                .font(.caption.weight(.heavy))
-                .foregroundStyle(Color.nightSecondaryText)
-                .accessibilityAddTraits(.isHeader)
-
-            optionsLayout {
-                ForEach(Difficulty.allCases, id: \.self) { option in
-                    difficultyButton(option)
-                }
-            }
-
+            header
+            difficultyPicker
             SelectCategoryCards(filter: $filter, recommendedCategory: recommendedCategory)
-
             SelectQuestionOptions(
                 filter: $filter,
                 passThresholdPercent: services.settings.passThresholdPercent
@@ -81,6 +57,36 @@ struct SelectSetupPopup: View {
         .task {
             await Task.yield()
             isTitleFocused = true
+        }
+    }
+
+    private var header: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text("오늘의 출제 설정")
+                .font(.title3.weight(.heavy))
+                .foregroundStyle(Color.nightPrimaryText)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityFocused($isTitleFocused)
+            Text("설정을 마치고 켜진 장식을 눌러 시작해요")
+                .font(.caption)
+                .foregroundStyle(Color.nightSecondaryText)
+        }
+    }
+
+    private var difficultyPicker: some View {
+        let layout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(spacing: 6))
+            : AnyLayout(HStackLayout(spacing: 6))
+        return VStack(alignment: .leading, spacing: 7) {
+            Text("난이도")
+                .font(.caption.weight(.heavy))
+                .foregroundStyle(Color.nightSecondaryText)
+                .accessibilityAddTraits(.isHeader)
+            layout {
+                ForEach(Difficulty.allCases, id: \.self) { option in
+                    difficultyButton(option)
+                }
+            }
         }
     }
 

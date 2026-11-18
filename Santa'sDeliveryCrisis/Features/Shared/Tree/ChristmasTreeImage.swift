@@ -5,14 +5,14 @@ struct ChristmasTreeImage: View {
     /// 값이 있으면 작업실의 장식 칸을 표시하고, 없으면 이미지 자체만 표시한다.
     var filledCount: Int? = nil
 
-    /// 투명 여백을 포함한 이미지의 표시 배율. 화면별로 트리 크기를 조절한다.
+    /// 투명 여백을 포함한 이미지의 표시 배율. 장식의 크기·위치는 바꾸지 않는다.
     var imageScale: CGFloat = 1.4
 
-    /// 기존 트리 좌표계에 이미지와 장식을 함께 맞춘다.
+    /// 이미지와 장식을 같은 기준 영역에 겹치되 이미지에만 표시 배율을 적용한다.
     var body: some View {
         GeometryReader { geometry in
             let design = TreeSlots.designSize
-            let scale = min(geometry.size.width / design.width, geometry.size.height / design.height)
+            let scale = TreeSlots.scale(in: geometry.size)
             let sceneSize = CGSize(width: design.width * scale, height: design.height * scale)
 
             // 장식의 기준 영역은 고정하고 이미지 확대가 레이아웃 크기에 영향을 주지 않게 한다.
@@ -36,7 +36,7 @@ struct ChristmasTreeImage: View {
                 }
                 .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
         }
-        .aspectRatio(TreeSlots.designSize.width / TreeSlots.designSize.height, contentMode: .fit)
+        .aspectRatio(TreeSlots.aspectRatio, contentMode: .fit)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilityText)
     }
@@ -85,6 +85,7 @@ struct ChristmasTreeImage: View {
     }
 }
 
+#if DEBUG
 #Preview("이미지 트리") {
     ChristmasTreeImage()
         .background(Color.roomBackground)
@@ -94,3 +95,4 @@ struct ChristmasTreeImage: View {
     ChristmasTreeImage(filledCount: 6)
         .background(Color.roomBackground)
 }
+#endif
