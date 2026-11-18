@@ -33,7 +33,7 @@ struct RoomSegmentedControl<Value: Hashable>: View {
                             if isSelected {
                                 RoundedRectangle(cornerRadius: 11)
                                     .fill(Color.roomCard)
-                                    .shadow(color: .black.opacity(0.15), radius: 1.5, y: 1)
+                                    .shadow(color: Color.roomText.opacity(0.15), radius: 1.5, y: 1)
                             }
                         }
                         .contentShape(Rectangle())
