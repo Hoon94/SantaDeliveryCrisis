@@ -24,6 +24,7 @@ struct SelectView: View {
     @State private var startOutcome: StartSessionCoordinator.Outcome?
     @State private var pendingStart: PendingStart?
     @State private var deferredOutcome: StartSessionCoordinator.Outcome?
+    @State private var showsStartFailure = false
     private let recommender: any TaskRecommending
     private let selector: (any QuestionSelecting)?
 
@@ -110,6 +111,11 @@ struct SelectView: View {
                 }
             )
         }
+        .alert("세션을 시작하지 못했어요", isPresented: $showsStartFailure) {
+            Button("확인", role: .cancel) {}
+        } message: {
+            Text("문제를 준비하는 중에 문제가 생겼어요.\n잠시 후 다시 시도해 주세요.")
+        }
     }
 
     private var quizPresentation: Binding<QuizSession?> {
@@ -126,7 +132,7 @@ struct SelectView: View {
     }
 
     private func startSession(category: QuizCategory) {
-        guard activeQuizSession == nil, pendingStart == nil else { return }
+        guard activeQuizSession == nil, pendingStart == nil, showsStartFailure == false else { return }
         let result = coordinator.start(
             category: category, filter: filterState.applied, questions: questions
         )
@@ -142,10 +148,14 @@ struct SelectView: View {
 
     private func recordOutcome(_ result: StartSessionCoordinator.Outcome) {
         startOutcome = result
-        if case .started(let session) = result {
+        switch result {
+        case .started(let session):
             quizPresentation.wrappedValue = session
+        case .failed:
+            showsStartFailure = true
+        case .needsResumeChoice:
+            break
         }
-        // failed의 알림 표시는 Task 25에서 연결한다.
     }
 
     private func completeResumeChoice(_ result: StartSessionCoordinator.Outcome) {
@@ -178,10 +188,11 @@ struct SelectView: View {
 
 @ViewBuilder
 private func selectPreview(
-    recommender: any TaskRecommending = TempTaskRecommender(), existingSession: Bool = false
+    recommender: any TaskRecommending = TempTaskRecommender(), existingSession: Bool = false,
+    failure: FailingPreviewSessionManager.Failure? = nil
 ) -> some View {
     if let container = try? selectPreviewContainer(),
-       let previewServices = try? selectPreviewServices(existingSession: existingSession) {
+       let previewServices = try? selectPreviewServices(existingSession: existingSession, failure: failure) {
         NavigationStack { SelectView(recommender: recommender, selector: PreviewQuestionSelector()) }
             .modelContainer(container)
             .environment(\.services, previewServices)
@@ -192,15 +203,23 @@ private func selectPreview(
     }
 }
 
-private func selectPreviewServices(existingSession: Bool) throws -> AppServices {
+private func selectPreviewServices(
+    existingSession: Bool, failure: FailingPreviewSessionManager.Failure?
+) throws -> AppServices {
     let source = AppServices.preview
     let sessions = MockSessionManager()
     if existingSession {
         _ = try sessions.startSession(category: .swiftSyntax, difficulty: .normal, tags: [], count: 5)
     }
+    let sessionManager: any SessionManaging
+    if let failure {
+        sessionManager = FailingPreviewSessionManager(base: sessions, failure: failure)
+    } else {
+        sessionManager = sessions
+    }
     return AppServices(
         settings: source.settings, selector: PreviewQuestionSelector(),
-        sessions: sessions, trees: source.trees,
+        sessions: sessionManager, trees: source.trees,
         feedback: source.feedback, media: source.media, traceScenes: source.traceScenes
     )
 }
@@ -251,4 +270,16 @@ private func selectPreviewContainer() throws -> ModelContainer {
 
 #Preview("출제 설정 · 기존 세션 선택 흐름") {
     selectPreview(existingSession: true)
+}
+
+#Preview("출제 설정 · 신규 시작 실패") {
+    selectPreview(failure: .start)
+}
+
+#Preview("출제 설정 · 재시작 생성 실패") {
+    selectPreview(existingSession: true, failure: .start)
+}
+
+#Preview("출제 설정 · 기존 세션 포기 실패") {
+    selectPreview(existingSession: true, failure: .abandon)
 }
