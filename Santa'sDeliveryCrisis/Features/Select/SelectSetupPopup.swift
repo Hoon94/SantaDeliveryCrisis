@@ -49,7 +49,6 @@ struct SelectSetupPopup: View {
             RoundedRectangle(cornerRadius: 28)
                 .strokeBorder(Color.nightBorder, lineWidth: 1)
         }
-        .shadow(color: .black.opacity(0.35), radius: 30, x: 0, y: 20)
         .accessibilityElement(children: .contain)
         .accessibilityAddTraits(.isModal)
         .accessibilityAction(.escape, onCancel)
