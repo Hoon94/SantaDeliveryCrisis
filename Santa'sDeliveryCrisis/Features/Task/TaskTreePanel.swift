@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 
 /// 작업실 배경과 진행 칩 위에 공통 트리를 표시하는 영역.
@@ -57,6 +58,10 @@ struct TaskTreePanel: View {
             RoundedRectangle(cornerRadius: 3 * scale)
                 .fill(Color.roomWindow)
                 .overlay {
+                    RoomWindowSnow()
+                        .clipShape(RoundedRectangle(cornerRadius: 3 * scale))
+                }
+                .overlay {
                     RoundedRectangle(cornerRadius: 3 * scale)
                         .strokeBorder(Color.roomFloor, lineWidth: 3 * scale)
                 }
@@ -77,8 +82,45 @@ struct TaskTreePanel: View {
     }
 }
 
+/// 창문 배경과 창틀 사이에 표시하는 눈. 동작 줄이기에서는 정지한다.
+private struct RoomWindowSnow: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: 1.0 / 30, paused: reduceMotion)) { timeline in
+            let time = reduceMotion ? 0 : timeline.date.timeIntervalSinceReferenceDate
+            Canvas { context, size in
+                let scale = min(size.width / 44, size.height / 50)
+                for index in 0..<10 {
+                    let duration = Double(4 + index % 4)
+                    let phase = (time / duration + Double(index) * 0.37)
+                        .truncatingRemainder(dividingBy: 1)
+                    let radius = (0.7 + CGFloat(index % 3) * 0.25) * scale
+                    let drift = reduceMotion ? 0 : CGFloat(sin(time * 0.6 + Double(index))) * 2 * scale
+                    let x = CGFloat((index * 37 + 11) % 100) / 100 * size.width + drift
+                    let y = CGFloat(phase) * (size.height + radius * 2) - radius
+
+                    context.fill(
+                        Path(ellipseIn: CGRect(
+                            x: x - radius, y: y - radius, width: radius * 2, height: radius * 2
+                        )),
+                        with: .color(.white.opacity(0.55 + Double(index % 3) * 0.15))
+                    )
+                }
+            }
+        }
+        .accessibilityHidden(true)
+        .allowsHitTesting(false)
+    }
+}
+
 #if DEBUG
 #Preview("트리 영역") {
     TaskTreePanel(filledCount: 6)
+}
+
+#Preview("트리 영역 · 눈 내리는 창문 · 다크") {
+    TaskTreePanel(filledCount: 6)
+        .preferredColorScheme(.dark)
 }
 #endif
