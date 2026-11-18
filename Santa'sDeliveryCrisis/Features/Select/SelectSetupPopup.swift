@@ -20,7 +20,7 @@ struct SelectSetupPopup: View {
 
     /// 난이도·카테고리·문제 수를 편집하고 장식 선택으로 진행한다.
     var body: some View {
-        VStack(alignment: .leading, spacing: 7) {
+        VStack(alignment: .leading, spacing: 20) {
             header
             difficultyPicker
             SelectCategoryCards(filter: $filter, recommendedCategory: recommendedCategory)
@@ -107,10 +107,6 @@ struct SelectSetupPopup: View {
                 Text(option.displayName)
                     .font(.subheadline.weight(.heavy))
                     .foregroundStyle(Color.nightPrimaryText)
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.caption)
-                    .foregroundStyle(color)
-                    .opacity(isSelected ? 1 : 0)
             }
             .frame(maxWidth: .infinity)
             .padding(.top, 7)
