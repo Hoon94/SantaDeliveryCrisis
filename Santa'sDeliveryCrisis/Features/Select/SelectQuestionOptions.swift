@@ -1,14 +1,17 @@
 import SwiftUI
 
-/// 문제 수 선택과 출제 조건 요약, 세션 보상 기준 안내 영역.
+/// 문제 수 선택과 세션 보상 기준 안내 영역.
 struct SelectQuestionOptions: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Namespace private var countSelection
+
     /// 팝업에서 편집 중인 출제 설정.
     @Binding var filter: SelectFilter
 
     /// 설정 서비스에서 읽은 세션 보상 정답률 기준.
     let passThresholdPercent: Int
 
-    /// 잠금 없는 문제 수 선택과 현재 편집값의 요약을 표시한다.
+    /// 선택한 문제 수를 강조하고 설정된 정답률 기준을 안내한다.
     var body: some View {
         VStack(alignment: .leading, spacing: 7) {
             Text("문제 수")
@@ -27,11 +30,10 @@ struct SelectQuestionOptions: View {
                 RoundedRectangle(cornerRadius: 20)
                     .strokeBorder(Color.nightBorder, lineWidth: 1)
             }
-
-            summary
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(Color.nightSecondaryText)
-                .fixedSize(horizontal: false, vertical: true)
+            .animation(
+                reduceMotion ? .easeOut(duration: 0.15) : .easeInOut(duration: 0.25),
+                value: filter.count
+            )
 
             Text("정답률 \(passThresholdPercent)% 이상이면 장식 1개를 받아요")
                 .font(.caption)
@@ -44,40 +46,37 @@ struct SelectQuestionOptions: View {
         }
     }
 
-    private var summary: Text {
-        let names = filter.orderedCategories.map(\.categoryName).joined(separator: " · ")
-        return Text("\(names)에서 총 ")
-            + Text("\(filter.count)문제")
-                .bold()
-                .foregroundColor(.nightPrimaryText)
-            + Text(" · 선택 안 한 장식은 흐려져요")
-    }
-
     private func countButton(_ count: Int) -> some View {
         let isSelected = filter.count == count
         return Button {
             filter.setCount(count)
         } label: {
-            VStack(spacing: 1) {
-                Text("\(count)")
-                    .font(.body.weight(.heavy))
-                Image(systemName: "checkmark")
-                    .font(.caption.weight(.bold))
-                    .opacity(isSelected ? 1 : 0)
-            }
-            .foregroundStyle(isSelected ? Color.nightOnAccentText : .nightSecondaryText)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 7)
-            .background(
-                isSelected ? Color.nightAccent : .clear,
-                in: RoundedRectangle(cornerRadius: 16)
-            )
-            .contentShape(RoundedRectangle(cornerRadius: 16))
+            Text("\(count)")
+                .font(.body.weight(isSelected ? .heavy : .semibold))
+                .foregroundStyle(isSelected ? Color.nightOnAccentText : .nightSecondaryText)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 7)
+                .background {
+                    if isSelected {
+                        selectionBackground
+                    }
+                }
+                .contentShape(RoundedRectangle(cornerRadius: 16))
         }
         .buttonStyle(.plain)
         .accessibilityLabel("\(count)문제")
         .accessibilityValue(isSelected ? "선택됨" : "선택 안 됨")
         .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
+    @ViewBuilder
+    private var selectionBackground: some View {
+        let highlight = RoundedRectangle(cornerRadius: 16).fill(Color.nightAccent)
+        if reduceMotion {
+            highlight.transition(.opacity)
+        } else {
+            highlight.matchedGeometryEffect(id: "questionCountSelection", in: countSelection)
+        }
     }
 }
 

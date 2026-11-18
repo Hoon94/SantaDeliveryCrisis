@@ -12,11 +12,6 @@ struct SelectFilter: Equatable {
     /// 출제할 문제 수. 허용된 값 이외에는 기본값인 5를 사용한다.
     private(set) var count: Int
 
-    /// 선택한 카테고리를 모델의 allCases 순서로 돌려준다.
-    var orderedCategories: [QuizCategory] {
-        QuizCategory.allCases.filter { categories.contains($0) }
-    }
-
     /// 기본 설정은 보통, 전체 카테고리, 5문제다. 빈 카테고리는 전체 선택으로 보정한다.
     /// - Parameters:
     ///   - difficulty: 출제할 난이도.
