@@ -130,12 +130,11 @@ private struct DecorationSelectTree: View {
             ZStack(alignment: .topLeading) {
                 ChristmasTreeImage(imageScale: 1.8)
                     .frame(width: geometry.size.width, height: treeHeight)
-                    .overlay {
-                        DecorationAmbientEffects(time: time, isAnimated: reduceMotion == false)
-                    }
                     .offset(y: top)
                     .accessibilityHidden(true)
                     .allowsHitTesting(false)
+                
+                DecorationAmbientEffects(time: time, isAnimated: reduceMotion == false)
 
                 ForEach(availability, id: \.category) { result in
                     let point = position(result.category)

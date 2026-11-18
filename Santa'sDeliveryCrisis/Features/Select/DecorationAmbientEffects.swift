@@ -9,14 +9,14 @@ struct DecorationAmbientEffects: View {
     /// false이면 눈과 조명 모두 정적인 상태로 그린다.
     let isAnimated: Bool
 
-    /// 입력 시각만으로 눈 14개와 트리 안의 조명을 표시한다.
+    /// 입력 시각만으로 눈 20개와 트리 안의 조명을 표시한다.
     var body: some View {
         Canvas { context, size in
-            for index in 0..<14 {
+            for index in 0..<20 {
                 let duration = Double(6 + index % 4)
                 let phase = isAnimated
                     ? ((time + Double(index) * 0.55) / duration).truncatingRemainder(dividingBy: 1)
-                    : Double(index + 1) / 15
+                    : Double(index + 1) / 21
                 let radius = 1.6 + Double(index % 3) * 0.7
                 let opacity = isAnimated
                     ? (phase < 0.15 ? 0.9 * phase / 0.15 : 0.9 * (1 - phase) / 0.85)
