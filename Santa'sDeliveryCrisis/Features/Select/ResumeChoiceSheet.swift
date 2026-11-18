@@ -56,6 +56,7 @@ struct ResumeChoiceSheet: View {
         } message: {
             Text("진행 중이던 세션(\(taskName) · \(session.difficulty.displayName) \(session.answers.count)/\(session.questionSnapshots.count))은\n이어서 풀 수 없게 돼요.")
         }
+        .tint(.primary)
     }
 
     private var sessionSummary: some View {
