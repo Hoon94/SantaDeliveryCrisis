@@ -15,7 +15,7 @@ struct TaskTreePanel: View {
 
                 ZStack {
                     roomScene(scale: scale, size: sceneSize)
-                    TreeView(filledCount: filledCount, skin: .room)
+                    ChristmasTreeImage(filledCount: filledCount)
                 }
                 .frame(width: sceneSize.width, height: sceneSize.height)
                 .position(x: geometry.size.width / 2, y: geometry.size.height - sceneSize.height / 2)

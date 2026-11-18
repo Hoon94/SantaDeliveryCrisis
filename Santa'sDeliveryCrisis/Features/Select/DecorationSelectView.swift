@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// 기존 트리 위에 네 카테고리 장식과 적용된 출제 조건을 표시하는 화면.
+/// 트리 이미지 위에 네 카테고리 장식과 적용된 출제 조건을 표시하는 화면.
 struct DecorationSelectView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
@@ -75,7 +75,7 @@ struct DecorationSelectView: View {
                         }
                     }
                     .background {
-                        TreeView(filledCount: 0, skin: .night)
+                        ChristmasTreeImage(imageScale: 2.5)
                             .overlay {
                                 DecorationAmbientEffects(time: time, isAnimated: reduceMotion == false)
                             }
@@ -130,7 +130,7 @@ private struct DecorationSelectTree: View {
             let ornamentHeight = ornamentWidth * 94 / 84
 
             ZStack(alignment: .topLeading) {
-                TreeView(filledCount: 0, skin: .night)
+                ChristmasTreeImage(imageScale: 1.8)
                     .frame(width: geometry.size.width, height: treeHeight)
                     .overlay {
                         DecorationAmbientEffects(time: time, isAnimated: reduceMotion == false)
@@ -156,11 +156,11 @@ private struct DecorationSelectTree: View {
             }
             .frame(width: geometry.size.width, height: geometry.size.height, alignment: .topLeading)
         }
-        .aspectRatio(TreeSlots.designSize.width / 260, contentMode: .fit)
+        .aspectRatio(TreeSlots.designSize.width / 380, contentMode: .fit)
     }
 
     private func position(_ category: QuizCategory) -> CGPoint {
-        // 사용자 선택: 220×214 기존 트리를 재사용하므로 장식 위치도 그 좌표계에 맞춘다.
+        // 트리 이미지를 맞춘 220×214 좌표계에 카테고리 장식을 배치한다.
         switch category {
         case .aiUsage: CGPoint(x: 110, y: 70)
         case .swiftSyntax: CGPoint(x: 65, y: 128)
