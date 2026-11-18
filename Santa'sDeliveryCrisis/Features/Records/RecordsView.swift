@@ -10,6 +10,8 @@ struct RecordsView: View {
     @Query private var sessions: [QuizSession]
     @Environment(\.services) private var services
     @State private var period: RecordsPeriod = .week
+    /// 빈 상태 아이콘 크기. 시안은 38이고 글자 크기 설정에 따라 함께 커진다.
+    @ScaledMetric(relativeTo: .largeTitle) private var emptyIconSize: CGFloat = 38
 
     private let statistics = RecordsStatistics()
 
@@ -46,9 +48,8 @@ struct RecordsView: View {
 
     private var emptyState: some View {
         VStack(spacing: 8) {
-            Image(systemName: "chart.bar")
-                .font(.system(size: 44))
-                .foregroundStyle(Color.roomSub)
+            Text("📊")
+                .font(.system(size: emptyIconSize))
                 .accessibilityHidden(true)
             Text("아직 기록이 없어요")
                 .font(.headline)
@@ -69,7 +70,7 @@ struct RecordsView: View {
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(.top, 48)
+        .padding(.top, 80)
     }
 }
 
