@@ -43,7 +43,7 @@ struct RecordsView: View {
                         // 다른 기간에는 기록이 있지만 선택한 기간에는 없을 때
                         emptyState(
                             title: "이 기간에는 기록이 없어요",
-                            message: "다른 기간을 고르거나\n새 세션을 풀어 보세요",
+                            message: "다른 기간을 고르거나\n새 문제를 풀어 보세요",
                             topPadding: 24
                         )
                     } else {
