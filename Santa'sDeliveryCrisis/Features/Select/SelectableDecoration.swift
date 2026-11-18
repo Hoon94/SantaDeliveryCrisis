@@ -46,8 +46,9 @@ private struct SelectableDecorationPreview: View {
             categories: isSelected ? [.swiftSyntax] : [.hig], count: requestedCount
         )
         let availability = DecorationAvailability.calculate(
-            category: category, filter: filter, questions: [],
-            selector: DecorationCountPreviewSelector(count: availableCount)
+            category: category, filter: filter,
+            questions: previewQuestions(category: category, difficulty: .normal, count: availableCount),
+            selector: PreviewQuestionSelector()
         )
         VStack(spacing: 12) {
             SelectableDecoration(availability: availability) {
@@ -64,22 +65,40 @@ private struct SelectableDecorationPreview: View {
     }
 }
 
-/// 진입 가능 경계 상황을 표시하기 위한 프리뷰 전용 구현.
-// FIXME: [mock 교체] 실제 QuestionSelecting 통합 후 고정 후보 수 프리뷰를 실제 조건 데이터로 교체
-private struct DecorationCountPreviewSelector: QuestionSelecting {
-    let count: Int
-
-    func select(
-        category: QuizCategory?, difficulty: Difficulty, tags: Set<String>, count: Int,
-        questions: [Question], history: [QuizSession]
-    ) -> [Question] {
-        []
+private func previewQuestions(
+    category: QuizCategory, difficulty: Difficulty, count: Int
+) -> [Question] {
+    (0..<max(0, count)).map { index in
+        Question(
+            text: "장식 미리보기 문제 \(index + 1)", choices: ["하나", "둘", "셋", "넷"],
+            correctIndex: 0, explanation: "미리보기 해설",
+            category: category, difficulty: difficulty
+        )
     }
+}
 
-    func availableCount(
-        category: QuizCategory?, difficulty: Difficulty, tags: Set<String>, questions: [Question]
-    ) -> Int {
-        count
+private struct DecorationAvailabilityPreview: View {
+    let filter: SelectFilter
+
+    var body: some View {
+        let normalCounts = [5, 3, 0, 7]
+        let questions = zip(QuizCategory.allCases, normalCounts).flatMap { category, count in
+            previewQuestions(category: category, difficulty: .normal, count: count)
+                + previewQuestions(category: category, difficulty: .easy, count: 5)
+        }
+        let results = DecorationAvailability.calculate(
+            filter: filter, questions: questions, selector: PreviewQuestionSelector()
+        )
+        ScrollView {
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 30) {
+                ForEach(results, id: \.category) { result in
+                    SelectableDecoration(availability: result, onSelect: {})
+                }
+            }
+            .padding(30)
+        }
+        .scrollClipDisabled()
+        .background(Color.nightBackgroundTop)
     }
 }
 
@@ -106,4 +125,20 @@ private struct DecorationCountPreviewSelector: QuestionSelecting {
 #Preview("장식 진입 · 큰 글자") {
     SelectableDecorationPreview(availableCount: 3, requestedCount: 5)
         .dynamicTypeSize(.accessibility5)
+}
+
+#Preview("네 장식 · 보통 후보 5·3·0·7개") {
+    DecorationAvailabilityPreview(filter: SelectFilter())
+}
+
+#Preview("네 장식 · 두 카테고리 선택") {
+    DecorationAvailabilityPreview(filter: SelectFilter(categories: [.aiUsage, .swiftSyntax]))
+}
+
+#Preview("네 장식 · 쉬움 모두 켜짐") {
+    DecorationAvailabilityPreview(filter: SelectFilter(difficulty: .easy))
+}
+
+#Preview("네 장식 · 10문제 요청 모두 꺼짐") {
+    DecorationAvailabilityPreview(filter: SelectFilter(count: 10))
 }

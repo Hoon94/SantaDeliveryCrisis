@@ -23,6 +23,17 @@ struct DecorationAvailability {
         return availableCount
     }
 
+    /// 네 카테고리를 모델 순서대로 각각 조회하고 비선택 카테고리도 결과에 포함한다.
+    static func calculate(
+        filter: SelectFilter,
+        questions: [Question],
+        selector: any QuestionSelecting
+    ) -> [DecorationAvailability] {
+        QuizCategory.allCases.map { category in
+            calculate(category: category, filter: filter, questions: questions, selector: selector)
+        }
+    }
+
     /// 카테고리가 선택됐고 후보 수가 요청 수 이상일 때만 진입을 허용한다.
     /// 사용자 결정: 후보 부족 시 가능한 만큼 출제하지 않고 장식을 끈다.
     static func calculate(
