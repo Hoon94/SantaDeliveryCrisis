@@ -182,6 +182,18 @@ final class SessionManager: SessionManaging {
         }
     }
 
+    // MARK: - 소요 시간
+
+    /// 소요 시간 누적 총합을 저장한다. 규칙은 `SessionManaging.updateElapsed`에 있다.
+    /// 값이 바뀌지 않으면 저장하지 않는다.
+    func updateElapsed(_ seconds: TimeInterval, in session: QuizSession) throws {
+        guard seconds.isFinite, seconds >= 0 else { throw SessionError.invalidElapsed(seconds) }
+        guard session.status == .inProgress else { return }
+        guard seconds > session.elapsedSeconds else { return }
+        session.elapsedSeconds = seconds
+        try commit()
+    }
+
     // MARK: - 내부
 
     /// 저장한다. 실패하면 바뀐 값을 되돌리고 오류를 다시 던진다.
@@ -231,6 +243,8 @@ enum SessionError: Error, LocalizedError, Equatable {
     case previousQuestionUnanswered
     /// 모든 문제에 답하지 않은 채 완료를 요청함
     case notAllAnswered
+    /// 소요 시간이 음수이거나 숫자가 아님
+    case invalidElapsed(TimeInterval)
 
     var errorDescription: String? {
         switch self {
@@ -241,6 +255,7 @@ enum SessionError: Error, LocalizedError, Equatable {
         case .invalidAnswerIndex(let index): "보기 번호가 올바르지 않습니다: \(index)"
         case .previousQuestionUnanswered: "앞선 문제에 먼저 답해야 합니다."
         case .notAllAnswered: "모든 문제에 답한 뒤에 끝낼 수 있습니다."
+        case .invalidElapsed(let seconds): "소요 시간이 올바르지 않습니다: \(seconds)"
         }
     }
 }

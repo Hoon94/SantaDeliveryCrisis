@@ -104,6 +104,11 @@ final class MockSessionManager: SessionManaging {
         session.status = .abandoned
     }
 
+    func updateElapsed(_ seconds: TimeInterval, in session: QuizSession) throws {
+        guard session.status == .inProgress, seconds.isFinite, seconds > session.elapsedSeconds else { return }
+        session.elapsedSeconds = seconds
+    }
+
     enum MockError: Error { case invalidIndex }
 }
 

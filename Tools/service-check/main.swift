@@ -173,6 +173,35 @@ func run() throws {
     let rFull = try mgr.finish(s4m)
     check(rFull.treeCompleted && s4m.treeCompleted && trees2.completedTrees().count == 1 && trees2.currentTree().decorationCount == 0, "finish: 12칸 완성, 빈 트리 시작")
     check(try mgr.finish(s4m).treeCompleted && trees2.completedTrees().count == 1, "finish 재호출: 완성 중복 없음")
+    // ---- updateElapsed (누적 총합 저장)
+    let se = try mgr.startSession(category: .swiftSyntax, difficulty: .easy, tags: [], count: 5)
+    check(se.elapsedSeconds == 0, "elapsed: 시작 시 0")
+    try mgr.updateElapsed(12.5, in: se)
+    check(se.elapsedSeconds == 12.5, "elapsed: 누적 총합 12.5 저장")
+    let savesBeforeSame = ctx2.saves
+    try mgr.updateElapsed(12.5, in: se)
+    check(se.elapsedSeconds == 12.5 && ctx2.saves == savesBeforeSame, "elapsed: 같은 값 재호출은 저장하지 않음(멱등)")
+    try mgr.updateElapsed(8, in: se)
+    check(se.elapsedSeconds == 12.5, "elapsed: 작은 값은 무시(시간이 줄어들지 않음)")
+    try mgr.updateElapsed(30, in: se)
+    check(se.elapsedSeconds == 30, "elapsed: 더 큰 값으로 갱신")
+    for bad in [-1.0, Double.nan, Double.infinity] {
+        do { try mgr.updateElapsed(bad, in: se); check(false, "elapsed: 잘못된 값 \(bad) 오류") }
+        catch { check((error as? SessionError) == .invalidElapsed(bad) || bad.isNaN, "elapsed: 잘못된 값 \(bad)은 invalidElapsed 오류") }
+    }
+    check(se.elapsedSeconds == 30, "elapsed: 오류 뒤에도 값 유지")
+    for i in 0..<5 { _ = try mgr.submit(answerIndex: 1, forQuestionAt: i, in: se) }
+    try mgr.updateElapsed(45, in: se)
+    let rEl = try mgr.finish(se)
+    check(rEl.elapsed == 45, "elapsed: finish 결과의 소요 시간 = 마지막 저장 값")
+    let savesAfterFinish = ctx2.saves
+    try mgr.updateElapsed(99, in: se)
+    check(se.elapsedSeconds == 45 && ctx2.saves == savesAfterFinish, "elapsed: 완료 세션은 오류 없이 무시하고 값을 바꾸지 않음")
+    check(try mgr.finish(se).elapsed == 45, "elapsed: 완료 후 재호출해도 결과 유지")
+    let sa = try mgr.startSession(category: .swiftSyntax, difficulty: .easy, tags: [], count: 5)
+    try mgr.abandon(sa)
+    try mgr.updateElapsed(10, in: sa)
+    check(sa.elapsedSeconds == 0, "elapsed: 포기한 세션도 무시")
 }
 MainActor.assumeIsolated { try! run() }
 print(failures == 0 ? "ALL PASSED" : "FAILURES: \(failures)")
