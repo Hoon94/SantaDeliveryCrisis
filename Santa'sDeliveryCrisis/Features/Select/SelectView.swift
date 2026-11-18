@@ -8,20 +8,30 @@ struct SelectView: View {
     }
 
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.services) private var services
     @Query private var sessions: [QuizSession]
+    @Query private var questions: [Question]
     @State private var filterState = SelectFilterState()
     @State private var phase: Phase = .editing
     private let recommender: any TaskRecommending
+    private let selector: (any QuestionSelecting)?
 
     /// 추천기를 주입받으며 실제 서비스 연결 전 기본값은 추천 없는 임시 구현이다.
-    init(recommender: any TaskRecommending = TempTaskRecommender()) {
+    init(
+        recommender: any TaskRecommending = TempTaskRecommender(),
+        selector: (any QuestionSelecting)? = nil
+    ) {
         self.recommender = recommender
+        self.selector = selector
     }
 
     /// 나이트 배경과 중앙 팝업을 표시하고 편집 중인 출제 조건을 연결한다.
     var body: some View {
         // FIXME: [가정 2] 추천 계산은 추천기에 위임하며 화면은 반환된 카테고리만 표시
         let recommendedCategory = recommender.recommendedCategory(sessions: sessions)
+        let availability = DecorationAvailability.calculate(
+            filter: filterState.applied, questions: questions, selector: selector ?? services.selector
+        )
         // FIXME: [가정 7] 출제 탭만 나이트 글로우 색 사용. 최종 색이 정해지면 정리
         GeometryReader { geometry in
             ZStack {
@@ -34,22 +44,15 @@ struct SelectView: View {
                 )
                 .ignoresSafeArea()
 
-                ScrollView {
-                    SelectDecorationPlaceholder(filter: filterState.applied, onEdit: beginEditing)
-                        .padding(14)
-                        .frame(maxWidth: .infinity, minHeight: geometry.size.height)
-                }
+                DecorationSelectView(
+                    filter: filterState.applied, availability: availability,
+                    onEdit: beginEditing, onSelect: { _ in }
+                )
+                .blur(radius: phase == .editing ? 5 : 0)
                 .accessibilityHidden(phase == .editing)
                 .allowsHitTesting(phase == .applied)
 
                 if phase == .editing {
-                    TreeView(filledCount: 0, skin: .night)
-                        .padding(30)
-                        .blur(radius: 5)
-                        .opacity(0.5)
-                        .accessibilityHidden(true)
-                        .allowsHitTesting(false)
-
                     Color.black.opacity(0.2)
                         .ignoresSafeArea()
                         .accessibilityHidden(true)
@@ -102,7 +105,7 @@ struct SelectView: View {
 @ViewBuilder
 private func selectPreview(recommender: any TaskRecommending = TempTaskRecommender()) -> some View {
     if let container = try? ModelContainerFactory.make(inMemory: true) {
-        NavigationStack { SelectView(recommender: recommender) }
+        NavigationStack { SelectView(recommender: recommender, selector: PreviewQuestionSelector()) }
             .modelContainer(container)
     } else {
         ContentUnavailableView(
