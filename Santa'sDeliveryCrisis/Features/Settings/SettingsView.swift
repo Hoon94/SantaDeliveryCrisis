@@ -158,15 +158,15 @@ struct SettingsView: View {
     private var toast: some View {
         if isToastVisible {
             Text("다음 세션부터 적용돼요")
-                .font(.footnote.bold())
+                .font(.callout.bold())
                 .foregroundStyle(Color.roomToastText)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 12)
-                .padding(.horizontal, 14)
-                .background(Color.roomToast, in: RoundedRectangle(cornerRadius: 14))
+                .padding(.vertical, 18)
+                .padding(.horizontal, 18)
+                .background(Color.roomToast, in: RoundedRectangle(cornerRadius: 16))
                 .padding(.horizontal, 24)
-                .padding(.bottom, 24)
+                .padding(.bottom, 56)
                 .transition(.opacity)
         }
     }
