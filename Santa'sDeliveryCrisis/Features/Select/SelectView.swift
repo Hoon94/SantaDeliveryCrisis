@@ -7,6 +7,13 @@ struct SelectView: View {
         case editing, applied
     }
 
+    private struct PendingStart: Identifiable {
+        let id = UUID()
+        let existing: QuizSession
+        let category: QuizCategory
+        let filter: SelectFilter
+    }
+
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.services) private var services
     @Query private var sessions: [QuizSession]
@@ -15,6 +22,8 @@ struct SelectView: View {
     @State private var phase: Phase = .editing
     @State private var activeQuizSession: QuizSession?
     @State private var startOutcome: StartSessionCoordinator.Outcome?
+    @State private var pendingStart: PendingStart?
+    @State private var deferredOutcome: StartSessionCoordinator.Outcome?
     private let recommender: any TaskRecommending
     private let selector: (any QuestionSelecting)?
 
@@ -89,6 +98,18 @@ struct SelectView: View {
             QuizEntryPresentation(session: session)
                 .presentationBackground(.clear)
         }
+        .sheet(item: $pendingStart, onDismiss: finishResumeChoice) { request in
+            ResumeChoiceSheet(
+                session: request.existing,
+                onResume: { completeResumeChoice(coordinator.resume(request.existing)) },
+                onRestart: {
+                    completeResumeChoice(coordinator.restart(
+                        replacing: request.existing, category: request.category,
+                        filter: request.filter, questions: questions
+                    ))
+                }
+            )
+        }
     }
 
     private var quizPresentation: Binding<QuizSession?> {
@@ -105,17 +126,37 @@ struct SelectView: View {
     }
 
     private func startSession(category: QuizCategory) {
-        guard activeQuizSession == nil else { return }
-        let coordinator = StartSessionCoordinator(
-            sessions: services.sessions, selector: selector ?? services.selector
-        )
-        startOutcome = coordinator.start(
+        guard activeQuizSession == nil, pendingStart == nil else { return }
+        let result = coordinator.start(
             category: category, filter: filterState.applied, questions: questions
         )
-        if case .started(let session) = startOutcome {
+        recordOutcome(result)
+        if case .needsResumeChoice(let existing) = result {
+            pendingStart = PendingStart(existing: existing, category: category, filter: filterState.applied)
+        }
+    }
+
+    private var coordinator: StartSessionCoordinator {
+        StartSessionCoordinator(sessions: services.sessions, selector: selector ?? services.selector)
+    }
+
+    private func recordOutcome(_ result: StartSessionCoordinator.Outcome) {
+        startOutcome = result
+        if case .started(let session) = result {
             quizPresentation.wrappedValue = session
         }
-        // needsResumeChoice와 failed의 표시는 각각 Task 24·25에서 연결한다.
+        // failed의 알림 표시는 Task 25에서 연결한다.
+    }
+
+    private func completeResumeChoice(_ result: StartSessionCoordinator.Outcome) {
+        deferredOutcome = result
+        pendingStart = nil
+    }
+
+    private func finishResumeChoice() {
+        guard let result = deferredOutcome else { return }
+        deferredOutcome = nil
+        recordOutcome(result)
     }
 
     // FIXME: [가정 4] 바깥 탭과 접근성 닫기는 편집을 취소하고 마지막 적용값을 유지
@@ -136,14 +177,11 @@ struct SelectView: View {
 }
 
 @ViewBuilder
-private func selectPreview(recommender: any TaskRecommending = TempTaskRecommender()) -> some View {
-    if let container = try? selectPreviewContainer() {
-        let source = AppServices.preview
-        let previewServices = AppServices(
-            settings: source.settings, selector: PreviewQuestionSelector(),
-            sessions: MockSessionManager(), trees: source.trees,
-            feedback: source.feedback, media: source.media, traceScenes: source.traceScenes
-        )
+private func selectPreview(
+    recommender: any TaskRecommending = TempTaskRecommender(), existingSession: Bool = false
+) -> some View {
+    if let container = try? selectPreviewContainer(),
+       let previewServices = try? selectPreviewServices(existingSession: existingSession) {
         NavigationStack { SelectView(recommender: recommender, selector: PreviewQuestionSelector()) }
             .modelContainer(container)
             .environment(\.services, previewServices)
@@ -152,6 +190,19 @@ private func selectPreview(recommender: any TaskRecommending = TempTaskRecommend
             "미리보기 저장소를 준비하지 못했어요", systemImage: "exclamationmark.triangle"
         )
     }
+}
+
+private func selectPreviewServices(existingSession: Bool) throws -> AppServices {
+    let source = AppServices.preview
+    let sessions = MockSessionManager()
+    if existingSession {
+        _ = try sessions.startSession(category: .swiftSyntax, difficulty: .normal, tags: [], count: 5)
+    }
+    return AppServices(
+        settings: source.settings, selector: PreviewQuestionSelector(),
+        sessions: sessions, trees: source.trees,
+        feedback: source.feedback, media: source.media, traceScenes: source.traceScenes
+    )
 }
 
 private func selectPreviewContainer() throws -> ModelContainer {
@@ -196,4 +247,8 @@ private func selectPreviewContainer() throws -> ModelContainer {
 
 #Preview("출제 설정 · 적용 후 퀴즈 진입") {
     selectPreview()
+}
+
+#Preview("출제 설정 · 기존 세션 선택 흐름") {
+    selectPreview(existingSession: true)
 }
