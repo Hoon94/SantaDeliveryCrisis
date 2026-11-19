@@ -37,7 +37,7 @@ struct SettingsView: View {
             .frame(maxWidth: 720)
             .frame(maxWidth: .infinity)
         }
-        .foregroundStyle(Color.roomText)
+        .foregroundStyle(Color.roomPrimaryText)
         .background(Color.roomBackground)
         .navigationTitle("설정")
         .navigationBarTitleDisplayMode(.inline)
@@ -66,40 +66,40 @@ struct SettingsView: View {
             thresholdPicker
             Text("이 정답률 이상으로 세션을 마치면 장식을 받아요")
                 .font(.caption)
-                .foregroundStyle(Color.roomSub)
+                .foregroundStyle(Color.roomSecondaryText)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .roomCard()
+        .roomCardBackground()
     }
 
     private var feedbackCard: some View {
         VStack(spacing: 0) {
             toggleRow("효과음", isOn: $soundEnabled)
-            Divider().overlay(Color.roomLine)
+            Divider().overlay(Color.roomBorder)
             toggleRow("진동", isOn: $hapticsEnabled)
         }
-        .roomCard(padding: EdgeInsets(top: 2, leading: 12, bottom: 2, trailing: 12))
+        .roomCardBackground(padding: EdgeInsets(top: 2, leading: 12, bottom: 2, trailing: 12))
     }
 
     private var systemCard: some View {
         VStack(spacing: 0) {
             infoRow("테마", detail: "시스템 설정을 따라요")
-            Divider().overlay(Color.roomLine)
+            Divider().overlay(Color.roomBorder)
             infoRow("글자 크기", detail: "시스템 설정을 따라요")
         }
-        .roomCard(padding: EdgeInsets(top: 2, leading: 12, bottom: 2, trailing: 12))
+        .roomCardBackground(padding: EdgeInsets(top: 2, leading: 12, bottom: 2, trailing: 12))
     }
 
     private func sectionLabel(_ title: String) -> some View {
         Text(title)
             .font(.caption)
-            .foregroundStyle(Color.roomSub)
+            .foregroundStyle(Color.roomSecondaryText)
             .accessibilityAddTraits(.isHeader)
     }
 
     private func toggleRow(_ title: String, isOn: Binding<Bool>) -> some View {
         Toggle(title, isOn: isOn)
-            .tint(Color.roomOk)
+            .tint(Color.roomPositive)
             .padding(.vertical, 8)
     }
 
@@ -108,11 +108,11 @@ struct SettingsView: View {
             HStack {
                 Text(title)
                 Spacer()
-                Text(detail).font(.caption).foregroundStyle(Color.roomSub)
+                Text(detail).font(.caption).foregroundStyle(Color.roomSecondaryText)
             }
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
-                Text(detail).font(.caption).foregroundStyle(Color.roomSub)
+                Text(detail).font(.caption).foregroundStyle(Color.roomSecondaryText)
             }
         }
         .padding(.vertical, 10)
@@ -159,12 +159,12 @@ struct SettingsView: View {
         if isToastVisible {
             Text("다음 세션부터 적용돼요")
                 .font(.callout.bold())
-                .foregroundStyle(Color.roomToastText)
+                .foregroundStyle(Color.white)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 18)
                 .padding(.horizontal, 18)
-                .background(Color.roomToast, in: RoundedRectangle(cornerRadius: 16))
+                .background(Color.roomToastBackground, in: RoundedRectangle(cornerRadius: 16))
                 .padding(.horizontal, 24)
                 .padding(.bottom, 56)
                 .transition(.opacity)

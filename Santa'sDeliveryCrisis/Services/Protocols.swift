@@ -49,6 +49,22 @@ protocol SessionManaging {
 
     /// 진행 중 세션을 포기 처리한다.
     func abandon(_ session: QuizSession) throws
+
+    /// 소요 시간(`elapsedSeconds`)을 저장한다. 퀴즈 화면이 시간을 누적하고, 이 함수는 저장만 한다.
+    /// - Parameters:
+    ///   - seconds: 증가분이 아니라 **누적 총합**. 같은 값을 여러 번 호출해도 결과가 같다.
+    ///   - session: 대상 세션
+    /// - 호출 시점: 답을 제출한 직후, 앱이 백그라운드로 갈 때, `finish` 직전
+    /// - `inProgress`가 아닌 세션(완료, 포기)은 값을 바꾸지 않고 오류 없이 무시한다.
+    /// - 저장된 값보다 작은 값은 무시한다(순서가 뒤바뀐 호출로 시간이 줄어들지 않게).
+    /// - 음수나 숫자가 아닌 값(NaN, 무한대)은 `SessionError.invalidElapsed`를 던진다.
+    func updateElapsed(_ seconds: TimeInterval, in session: QuizSession) throws
+}
+
+extension SessionManaging {
+    /// 기본 구현은 아무것도 하지 않는다. 소요 시간을 저장하지 않는 가짜 구현(미리보기용)이 컴파일되도록 둔 것이고,
+    /// 실제 `SessionManager`는 이 함수를 직접 구현한다.
+    func updateElapsed(_ seconds: TimeInterval, in session: QuizSession) throws {}
 }
 
 /// 세션 결과 요약
