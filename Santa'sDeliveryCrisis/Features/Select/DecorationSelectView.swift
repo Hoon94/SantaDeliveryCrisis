@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// 트리 이미지 위에 네 카테고리 장식과 적용된 출제 조건을 표시하는 화면.
+/// 트리 이미지 위에 네 장식과 적용된 출제 조건을 표시하는 화면.
+/// 장식은 문제 카테고리와 연동하지 않는다. 네 장식은 같은 켜짐 상태를 갖고, 어느 장식을 눌러도 같은 세션이 시작된다.
 struct DecorationSelectView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
@@ -8,7 +9,7 @@ struct DecorationSelectView: View {
     /// 마지막으로 적용한 출제 설정.
     let filter: SelectFilter
 
-    /// 카테고리별로 계산한 장식 활성 상태와 후보 부족 정보.
+    /// 네 장식의 켜짐 상태와 후보 부족 정보. 선택한 카테고리 전체의 후보 수로 계산해 모두 같은 값을 가진다.
     let availability: [DecorationAvailability]
 
     /// 현재 트리에서 획득한 장식 수. 표시만 하며 트리 기록은 변경하지 않는다.
@@ -20,7 +21,7 @@ struct DecorationSelectView: View {
     /// 출제 설정만 기본값으로 되돌리는 동작.
     let onResetSettings: () -> Void
 
-    /// 활성 장식의 카테고리로 세션 시작을 요청하는 동작.
+    /// 켜진 장식을 눌러 세션 시작을 요청하는 동작. 누른 장식은 알려 주지만 출제 카테고리에는 쓰지 않는다.
     let onSelect: (QuizCategory) -> Void
 
     /// 프리뷰에서 정적 연출을 강제한다. 시스템의 모션 줄이기는 항상 우선한다.
@@ -53,6 +54,13 @@ struct DecorationSelectView: View {
                         availability: availability, onSelect: onSelect,
                         time: time, reduceMotion: reduceMotion
                     )
+                }
+                if let count = availability.first?.shortageCount {
+                    Text("고른 조건에는 \(count)문제만 있어요. 문제 수나 카테고리를 바꿔 보세요")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(Color.nightPrimaryText)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 Text("장식 12개를 모두 켜면 작업실 문이 열려요")
                     .font(.caption.weight(.semibold))

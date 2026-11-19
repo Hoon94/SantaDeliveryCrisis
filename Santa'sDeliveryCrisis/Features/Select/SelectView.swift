@@ -12,7 +12,6 @@ struct SelectView: View {
     private struct PendingStart: Identifiable {
         let id = UUID()
         let existing: QuizSession
-        let category: QuizCategory
         let filter: SelectFilter
     }
 
@@ -60,7 +59,7 @@ struct SelectView: View {
                 },
                 onRestart: {
                     completeResumeChoice(coordinator.restart(
-                        replacing: request.existing, category: request.category,
+                        replacing: request.existing,
                         filter: request.filter, questions: questions
                     ), resetsFilter: true)
                 }
@@ -94,7 +93,7 @@ struct SelectView: View {
             filledCount: activeTrees.first?.decorationCount ?? 0,
             onEdit: beginEditing,
             onResetSettings: resetSettings,
-            onSelect: startSession
+            onSelect: { _ in startSession() }
         )
         .blur(radius: isEditing ? 5 : 0)
         .accessibilityHidden(isEditing)
@@ -141,14 +140,13 @@ struct SelectView: View {
         StartSessionCoordinator(sessions: services.sessions, selector: services.selector)
     }
 
-    private func startSession(category: QuizCategory) {
+    /// 장식을 눌러 세션을 시작한다. 문제는 눌린 장식이 아니라 적용한 카테고리 전체에서 고른다.
+    private func startSession() {
         guard activeQuizSession == nil, pendingStart == nil,
               deferredPresentation == nil, showsStartFailure == false else { return }
-        let result = coordinator.start(
-            category: category, filter: filterState.applied, questions: questions
-        )
+        let result = coordinator.start(filter: filterState.applied, questions: questions)
         if case .needsResumeChoice(let existing) = result {
-            pendingStart = PendingStart(existing: existing, category: category, filter: filterState.applied)
+            pendingStart = PendingStart(existing: existing, filter: filterState.applied)
         } else {
             present(result, resetsFilter: true)
         }

@@ -36,7 +36,7 @@ nonisolated struct QuestionHistoryStats: Sendable {
 
 /// 세션에 낼 문제를 고른다. 규칙은 `docs/specs/02-session-engine.md`의 "출제"를 따른다.
 ///
-/// **범주 두 개** (1차는 카테고리 하나를 고른 선택 출제)
+/// **범주 두 개** (카테고리 하나를 고르는 출제 규칙. 여러 카테고리는 `select(categories:)`가 카테고리별로 이 규칙을 적용한다)
 /// - 약한 문제: 풀이 기록이 있고, 마지막 풀이가 오답이거나 정답률이 `SelectionCriteria.weakAccuracyPercent`% 미만
 /// - 오래 안 푼 문제: 마지막 풀이가 `SelectionCriteria.staleDays`일 이상 지났거나 한 번도 안 푼 문제
 ///
