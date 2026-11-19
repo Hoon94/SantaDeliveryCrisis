@@ -7,6 +7,8 @@ struct QuizQuestionView: View {
     let onExit: () -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// 코드를 크게 보는 창이 열려 있는 문제의 번호. nil이면 닫힘
+    @State private var codePreviewIndex: Int?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -30,6 +32,27 @@ struct QuizQuestionView: View {
             .animation(.spring(response: 0.5, dampingFraction: 0.86), value: model.index)
         }
         .safeAreaInset(edge: .bottom, spacing: 0) { bottomDock }
+        .overlay { codePreview }
+        .onChange(of: model.index) { codePreviewIndex = nil }
+    }
+
+    /// 코드를 누르면 열리는 큰 창. 테두리와 닫기 버튼 없이 창 안이나 바깥을 한 번 누르면 닫힌다.
+    @ViewBuilder private var codePreview: some View {
+        if codePreviewIndex != nil, let code = model.currentSnapshot?.codeSnippet, !code.isEmpty {
+            CodePreviewPopup(code: code) { closeCodePreview() }
+                .transition(reduceMotion ? .opacity : .opacity.combined(with: .scale(scale: 0.94)))
+                .zIndex(1)
+        }
+    }
+
+    private func openCodePreview() {
+        services.feedback.play(.select)
+        withAnimation(.spring(response: 0.38, dampingFraction: 0.82)) { codePreviewIndex = model.index }
+    }
+
+    private func closeCodePreview() {
+        services.feedback.play(.button)
+        withAnimation(.easeOut(duration: 0.2)) { codePreviewIndex = nil }
     }
 
     // MARK: - 머리
@@ -160,13 +183,13 @@ struct QuizQuestionView: View {
             .background(Capsule().fill(filled ? tint : Color.nightSubtleBackground.opacity(0.9)))
     }
 
+    /// 짧게 훑어보는 코드 상자. 좌우로 스크롤하거나, 눌러서 전체를 큰 창으로 볼 수 있다.
     private func codeBlock(_ code: String) -> some View {
         ScrollView(.horizontal, showsIndicators: false) {
             Text(code)
                 .font(.system(.callout, design: .monospaced))
                 .foregroundStyle(Color.nightPrimaryText)
                 .padding(16)
-                .textSelection(.enabled)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
@@ -177,8 +200,23 @@ struct QuizQuestionView: View {
                         .strokeBorder(Color.nightBorder, lineWidth: 1)
                 )
         )
+        .overlay(alignment: .topTrailing) {
+            Image(systemName: "arrow.up.left.and.arrow.down.right")
+                .font(.caption.weight(.bold))
+                .foregroundStyle(Color.nightSecondaryText)
+                .padding(6)
+                .background(Circle().fill(Color.nightSubtleBackground))
+                .padding(6)
+                .allowsHitTesting(false)
+        }
+        .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .onTapGesture { openCodePreview() }
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel("코드")
         .accessibilityValue(code)
+        .accessibilityHint("누르면 전체 코드를 크게 봐요")
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction { openCodePreview() }
     }
 
     private func hintBox(_ hint: String) -> some View {

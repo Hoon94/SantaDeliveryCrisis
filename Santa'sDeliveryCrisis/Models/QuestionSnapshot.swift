@@ -25,12 +25,18 @@ nonisolated struct QuestionSnapshot: Codable, Sendable {
 
     /// 원본 문제에서 복사본을 만든다.
     init(_ question: Question) {
+        self.init(question, titleLabel: nil)
+    }
+
+    /// 원본 문제에서 복사본을 만든다.
+    /// - Parameter titleLabel: 같은 제목의 문제를 구별하는 번호표(예: `[3/5] `). 있으면 제목 앞에 붙인다.
+    init(_ question: Question, titleLabel: String?) {
         self.questionID = question.id
         self.category = question.category
         self.kind = question.kind
         self.tags = question.tags
         self.animationID = question.animationID
-        self.text = question.text
+        self.text = (titleLabel ?? "") + question.text
         self.codeSnippet = question.codeSnippet
         self.imageFileName = question.imageFileName
         self.videoFileName = question.videoFileName
