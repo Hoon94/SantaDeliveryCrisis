@@ -99,7 +99,6 @@ struct SettingsView: View {
 
     private func toggleRow(_ title: String, isOn: Binding<Bool>) -> some View {
         Toggle(title, isOn: isOn)
-            .tint(Color.roomPositive)
             .padding(.vertical, 8)
     }
 
