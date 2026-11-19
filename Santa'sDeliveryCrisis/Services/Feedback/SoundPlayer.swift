@@ -20,7 +20,7 @@ final class SoundPlayer {
 
     /// 잔향을 거치는 신호. 짧은 조작음은 깨끗하게 둔다.
     private static let wetCues: Set<FeedbackCue> = [
-        .correct, .wrong, .popup, .chargeUp, .impact, .burst, .reveal, .treeComplete
+        .correct, .wrong, .popup, .chargeUp, .impact, .burst, .reveal, .treeComplete, .launch, .absorb
     ]
 
     init() {}

@@ -4,7 +4,7 @@ import SwiftData
 /// 한 판(세션)의 진행과 결과
 @Model final class QuizSession {
     @Attribute(.unique) var id: UUID
-    /// nil이면 오늘의 출제(4개 작업 혼합)
+    /// nil이면 여러 카테고리를 골라 섞어 낸 세션(카테고리가 하나면 그 카테고리)
     var category: QuizCategory?
     var difficulty: Difficulty
     /// 출제 순서 고정

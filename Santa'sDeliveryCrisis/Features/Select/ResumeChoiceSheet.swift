@@ -102,7 +102,7 @@ struct ResumeChoiceSheet: View {
         }
     }
 
-    private var taskName: String { session.category?.taskName ?? "작업 정보 없음" }
+    private var taskName: String { session.category?.taskName ?? "여러 작업 섞음" }
 
     private func resolve(_ action: () -> Void) {
         guard isResolving == false else { return }

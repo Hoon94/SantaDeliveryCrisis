@@ -54,8 +54,8 @@ final class HapticPlayer {
             lightImpact.impactOccurred(intensity: 0.6)
         case .chargeUp:
             playPattern(for: cue, keepAs: \.chargePlayer, fallback: { rigidImpact.impactOccurred(intensity: 0.4) })
-        case .impact, .burst, .reveal, .treeComplete:
-            playPattern(for: cue, keepAs: nil, fallback: { rigidImpact.impactOccurred(intensity: 1.0) })
+        case .impact, .burst, .reveal, .treeComplete, .launch, .absorb:
+            playPattern(for: cue, keepAs: nil, fallback: { rigidImpact.impactOccurred(intensity: cue == .launch ? 0.5 : 1.0) })
         }
     }
 
@@ -164,6 +164,35 @@ final class HapticPlayer {
                 parameterID: .hapticIntensityControl, controlPoints: [
                     .init(relativeTime: 0.34, value: 1.0),
                     .init(relativeTime: 1.14, value: 0.0)
+                ], relativeTime: 0))
+        case .launch:
+            // 올라가며 점점 세지는 떨림. 끝에서 가장 날카롭다.
+            let d = 0.75
+            events.append(continuous(0, duration: d, intensity: 0.7, sharpness: 0.3))
+            for k in 0..<5 {
+                events.append(transient(0.08 + Double(k) * 0.13, intensity: 0.25 + Float(k) * 0.1, sharpness: 0.5 + Float(k) * 0.1))
+            }
+            curves.append(CHHapticParameterCurve(
+                parameterID: .hapticIntensityControl, controlPoints: [
+                    .init(relativeTime: 0, value: 0.2),
+                    .init(relativeTime: d, value: 0.9)
+                ], relativeTime: 0))
+            curves.append(CHHapticParameterCurve(
+                parameterID: .hapticSharpnessControl, controlPoints: [
+                    .init(relativeTime: 0, value: 0.2),
+                    .init(relativeTime: d, value: 0.9)
+                ], relativeTime: 0))
+        case .absorb:
+            // 쿵 하고 받은 뒤 부드럽게 스며든다.
+            events.append(transient(0, intensity: 1.0, sharpness: 0.85))
+            events.append(continuous(0.03, duration: 0.3, intensity: 0.45, sharpness: 0.2))
+            for k in 0..<3 {
+                events.append(transient(0.14 + Double(k) * 0.1, intensity: 0.4 - Float(k) * 0.1, sharpness: 0.9))
+            }
+            curves.append(CHHapticParameterCurve(
+                parameterID: .hapticIntensityControl, controlPoints: [
+                    .init(relativeTime: 0.03, value: 1.0),
+                    .init(relativeTime: 0.33, value: 0.0)
                 ], relativeTime: 0))
         case .treeComplete:
             for k in 0..<7 {

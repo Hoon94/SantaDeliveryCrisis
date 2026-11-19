@@ -22,20 +22,20 @@ struct StartSessionCoordinator {
         self.selector = selector
     }
 
-    /// 진행 중 세션이 있으면 선택을 요청하고, 없으면 눌린 카테고리 하나로 시작한다.
+    /// 진행 중 세션이 있으면 선택을 요청하고, 없으면 선택한 카테고리들에서 고르게 섞어 시작한다.
+    /// 어느 장식을 눌렀는지는 문제 구성과 무관하므로 받지 않는다(장식과 문제 카테고리는 연동하지 않는다).
     /// - Parameters:
-    ///   - category: 사용자가 누른 장식의 카테고리.
     ///   - filter: 마지막으로 적용한 출제 설정.
     ///   - questions: 시작 가능 여부를 확인할 현재 문제 목록.
     /// - Returns: 기존 세션 선택 요청, 새 세션, 또는 오류를 처리한 실패 결과.
-    func start(category: QuizCategory, filter: SelectFilter, questions: [Question]) -> Outcome {
+    func start(filter: SelectFilter, questions: [Question]) -> Outcome {
         if let existing = sessions.resumableSession() {
             return .needsResumeChoice(existing)
         }
-        guard canStart(category: category, filter: filter, questions: questions) else {
+        guard canStart(filter: filter, questions: questions) else {
             return .failed
         }
-        return createSession(category: category, filter: filter)
+        return createSession(filter: filter)
     }
 
     /// 기존 세션을 그대로 반환한다. 진행 위치와 팝업 설정은 변경하지 않는다.
@@ -49,17 +49,15 @@ struct StartSessionCoordinator {
     /// 포기가 실패하면 새 세션 생성은 호출하지 않는다.
     /// - Parameters:
     ///   - existing: 새 세션 생성 전에 포기할 세션.
-    ///   - category: 새로 시작할 장식의 카테고리.
     ///   - filter: 장식을 눌렀을 때 적용되어 있던 출제 설정.
     ///   - questions: 후보 수를 확인할 현재 문제 목록.
     /// - Returns: 새 세션 또는 실패 결과. 포기 성공 후 생성 실패는 되돌리지 않는다.
     func restart(
         replacing existing: QuizSession,
-        category: QuizCategory,
         filter: SelectFilter,
         questions: [Question]
     ) -> Outcome {
-        guard canStart(category: category, filter: filter, questions: questions) else {
+        guard canStart(filter: filter, questions: questions) else {
             return .failed
         }
         do {
@@ -67,22 +65,21 @@ struct StartSessionCoordinator {
         } catch {
             return .failed
         }
-        return createSession(category: category, filter: filter)
+        return createSession(filter: filter)
     }
 
-    private func canStart(
-        category: QuizCategory, filter: SelectFilter, questions: [Question]
-    ) -> Bool {
+    private func canStart(filter: SelectFilter, questions: [Question]) -> Bool {
         // 사용자 결정: 후보 수가 요청 수보다 적으면 세션 생성과 기존 세션 포기를 막는다.
-        DecorationAvailability.calculate(
-            category: category, filter: filter, questions: questions, selector: selector
-        ).isEnabled
+        // 문제는 눌린 장식이 아니라 선택한 카테고리 전체에서 고르므로 후보도 합산해서 센다.
+        selector.availableCount(
+            categories: filter.categories, difficulty: filter.difficulty, tags: [], questions: questions
+        ) >= filter.count
     }
 
-    private func createSession(category: QuizCategory, filter: SelectFilter) -> Outcome {
+    private func createSession(filter: SelectFilter) -> Outcome {
         do {
             let session = try sessions.startSession(
-                category: category,
+                categories: filter.categories,
                 difficulty: filter.difficulty,
                 tags: [],
                 count: filter.count

@@ -47,26 +47,45 @@ final class SessionManager: SessionManaging {
         tags: Set<String>,
         count: Int
     ) throws -> QuizSession {
+        try start(sessionCategory: category, difficulty: difficulty) { questions, history in
+            selector.select(category: category, difficulty: difficulty, tags: tags, count: count,
+                            questions: questions, history: history)
+        }
+    }
+
+    /// 선택한 카테고리들에서 고르게 섞어 세션을 시작한다. 카테고리가 둘 이상이면 `session.category`는 nil이다.
+    func startSession(
+        categories: Set<QuizCategory>,
+        difficulty: Difficulty,
+        tags: Set<String>,
+        count: Int
+    ) throws -> QuizSession {
+        try start(sessionCategory: categories.count == 1 ? categories.first : nil, difficulty: difficulty) { questions, history in
+            selector.select(categories: categories, difficulty: difficulty, tags: tags, count: count,
+                            questions: questions, history: history)
+        }
+    }
+
+    private func start(
+        sessionCategory: QuizCategory?,
+        difficulty: Difficulty,
+        pick: ([Question], [QuizSession]) -> [Question]
+    ) throws -> QuizSession {
         let sessions = try context.fetch(FetchDescriptor<QuizSession>())
         guard !sessions.contains(where: { $0.status == .inProgress }) else {
             throw SessionError.sessionAlreadyInProgress
         }
 
         let questions = try context.fetch(FetchDescriptor<Question>())
-        let picked = selector.select(
-            category: category,
-            difficulty: difficulty,
-            tags: tags,
-            count: count,
-            questions: questions,
-            history: sessions
-        )
+        let picked = pick(questions, sessions)
+        // 이번 세션에서 제목이 같은 문제는 [1/2]처럼 번호를 붙여 구별한다. 풀 당시 모습이므로 스냅샷에만 붙인다.
+        let titleLabels = DuplicateTitleLabeler.labels(for: picked)
         guard !picked.isEmpty else { throw SessionError.noCandidates }
 
         let session = QuizSession(
-            category: category,
+            category: sessionCategory,
             difficulty: difficulty,
-            questionSnapshots: picked.map { QuestionSnapshot($0) },
+            questionSnapshots: picked.map { QuestionSnapshot($0, titleLabel: titleLabels[$0.id]) },
             passThresholdPercent: settings.passThresholdPercent,
             startedAt: now()
         )

@@ -106,3 +106,49 @@ using namespace metal;
     half a = half(alpha);
     return half4(rgb * a, a);
 }
+
+/// 흡수 섬광. 날아온 장식이 트리 칸에 닿는 순간 번쩍이는 중심 빛, 퍼지는 고리, 십자와 대각선으로 뻗는 별빛.
+/// 색과 투명도만 계산하므로 정사각형 위에 `.colorEffect`로 붙이고 더하기 합성으로 올린다.
+/// - Parameters:
+///   - center: 섬광 중심
+///   - progress: 0...1, 닿은 순간부터의 진행도
+///   - radius: 효과가 닿는 최대 반지름
+///   - tint: 고리와 별빛의 색
+///   - core: 중심 빛의 색
+[[ stitchable ]] half4 absorbFlare(
+    float2 position,
+    half4 color,
+    float2 center,
+    float progress,
+    float radius,
+    half4 tint,
+    half4 core
+) {
+    float2 delta = position - center;
+    float dist = length(delta);
+    float n = dist / max(radius, 1.0);
+    float angle = atan2(delta.y, delta.x);
+    float p = saturate(progress);
+
+    // 중심 빛: 닿는 순간 가장 밝고 빠르게 줄어든다.
+    float flash = exp(-n * n * 14.0) * exp(-p * 6.0);
+
+    // 고리: 바깥으로 퍼지며 얇아지고 사라진다.
+    float ringRadius = 1.0 - pow(1.0 - p, 3.0);
+    float ringWidth = mix(0.16, 0.035, p);
+    float ring = exp(-pow((n - ringRadius * 0.95) / ringWidth, 2.0)) * (1.0 - p) * 0.9;
+
+    // 별빛: 십자 4갈래(길게)와 대각선 4갈래(짧게). 천천히 돈다.
+    float spin = p * 0.6;
+    float cross = pow(abs(cos((angle + spin) * 2.0)), 36.0);
+    float diag = pow(abs(cos((angle + spin) * 2.0 + 1.5708)), 60.0) * 0.5;
+    float reach = mix(0.35, 1.0, 1.0 - pow(1.0 - p, 2.0));
+    float starFall = exp(-n / max(reach * 0.55, 0.05));
+    float star = (cross + diag) * starFall * (1.0 - smoothstep(0.25, 1.0, p)) * 0.8;
+
+    float strength = saturate(flash * 1.2 + ring + star);
+    float hot = saturate(flash * 1.6);
+    half3 rgb = mix(tint.rgb, core.rgb, half(hot));
+    half s = half(strength);
+    return half4(rgb * s, s);
+}

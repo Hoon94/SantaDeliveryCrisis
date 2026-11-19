@@ -4,7 +4,7 @@ import Foundation
 struct QuizResultSummary {
     /// 서비스가 돌려준 결과
     let result: SessionResult
-    /// 세션의 작업. nil이면 오늘의 출제(4개 작업 혼합)
+    /// 세션의 작업. nil이면 여러 카테고리를 골라 섞어 낸 세션("여러 작업 섞음")
     let category: QuizCategory?
     /// 난이도
     let difficulty: Difficulty
@@ -17,10 +17,10 @@ struct QuizResultSummary {
     var isSuccess: Bool { result.earnedDecorations > 0 }
 
     /// 화면에 보여 줄 작업 이름
-    var taskTitle: String { category?.taskName ?? "오늘의 출제" }
+    var taskTitle: String { category?.taskName ?? "여러 작업 섞음" }
 
     /// 카테고리 이름. 혼합 세션이면 설명 문구
-    var categoryTitle: String { category?.categoryName ?? "4개 작업 혼합" }
+    var categoryTitle: String { category?.categoryName ?? "여러 카테고리 섞음" }
 
     /// 소요 시간을 `분:초`로 나타낸 글
     var elapsedText: String {

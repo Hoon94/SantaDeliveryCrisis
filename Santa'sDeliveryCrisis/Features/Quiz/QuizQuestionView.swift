@@ -7,6 +7,10 @@ struct QuizQuestionView: View {
     let onExit: () -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// 코드를 크게 보는 창이 열려 있는 문제의 번호. nil이면 닫힘
+    @State private var codePreviewIndex: Int?
+    /// 코드 상자의 화면 좌표. 창이 이 자리에서 펼쳐진다. 스크롤마다 바뀌므로 화면을 다시 그리지 않는 상자에 담아 둔다.
+    @State private var codeFrame = FrameBox()
 
     var body: some View {
         VStack(spacing: 0) {
@@ -30,6 +34,24 @@ struct QuizQuestionView: View {
             .animation(.spring(response: 0.5, dampingFraction: 0.86), value: model.index)
         }
         .safeAreaInset(edge: .bottom, spacing: 0) { bottomDock }
+        .overlay { codePreview }
+        .onChange(of: model.index) { codePreviewIndex = nil }
+    }
+
+    /// 코드를 누르면 열리는 큰 창. 테두리와 닫기 버튼 없이 창 안이나 바깥을 한 번 누르면 닫힌다.
+    /// 열고 닫는 움직임은 창이 스스로 맡으므로 여기서는 따로 전환을 주지 않는다.
+    @ViewBuilder private var codePreview: some View {
+        if codePreviewIndex != nil, let code = model.currentSnapshot?.codeSnippet, !code.isEmpty {
+            CodePreviewPopup(code: code, sourceFrame: codeFrame.rect) {
+                codePreviewIndex = nil
+            }
+            .zIndex(1)
+        }
+    }
+
+    private func openCodePreview() {
+        services.feedback.play(.select)
+        codePreviewIndex = model.index
     }
 
     // MARK: - 머리
@@ -140,15 +162,29 @@ struct QuizQuestionView: View {
         .frame(maxWidth: .infinity)
     }
 
+    /// 작업, 난이도, 태그 칩. 태그에는 그 문제의 카테고리 이름이 맨 앞에 들어간다.
+    /// 칩이 한 줄에 다 들어가지 않으면(큰 글자 등) 카테고리 태그만 남기고 나머지 태그를 줄인다.
     private func chips(_ snapshot: QuestionSnapshot) -> some View {
+        let categoryTag = snapshot.category.categoryName
+        let extraTag = snapshot.tags.first { $0 != categoryTag }
+        return ViewThatFits(in: .horizontal) {
+            chipRow(categoryTag: categoryTag, extraTag: extraTag)
+            chipRow(categoryTag: categoryTag, extraTag: nil)
+        }
+    }
+
+    private func chipRow(categoryTag: String, extraTag: String?) -> some View {
         HStack(spacing: 8) {
             chip(model.theme.title, tint: model.theme.accent, filled: true)
             chip(model.session.difficulty.displayName, tint: .nightSecondaryText, filled: false)
-            if let tag = snapshot.tags.first {
-                chip("#\(tag)", tint: .nightSecondaryText, filled: false)
+            chip("#\(categoryTag)", tint: .nightSecondaryText, filled: false)
+            if let extraTag {
+                chip("#\(extraTag)", tint: .nightSecondaryText, filled: false)
             }
         }
         .lineLimit(1)
+        .fixedSize(horizontal: true, vertical: false)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func chip(_ text: String, tint: Color, filled: Bool) -> some View {
@@ -160,13 +196,13 @@ struct QuizQuestionView: View {
             .background(Capsule().fill(filled ? tint : Color.nightSubtleBackground.opacity(0.9)))
     }
 
+    /// 짧게 훑어보는 코드 상자. 좌우로 스크롤하거나, 눌러서 전체를 큰 창으로 볼 수 있다.
     private func codeBlock(_ code: String) -> some View {
         ScrollView(.horizontal, showsIndicators: false) {
             Text(code)
                 .font(.system(.callout, design: .monospaced))
                 .foregroundStyle(Color.nightPrimaryText)
                 .padding(16)
-                .textSelection(.enabled)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
@@ -177,8 +213,24 @@ struct QuizQuestionView: View {
                         .strokeBorder(Color.nightBorder, lineWidth: 1)
                 )
         )
+        .overlay(alignment: .topTrailing) {
+            Image(systemName: "arrow.up.left.and.arrow.down.right")
+                .font(.caption.weight(.bold))
+                .foregroundStyle(Color.nightSecondaryText)
+                .padding(6)
+                .background(Circle().fill(Color.nightSubtleBackground))
+                .padding(6)
+                .allowsHitTesting(false)
+        }
+        .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { codeFrame.rect = $0 }
+        .onTapGesture { openCodePreview() }
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel("코드")
         .accessibilityValue(code)
+        .accessibilityHint("누르면 전체 코드를 크게 봐요")
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction { openCodePreview() }
     }
 
     private func hintBox(_ hint: String) -> some View {
@@ -274,4 +326,9 @@ private struct ProgressTrack: View {
         .accessibilityLabel("진행률")
         .accessibilityValue("\(Int(progress * 100))퍼센트")
     }
+}
+
+/// 값이 바뀌어도 화면을 다시 그리지 않는 작은 상자. 스크롤 중 계속 바뀌는 좌표를 담아 둘 때 쓴다.
+private final class FrameBox {
+    var rect: CGRect?
 }

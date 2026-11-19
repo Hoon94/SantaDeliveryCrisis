@@ -73,7 +73,7 @@ iOS 개발 학습용 퀴즈 앱입니다. 산타의 빈 크리스마스 트리�
 
 ## 5. 게임 규칙
 
-1. 세션은 출제 탭에서 시작합니다. 팝업에서 난이도, 카테고리(여러 개), 문제 수를 고르고 [장식 선택]을 누르면 트리에 카테고리 장식 4개가 나타납니다. 고른 카테고리의 장식만 켜지고, 켜진 장식을 누르면 그 카테고리 하나의 세션이 시작됩니다. 해금 조건은 없습니다. 작업실의 "오늘의 출제" 버튼은 출제 탭으로 이동합니다 `[가정]`.
+1. 세션은 출제 탭에서 시작합니다. 팝업에서 난이도, 카테고리(여러 개), 문제 수를 고르고 [장식 선택]을 누르면 트리에 장식 4개가 나타납니다. 장식은 문제 카테고리와 연동하지 않습니다(팀 결정). 고른 카테고리 전체의 후보 수 합이 문제 수 이상이면 네 장식이 모두 켜지고, 켜진 어느 장식을 눌러도 고른 카테고리에서 고르게 섞어 낸 세션이 시작됩니다. 해금 조건은 없습니다. 작업실의 "오늘의 출제" 버튼은 출제 탭으로 이동합니다 `[가정]`.
 2. 세션이 끝나면 정답률을 계산합니다.
    - 정답률이 **기준 이상**이면 장식 **1개**를 받습니다. 기본 기준은 80%이고, 설정에서 50~100%(10% 단위)로 바꿀 수 있습니다.
    - 난이도와 문제 수는 보상에 영향이 없습니다.
@@ -195,7 +195,7 @@ struct QuestionSnapshot: Codable {
 
 @Model final class QuizSession {
     @Attribute(.unique) var id: UUID
-    var category: QuizCategory?       // 1차에는 항상 값이 있음. nil은 4개 작업 혼합 세션용 자리(future-work)
+    var category: QuizCategory?       // 카테고리를 하나만 고르면 그 카테고리, 둘 이상 골라 섞어 낸 세션이면 nil
     var difficulty: Difficulty
     var questionIDs: [UUID]           // 출제 순서 고정
     var questionSnapshots: [QuestionSnapshot]  // questionIDs와 같은 순서의 문제 복사본
@@ -253,23 +253,23 @@ protocol TaskRecommending {
     func recommendedCategory(sessions: [QuizSession]) -> QuizCategory?
 }
 
-/// 세션용 문제 선택 (비율은 docs/specs/02-session-engine.md). 1차에는 category를 항상 하나 넘긴다
+/// 세션용 문제 선택 (비율은 docs/specs/02-session-engine.md). 여러 카테고리를 고르게 섞는 `select(categories:...)`와 `availableCount(categories:...)`는 이 프로토콜의 확장으로 제공한다
 protocol QuestionSelecting {
     func select(
-        category: QuizCategory?,    // 1차에는 항상 값이 있음. nil(4개 작업 혼합)은 future-work
+        category: QuizCategory?,    // 하나만 넘기는 기존 호출. 여러 카테고리는 확장의 `select(categories:...)`를 쓴다
         difficulty: Difficulty,
         tags: Set<String>,          // 1차 UI에는 태그 선택이 없어 항상 빈 집합. 비어 있으면 전체 태그, 여러 개면 하나라도 가진 문제
         count: Int,
         questions: [Question],
         history: [QuizSession]      // 답(정오답, 시각)과 풀 당시 스냅샷(카테고리, 태그)을 함께 읽음
     ) -> [Question]
-    /// 조건에 맞는 문제 수 (S2-B의 장식 켜짐 판단용: 1 이상이면 켜짐. 카테고리별로 호출한다)
+    /// 조건에 맞는 문제 수 (S2-B의 장식 켜짐 판단용: 고른 카테고리 전체의 합이 문제 수 이상이면 켜짐. 합산은 `availableCount(categories:...)` 확장이 한다)
     func availableCount(category: QuizCategory?, difficulty: Difficulty, tags: Set<String>, questions: [Question]) -> Int
 }
 
 /// 세션 생성·진행·종료. SwiftData 저장을 담당
 protocol SessionManaging {
-    func startSession(category: QuizCategory?, difficulty: Difficulty, tags: Set<String>, count: Int) throws -> QuizSession   // 1차에는 category 항상 지정
+    func startSession(category: QuizCategory?, difficulty: Difficulty, tags: Set<String>, count: Int) throws -> QuizSession   // 카테고리 하나만 넘기는 기존 호출. 여러 카테고리는 확장의 `startSession(categories:...)`
     /// `questionIndex`번째 문제(0부터)에 답을 저장한다. 문제는 순서대로만 제출할 수 있다.
     /// 이미 답이 있는 문제에 다시 호출하면 처음 저장된 답을 돌려주고 새로 저장하지 않는다(값이 달라도 유지).
     /// 아직 답하지 않은 앞선 문제가 있는 순서로 호출하면 오류를 던진다.
@@ -449,9 +449,9 @@ Santa'sDeliveryCrisis/
 
 아래는 팀이 아직 확정하지 않은 항목입니다. 구현 전에 사용자에게 먼저 확인합니다. 디자인 시안과 화면 설계서(8장)에도 같은 성격의 항목이 있습니다.
 
-1. 작업실의 "오늘의 출제" 버튼은 출제 탭으로 이동만 하고, 4개 작업을 섞는 세션은 1차에 없음 ([04-task-and-select](../../docs/specs/04-task-and-select.md))
+1. 작업실의 "퀴즈 시작하기" 버튼은 출제 탭으로 이동만 하고, 별도의 "오늘의 출제"(약한 문제 비율로 4개 작업을 섞는 세션)는 1차에 없음 ([04-task-and-select](../../docs/specs/04-task-and-select.md))
 2. 카테고리 [추천] 배지 규칙: 기록이 있는 카테고리 중 정답률 최저, 동률은 작업 순서, 기록 없으면 배지 없음 ([02-session-engine](../../docs/specs/02-session-engine.md))
-3. 후보가 고른 문제 수보다 적을 때 가능한 만큼만 출제하고 안내 문구를 보임 ([04-task-and-select](../../docs/specs/04-task-and-select.md))
+3. 고른 카테고리 전체의 후보 합이 문제 수보다 적으면 네 장식을 모두 끄고 "N문제만 있어요" 안내를 보임(서비스는 후보가 있으면 가능한 만큼 출제하는 규칙을 그대로 가짐) ([04-task-and-select](../../docs/specs/04-task-and-select.md))
 4. 출제 필터 팝업 상태 정리(카테고리 최소 1개, 취소 시 이전 설정 유지) ([04-task-and-select](../../docs/specs/04-task-and-select.md))
 5. 단일 카테고리 선택 출제의 문제 선택 비율 50% 약한 문제 / 50% 오래 안 푼 문제 ([02-session-engine](../../docs/specs/02-session-engine.md))
 6. 장식을 누르면 퀴즈 화면이 커지며 열리는 연출. 1차는 페이드, iOS 17에서 확대 연출은 직접 구현 필요 ([04-task-and-select](../../docs/specs/04-task-and-select.md))
@@ -459,3 +459,4 @@ Santa'sDeliveryCrisis/
 8. 시안 v3의 장식별 난이도 통과 점, 문 열림, 초기화 버튼은 1차에서 제외 ([04-task-and-select](../../docs/specs/04-task-and-select.md))
 9. 태그 선택, 보관함 화면, 문제 수 잠금을 뺌(디자인 시안 기준). 되돌리기 쉬운 항목이며 [future-work](../../docs/future-work.md)에 있음
 10. 보상을 난이도와 상관없이 항상 1개로 통일하면서 이월 규칙과 관련 필드를 삭제함. 팀 확인이 필요합니다 (5장, 8장)
+11. **미정**: 장식은 문제 카테고리와 연동하지 않음. 어떤 장식을 눌렀는지가 보상으로 받는 장식(12칸의 모양)에 영향을 주는지는 정해지지 않았고, 지금은 영향이 없음 ([04-task-and-select](../../docs/specs/04-task-and-select.md))

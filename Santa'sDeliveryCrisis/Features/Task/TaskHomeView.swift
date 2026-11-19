@@ -9,6 +9,8 @@ struct TaskHomeView: View {
     /// 기본 출제 설정을 열도록 상위 탭 화면에 요청한다.
     let onSelectQuestions: () -> Void
 
+    /// 아직 트리에 도착하지 않은 장식은 날아와 닿을 때까지 숨긴다.
+    @Environment(\.rewardFlight) private var rewardFlight
     @Query private var questions: [Question]
     @Query private var history: [QuizSession]
     /// 현재 트리는 서비스와 동일하게 가장 먼저 시작한 기록을 사용한다.
@@ -19,10 +21,10 @@ struct TaskHomeView: View {
     /// 완성한 트리 기록을 관찰해 표시 번호를 갱신한다.
     @Query(filter: #Predicate<TreeRecord> { $0.completedAt != nil })
     private var completedTrees: [TreeRecord]
-
     /// 저장된 트리 기록을 읽어 화면을 구성하며 트리가 없으면 0칸으로 표시한다.
     var body: some View {
-        let filledCount = TreeSlots.clampedCount(activeTrees.first?.decorationCount ?? 0)
+        let savedCount = TreeSlots.clampedCount(activeTrees.first?.decorationCount ?? 0)
+        let filledCount = max(savedCount - rewardFlight.pendingCount, 0)
         // FIXME: [가정] 시안의 N번째 트리 번호를 완성한 트리 수 + 1로 계산. 팀 확인 필요
         let treeNumber = completedTrees.count + 1
 
@@ -96,7 +98,7 @@ struct TaskHomeView: View {
                 Text(session == nil ? "퀴즈 시작하기" : "이어서 풀기")
                     .font(.body.weight(.heavy))
                 if let session {
-                    Text("\(session.category?.taskName ?? "작업 정보 없음") · \(session.difficulty.displayName) · \(session.answers.count) / \(session.questionSnapshots.count) 문제")
+                    Text("\(session.category?.taskName ?? "여러 작업 섞음") · \(session.difficulty.displayName) · \(session.answers.count) / \(session.questionSnapshots.count) 문제")
                         .font(.caption)
                         .opacity(0.85)
                 }

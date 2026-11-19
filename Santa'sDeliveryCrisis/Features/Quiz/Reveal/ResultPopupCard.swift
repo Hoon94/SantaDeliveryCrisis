@@ -306,6 +306,7 @@ private extension View {
     }
 }
 
+#if DEBUG
 #Preview("성공 · 최종 모습") {
     ResultPopupCard(summary: .previewSuccess, tint: .categoryAiUsage, shownFor: 9) {}
         .frame(maxHeight: 560)
@@ -327,3 +328,4 @@ private extension View {
         .padding()
         .background(Color.revealScrim)
 }
+#endif

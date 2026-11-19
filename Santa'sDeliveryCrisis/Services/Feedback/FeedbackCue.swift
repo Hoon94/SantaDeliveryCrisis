@@ -29,6 +29,10 @@ nonisolated enum FeedbackCue: String, CaseIterable, Sendable {
     case reveal
     /// 트리 완성 팡파르
     case treeComplete
+    /// 결과 화면의 장식이 트리를 향해 날아오르는 소리. 바람을 가르며 올라가는 쉬익
+    case launch
+    /// 장식이 트리에 흡수되는 소리. 부드러운 쿵과 맑은 종소리
+    case absorb
 
     /// 소리 길이(초). 합성하는 버퍼 길이와 같다.
     var duration: Double {
@@ -46,6 +50,8 @@ nonisolated enum FeedbackCue: String, CaseIterable, Sendable {
         case .burst: 1.70
         case .reveal: 2.60
         case .treeComplete: 3.60
+        case .launch: 0.90
+        case .absorb: 1.30
         }
     }
 

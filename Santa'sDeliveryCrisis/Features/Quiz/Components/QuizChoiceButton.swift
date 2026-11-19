@@ -38,7 +38,6 @@ struct QuizChoiceButton: View {
                     .foregroundStyle(textColor)
                     .multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                resultLabel
             }
             .padding(.horizontal, 14)
             .padding(.vertical, 12)
@@ -73,41 +72,31 @@ struct QuizChoiceButton: View {
 
     // MARK: - 조각
 
+    /// 왼쪽 원. 평소에는 A~D, 채점 뒤에는 ✓ 또는 ✕ 아이콘으로 바뀐다.
+    /// 원 크기가 그대로라서 상태가 바뀌어도 보기 글이 밀리지 않고, 정답과 오답은 색 외에 아이콘으로도 구분된다.
     private var badge: some View {
         ZStack {
             Circle()
                 .fill(badgeFill)
                 .frame(width: 32, height: 32)
-            Text(Self.letters[safe: index] ?? "")
-                .font(.subheadline.weight(.heavy))
-                .foregroundStyle(badgeText)
+            switch state {
+            case .correct:
+                Image(systemName: "checkmark")
+                    .font(.subheadline.weight(.heavy))
+                    .foregroundStyle(badgeText)
+                    .transition(.scale(scale: 0.4).combined(with: .opacity))
+            case .wrong:
+                Image(systemName: "xmark")
+                    .font(.subheadline.weight(.heavy))
+                    .foregroundStyle(badgeText)
+                    .transition(.scale(scale: 0.4).combined(with: .opacity))
+            default:
+                Text(Self.letters[safe: index] ?? "")
+                    .font(.subheadline.weight(.heavy))
+                    .foregroundStyle(badgeText)
+            }
         }
         .scaleEffect(state == .selected ? 1.08 : 1)
-    }
-
-    /// 채점 뒤 오른쪽에 아이콘과 문구
-    @ViewBuilder private var resultLabel: some View {
-        switch state {
-        case .correct:
-            Label("정답", systemImage: "checkmark.circle.fill")
-                .font(.footnote.weight(.bold))
-                .foregroundStyle(Color.roomPositive)
-                .labelStyle(.titleAndIcon)
-                .transition(.scale(scale: 0.6).combined(with: .opacity))
-        case .wrong:
-            Label("오답", systemImage: "xmark.circle.fill")
-                .font(.footnote.weight(.bold))
-                .foregroundStyle(Color.roomNegative)
-                .labelStyle(.titleAndIcon)
-                .transition(.scale(scale: 0.6).combined(with: .opacity))
-        case .selected:
-            Image(systemName: "checkmark")
-                .font(.footnote.weight(.heavy))
-                .foregroundStyle(theme.accent)
-                .transition(.scale(scale: 0.4).combined(with: .opacity))
-        default:
-            EmptyView()
-        }
     }
 
     private var background: some View {
