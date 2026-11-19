@@ -42,6 +42,8 @@ struct MainTabView: View {
             if id != nil { selectedTab = .task }
         }
         .overlay { RewardFlightOverlay() }
+        // 장식 연출의 셰이더를 앱이 켜진 직후에 미리 컴파일해 첫 연출의 멈춤을 줄인다.
+        .overlay(alignment: .topLeading) { ShaderWarmup() }
         .fullScreenCover(item: $activeQuizSession) { session in
             QuizEntryPresentation(session: session, onWillClose: prepareWorkshopReturn)
                 .presentationBackground(.clear)
