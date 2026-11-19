@@ -25,16 +25,17 @@ if let resumable = services.sessions.resumableSession() {
     try services.sessions.abandon(resumable)
 }
 // 2) 시작한다. 오류는 S2-E1에 연결한다.
+// 카테고리를 여러 개 고르면 고르게 섞어 출제한다. 하나만 고르면 그 카테고리다.
 let session = try services.sessions.startSession(
-    category: .swiftSyntax, difficulty: .normal, tags: [], count: 5
+    categories: [.swiftSyntax, .hig], difficulty: .normal, tags: [], count: 5
 )
 ```
 
 ### 장식 켜짐과 추천 배지 (C)
 ```swift
-// 카테고리마다 호출한다. 1 이상이면 장식을 켠다.
+// 고른 카테고리 전체를 한 번에 합산한다. 문제 수 이상이면 네 장식을 모두 켠다(장식은 카테고리와 연동하지 않는다).
 let count = services.selector.availableCount(
-    category: category, difficulty: difficulty, tags: [], questions: questions
+    categories: selectedCategories, difficulty: difficulty, tags: [], questions: questions
 )
 // 추천 배지. nil이면 배지를 표시하지 않는다.
 let recommended = services.recommender.recommendedCategory(sessions: sessions)
