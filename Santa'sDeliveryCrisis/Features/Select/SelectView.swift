@@ -25,6 +25,11 @@ struct SelectView: View {
     @Environment(\.services) private var services
     @Query private var sessions: [QuizSession]
     @Query private var questions: [Question]
+    /// 작업실과 동일하게 가장 먼저 시작한 현재 트리의 장식 수를 표시한다.
+    @Query(
+        filter: #Predicate<TreeRecord> { $0.completedAt == nil },
+        sort: \TreeRecord.startedAt
+    ) private var activeTrees: [TreeRecord]
     @State private var filterState = SelectFilterState()
     @State private var isEditing = true
     @State private var pendingStart: PendingStart?
@@ -46,19 +51,7 @@ struct SelectView: View {
         }
         .navigationTitle("출제")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ScreenTitleToolbar(title: "출제", color: .nightPrimaryText)
-            ToolbarItem(placement: .topBarTrailing) {
-                Button(action: beginEditing) {
-                    Image(systemName: "slider.horizontal.3")
-                    .font(.subheadline.bold())
-                    .foregroundStyle(Color.nightAccent)
-                }
-                .disabled(isEditing)
-                .accessibilityLabel("출제 설정")
-                .accessibilityHint("출제 설정 팝업을 다시 엽니다")
-            }
-        }
+        .toolbar(.hidden, for: .navigationBar)
         .sheet(item: $pendingStart, onDismiss: finishResumeChoice) { request in
             ResumeChoiceSheet(
                 session: request.existing,
@@ -98,6 +91,9 @@ struct SelectView: View {
             availability: DecorationAvailability.calculate(
                 filter: filterState.applied, questions: questions, selector: services.selector
             ),
+            filledCount: activeTrees.first?.decorationCount ?? 0,
+            onEdit: beginEditing,
+            onResetSettings: resetSettings,
             onSelect: startSession
         )
         .blur(radius: isEditing ? 5 : 0)
@@ -197,6 +193,12 @@ struct SelectView: View {
 
     private func beginEditing() {
         filterState.beginEditing()
+        isEditing = true
+    }
+
+    /// 트리·장식·세션 기록은 유지하고 출제 조건만 기본값으로 되돌려 팝업을 연다.
+    private func resetSettings() {
+        filterState = SelectFilterState()
         isEditing = true
     }
 }
