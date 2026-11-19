@@ -19,6 +19,8 @@ struct TaskHomeNavigationView: View {
 /// 현재 트리와 남은 장식을 보여 주는 작업실 화면.
 struct TaskHomeView: View {
     @Environment(\.services) private var services
+    /// 아직 트리에 도착하지 않은 장식은 날아와 닿을 때까지 숨긴다.
+    @Environment(\.rewardFlight) private var rewardFlight
     @Query private var questions: [Question]
     @Query private var history: [QuizSession]
     /// 현재 트리는 서비스와 동일하게 가장 먼저 시작한 기록을 사용한다.
@@ -37,7 +39,8 @@ struct TaskHomeView: View {
 
     /// 저장된 트리 기록을 읽어 화면을 구성하며 트리가 없으면 0칸으로 표시한다.
     var body: some View {
-        let filledCount = TreeSlots.clampedCount(activeTrees.first?.decorationCount ?? 0)
+        let savedCount = TreeSlots.clampedCount(activeTrees.first?.decorationCount ?? 0)
+        let filledCount = max(savedCount - rewardFlight.pendingCount, 0)
         // FIXME: [가정] 시안의 N번째 트리 번호를 완성한 트리 수 + 1로 계산. 팀 확인 필요
         let treeNumber = completedTrees.count + 1
 

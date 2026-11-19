@@ -29,6 +29,8 @@ nonisolated enum SoundSynth {
         case .burst: renderBurst(&out)
         case .reveal: renderReveal(&out)
         case .treeComplete: renderTreeComplete(&out)
+        case .launch: renderLaunch(&out)
+        case .absorb: renderAbsorb(&out)
         }
         finish(&out, gain: cue.targetPeak)
         return out
@@ -183,6 +185,33 @@ nonisolated enum SoundSynth {
         for k in 0..<24 {
             let start = 0.9 + Double(k) * 0.09 + Double((rng.next() + 1) * 0.04)
             addBell(&out, freq: 2200 + Double((rng.next() + 1) * 1400), start: start, dur: 0.45, amp: 0.1, decay: 0.13)
+        }
+    }
+
+    /// 날아오르기: 바람이 위로 쓸려 올라가는 쉬익. 높이가 오르는 맑은 음과 작은 반짝임이 따라간다.
+    private static func renderLaunch(_ out: inout [Float]) {
+        addSweepNoise(&out, start: 0.0, dur: 0.75, from: 350, to: 5200, amp: 0.8, q: 0.55, seed: 101)
+        addTone(&out, start: 0.0, dur: 0.7, from: 330, to: 1500, amp: 0.28, decay: 0.45, harmonics: [1, 0.35])
+        addTone(&out, start: 0.02, dur: 0.6, from: 165, to: 740, amp: 0.2, decay: 0.4, harmonics: [1])
+        var rng = NoiseGen(seed: 102)
+        for k in 0..<9 {
+            let start = 0.05 + Double(k) * 0.07 + Double((rng.next() + 1) * 0.02)
+            addBell(&out, freq: 2200 + Double(k) * 260 + Double((rng.next() + 1) * 300), start: start, dur: 0.3, amp: 0.1, decay: 0.09)
+        }
+    }
+
+    /// 흡수: 트리가 장식을 받아 삼키는 부드러운 쿵, 맑은 종소리, 위로 흩어지는 반짝임
+    private static func renderAbsorb(_ out: inout [Float]) {
+        addTone(&out, start: 0, dur: 0.35, from: 190, to: 70, amp: 0.85, decay: 0.09, harmonics: [1, 0.3])
+        addNoise(&out, start: 0, dur: 0.05, amp: 0.4, lowCut: 1200, highCut: 6000, decay: 0.014, seed: 111)
+        addBell(&out, freq: 1568, start: 0.02, dur: 1.2, amp: 0.5, decay: 0.38)
+        addBell(&out, freq: 2349, start: 0.05, dur: 1.1, amp: 0.34, decay: 0.34)
+        addBell(&out, freq: 3136, start: 0.09, dur: 0.9, amp: 0.2, decay: 0.26)
+        addSweepNoise(&out, start: 0.03, dur: 0.3, from: 2500, to: 6200, amp: 0.22, q: 0.5, seed: 112)
+        var rng = NoiseGen(seed: 113)
+        for k in 0..<8 {
+            let start = 0.14 + Double(k) * 0.08 + Double((rng.next() + 1) * 0.03)
+            addBell(&out, freq: 2600 + Double((rng.next() + 1) * 1100), start: start, dur: 0.4, amp: 0.09, decay: 0.1)
         }
     }
 
@@ -360,6 +389,8 @@ extension FeedbackCue {
         case .burst: 0.82
         case .reveal: 0.75
         case .treeComplete: 0.8
+        case .launch: 0.6
+        case .absorb: 0.8
         }
     }
 }

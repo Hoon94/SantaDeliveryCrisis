@@ -8,6 +8,8 @@ struct MainTabView: View {
     }
 
     @State private var selectedTab: Tab = .task
+    /// 결과 화면의 장식이 작업실 트리로 날아가는 연출의 상태. 퀴즈, 작업실 트리, 가장 위 연출 층이 함께 쓴다.
+    @State private var rewardFlight = RewardFlightCenter()
 
     /// 선택 상태를 공유하며 각 탭의 독립된 화면 이동 경로를 유지한다.
     var body: some View {
@@ -26,6 +28,12 @@ struct MainTabView: View {
                 .tag(Tab.manage)
         }
         .tint(.appTint)
+        .environment(\.rewardFlight, rewardFlight)
+        // 장식이 날아가기 시작하면 트리가 있는 작업실 탭으로 옮긴다. 퀴즈 화면은 그 위에서 페이드로 닫힌다.
+        .onChange(of: rewardFlight.flight?.id) { _, id in
+            if id != nil { selectedTab = .task }
+        }
+        .overlay { RewardFlightOverlay() }
     }
 }
 

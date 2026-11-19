@@ -3,6 +3,9 @@ import SwiftUI
 
 /// 작업실 배경과 진행 칩 위에 공통 트리를 표시하는 영역.
 struct TaskTreePanel: View {
+    /// 장식이 날아올 칸의 화면 위치를 알려 주는 연출 상태.
+    @Environment(\.rewardFlight) private var rewardFlight
+
     /// 표시할 장식 수.
     let filledCount: Int
 
@@ -19,6 +22,8 @@ struct TaskTreePanel: View {
                     ChristmasTreeImage(filledCount: filledCount)
                 }
                 .frame(width: sceneSize.width, height: sceneSize.height)
+                // 결과 화면의 장식이 이 장면의 칸 좌표로 날아온다.
+                .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { rewardFlight.treeSceneFrame = $0 }
                 .position(x: geometry.size.width / 2, y: geometry.size.height - sceneSize.height / 2)
             }
             .accessibilityHidden(true)
@@ -37,6 +42,8 @@ struct TaskTreePanel: View {
             + Text(" / \(TreeSlots.count)")
         )
         .font(.caption.weight(.bold))
+        .contentTransition(.numericText())
+        .animation(.snappy, value: filledCount)
         .foregroundStyle(Color.roomPrimaryText)
         .fixedSize(horizontal: false, vertical: true)
         .padding(.horizontal, 10)

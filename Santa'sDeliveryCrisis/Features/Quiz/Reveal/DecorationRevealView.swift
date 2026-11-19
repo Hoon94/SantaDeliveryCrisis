@@ -16,10 +16,12 @@ struct DecorationRevealView: View {
     var debugTime: Double?
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.rewardFlight) private var rewardFlight
     @State private var startDate = Date()
 
     var body: some View {
         GeometryReader { proxy in
+            let screenOrigin = proxy.frame(in: .global).origin
             TimelineView(.animation) { timeline in
                 let t = debugTime ?? timeline.date.timeIntervalSince(startDate) * timeScale
                 let frame = RevealFrame(t: t, size: proxy.size, reduced: reduceMotion)
@@ -29,7 +31,7 @@ struct DecorationRevealView: View {
                         .modifier(ShockwaveModifier(frame: frame))
                         .offset(frame.shake)
 
-                    card(frame, size: proxy.size)
+                    card(frame, size: proxy.size, screenOrigin: screenOrigin)
                 }
             }
         }
@@ -128,10 +130,11 @@ struct DecorationRevealView: View {
 
     // MARK: - 결과 카드
 
-    private func card(_ f: RevealFrame, size: CGSize) -> some View {
+    private func card(_ f: RevealFrame, size: CGSize, screenOrigin: CGPoint) -> some View {
         let maxHeight = size.height * 0.62
         return ResultPopupCard(summary: summary, tint: style.tint, shownFor: max(f.cardT, 0)) {
             feedback.play(.button)
+            launchFlight(from: f, screenOrigin: screenOrigin)
             onClose()
         }
         .environment(\.colorScheme, .dark)
@@ -142,6 +145,22 @@ struct DecorationRevealView: View {
         .offset(y: (1 - f.cardSlide) * (maxHeight + 60))
         .opacity(f.cardT > 0 ? 1 : 0)
         .frame(width: size.width, height: size.height, alignment: .bottom)
+    }
+
+    /// 닫기를 누른 순간의 장식 위치에서 작업실 트리로 날아가는 연출을 시작한다.
+    /// 트리가 완성된 세션은 완성 연출이 따로 있어서 날리지 않는다.
+    private func launchFlight(from f: RevealFrame, screenOrigin: CGPoint) {
+        let result = summary.result
+        guard !result.treeCompleted, result.earnedDecorations > 0 else { return }
+        let end = TreeSlots.clampedCount(summary.treeDecorationCount)
+        let start = max(end - result.earnedDecorations, 0)
+        guard start < end else { return }
+        rewardFlight.start(RewardFlightCenter.Flight(
+            style: style,
+            origin: CGPoint(x: screenOrigin.x + f.center.x, y: screenOrigin.y + f.center.y),
+            size: f.ornamentSize * CGFloat(f.ornamentScale),
+            slots: start..<end
+        ))
     }
 
     // MARK: - 소리와 진동 시간표
