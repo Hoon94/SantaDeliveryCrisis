@@ -2,14 +2,15 @@ import SwiftUI
 
 /// 취약 카테고리 카드. 4개 카테고리를 모두 보여 주며 정답률이 낮은 순서로 "이름 / 막대 / 퍼센트" 한 줄씩 나온다.
 /// 이 기간에 답한 문제가 없는 카테고리는 "-"로 표시하고 맨 아래에 둔다.
-/// 정답률이 60% 미만이면 숫자가 빨강, 80% 이상이면 막대와 숫자가 초록이다.
+/// 정답률이 낮음 기준 미만이면 숫자가 빨강, 80% 이상이면 막대와 숫자가 초록이다.
+/// 낮음 기준은 출제의 "약한 문제" 기준(`SelectionCriteria.weakAccuracyPercent`)과 같은 값을 쓴다.
 /// 색에만 의존하지 않도록 정답률 숫자를 항상 함께 보여 주고, VoiceOver에는 상태를 말로 읽어 준다.
 struct WeakCategoryList: View {
     /// 보여 줄 카테고리(정렬된 상태)
     let categories: [CategoryAccuracy]
 
-    /// 이 값 미만이면 낮음(빨강)
-    static let lowThreshold = 60
+    /// 이 값 미만이면 낮음(빨강). 출제의 "약한 문제" 기준과 같은 값이라 한 곳(`SelectionCriteria`)에서만 고친다.
+    static var lowThreshold: Int { SelectionCriteria.weakAccuracyPercent }
     /// 이 값 이상이면 높음(초록)
     static let highThreshold = 80
 
