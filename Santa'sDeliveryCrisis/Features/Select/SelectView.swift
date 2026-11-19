@@ -13,11 +13,15 @@ struct SelectView: View {
         let id = UUID()
         let existing: QuizSession
         let filter: SelectFilter
+        /// 새로 시작할 때 사용자가 누른 장식
+        let decoration: QuizCategory
     }
 
     private struct DeferredPresentation {
         let result: StartSessionCoordinator.Outcome
         let resetsFilter: Bool
+        /// 새 세션일 때 눌린 장식. 이어 풀기는 nil
+        let decoration: QuizCategory?
     }
 
     @Environment(\.colorScheme) private var colorScheme
@@ -55,13 +59,13 @@ struct SelectView: View {
             ResumeChoiceSheet(
                 session: request.existing,
                 onResume: {
-                    completeResumeChoice(coordinator.resume(request.existing), resetsFilter: false)
+                    completeResumeChoice(coordinator.resume(request.existing), resetsFilter: false, decoration: nil)
                 },
                 onRestart: {
                     completeResumeChoice(coordinator.restart(
                         replacing: request.existing,
                         filter: request.filter, questions: questions
-                    ), resetsFilter: true)
+                    ), resetsFilter: true, decoration: request.decoration)
                 }
             )
         }
@@ -93,7 +97,7 @@ struct SelectView: View {
             filledCount: activeTrees.first?.decorationCount ?? 0,
             onEdit: beginEditing,
             onResetSettings: resetSettings,
-            onSelect: { _ in startSession() }
+            onSelect: startSession
         )
         .blur(radius: isEditing ? 5 : 0)
         .accessibilityHidden(isEditing)
@@ -140,22 +144,26 @@ struct SelectView: View {
         StartSessionCoordinator(sessions: services.sessions, selector: services.selector)
     }
 
-    /// 장식을 눌러 세션을 시작한다. 문제는 눌린 장식이 아니라 적용한 카테고리 전체에서 고른다.
-    private func startSession() {
+    /// 장식을 눌러 세션을 시작한다. 문제는 눌린 장식이 아니라 적용한 카테고리 전체에서 고르고,
+    /// 눌린 장식은 결과 화면의 장식 획득 색에만 쓴다.
+    private func startSession(decoration: QuizCategory) {
         guard activeQuizSession == nil, pendingStart == nil,
               deferredPresentation == nil, showsStartFailure == false else { return }
         let result = coordinator.start(filter: filterState.applied, questions: questions)
         if case .needsResumeChoice(let existing) = result {
-            pendingStart = PendingStart(existing: existing, filter: filterState.applied)
+            pendingStart = PendingStart(existing: existing, filter: filterState.applied, decoration: decoration)
         } else {
-            present(result, resetsFilter: true)
+            present(result, resetsFilter: true, decoration: decoration)
         }
     }
 
     /// 새 세션 생성 성공일 때만 다음 출제 조건을 초기화한다. 복원·실패 시에는 유지한다.
-    private func present(_ result: StartSessionCoordinator.Outcome, resetsFilter: Bool) {
+    private func present(_ result: StartSessionCoordinator.Outcome, resetsFilter: Bool, decoration: QuizCategory?) {
         switch result {
         case .started(let session):
+            if let decoration {
+                DecorationChoiceStore.save(decoration, for: session.id)
+            }
             if resetsFilter {
                 filterState = SelectFilterState()
             }
@@ -167,16 +175,18 @@ struct SelectView: View {
         }
     }
 
-    private func completeResumeChoice(_ result: StartSessionCoordinator.Outcome, resetsFilter: Bool) {
+    private func completeResumeChoice(
+        _ result: StartSessionCoordinator.Outcome, resetsFilter: Bool, decoration: QuizCategory?
+    ) {
         // 시트가 닫힌 뒤에 다음 화면을 열어 두 표시 요청이 겹치지 않게 한다.
-        deferredPresentation = DeferredPresentation(result: result, resetsFilter: resetsFilter)
+        deferredPresentation = DeferredPresentation(result: result, resetsFilter: resetsFilter, decoration: decoration)
         pendingStart = nil
     }
 
     private func finishResumeChoice() {
         guard let presentation = deferredPresentation else { return }
         deferredPresentation = nil
-        present(presentation.result, resetsFilter: presentation.resetsFilter)
+        present(presentation.result, resetsFilter: presentation.resetsFilter, decoration: presentation.decoration)
     }
 
     private func cancelEditing() {

@@ -10,7 +10,7 @@ struct QuizResultView: View {
         if summary.isSuccess {
             DecorationRevealView(
                 summary: summary,
-                style: OrnamentStyle(category: summary.category),
+                style: summary.ornamentStyle,
                 feedback: services.feedback,
                 onClose: onClose
             )
@@ -42,7 +42,7 @@ private struct MissedDecorationView: View {
                     Color.revealScrim.opacity(0.82 * appear)
 
                     VStack(spacing: 10) {
-                        OrnamentView(style: OrnamentStyle(category: summary.category), radiance: 0, size: min(proxy.size.width * 0.28, 120))
+                        OrnamentView(style: summary.ornamentStyle, radiance: 0, size: min(proxy.size.width * 0.28, 120))
                             .rotationEffect(.degrees(sway), anchor: .top)
                             .saturation(0.6)
                         Text("이번에는 장식을 못 받았어요")

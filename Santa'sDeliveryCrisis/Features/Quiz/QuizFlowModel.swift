@@ -23,6 +23,8 @@ final class QuizFlowModel {
 
     let session: QuizSession
     private let services: AppServices
+    /// 출제 화면에서 누른 장식. 모르면 nil이다.
+    private let decoration: QuizCategory?
 
     /// 지금 보여 주는 문제 번호(0부터)
     private(set) var index: Int
@@ -53,6 +55,7 @@ final class QuizFlowModel {
     init(session: QuizSession, services: AppServices) {
         self.session = session
         self.services = services
+        self.decoration = DecorationChoiceStore.decoration(for: session.id)
         self.baseElapsed = session.elapsedSeconds
         self.index = min(session.answers.count, session.questionSnapshots.count)
     }
@@ -65,9 +68,10 @@ final class QuizFlowModel {
     /// 지금 문제의 복사본. 범위를 벗어나면 nil
     var currentSnapshot: QuestionSnapshot? { session.questionSnapshots[safe: index] }
 
-    /// 지금 문제의 테마
+    /// 지금 화면의 테마. 출제 화면에서 누른 장식의 색과 이름을 따른다.
+    /// 장식을 모르는 세션(예전 세션 등)은 세션의 작업, 그것도 없으면 지금 문제의 카테고리를 따른다.
     var theme: QuizTheme {
-        QuizTheme(category: session.category ?? currentSnapshot?.category ?? .aiUsage)
+        QuizTheme(category: decoration ?? session.category ?? currentSnapshot?.category ?? .aiUsage)
     }
 
     /// 진행률 0...1. 채점을 마친 문제까지 채운다.
@@ -246,7 +250,8 @@ final class QuizFlowModel {
                 category: session.category,
                 difficulty: session.difficulty,
                 thresholdPercent: session.passThresholdPercent,
-                treeDecorationCount: treeCount
+                treeDecorationCount: treeCount,
+                decoration: decoration
             )
             phase = .result
         } catch {

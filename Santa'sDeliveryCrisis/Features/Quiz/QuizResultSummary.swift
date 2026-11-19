@@ -12,6 +12,11 @@ struct QuizResultSummary {
     let thresholdPercent: Int
     /// 결과를 반영한 뒤 현재 트리의 장식 수. 트리가 완성됐다면 완성된 트리의 칸 수(12)
     let treeDecorationCount: Int
+    /// 출제 화면에서 누른 장식. 모르면 nil이다.
+    var decoration: QuizCategory? = nil
+
+    /// 장식 획득 연출이 쓰는 색 구성. 누른 장식의 색을 따르고, 모르면 세션의 작업, 그것도 없으면 섞은 색이다.
+    var ornamentStyle: OrnamentStyle { OrnamentStyle(category: decoration ?? category) }
 
     /// 장식을 받았는가
     var isSuccess: Bool { result.earnedDecorations > 0 }
