@@ -22,7 +22,7 @@ struct WeakCategoryList: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .roomCard()
+        .roomCardBackground()
     }
 
     private func row(for item: CategoryAccuracy) -> some View {
@@ -94,14 +94,14 @@ struct WeakCategoryList: View {
             }
         }
 
-        var barColor: Color { self == .high ? .roomOk : .roomAccent }
+        var barColor: Color { self == .high ? .roomPositive : .roomAccent }
 
         var textColor: Color {
             switch self {
-            case .low: .roomBad
-            case .high: .roomOk
-            case .none: .roomSub
-            case .middle: .roomText
+            case .low: .roomNegative
+            case .high: .roomPositive
+            case .none: .roomSecondaryText
+            case .middle: .roomPrimaryText
             }
         }
 

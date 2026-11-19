@@ -104,6 +104,11 @@ final class MockSessionManager: SessionManaging {
         session.status = .abandoned
     }
 
+    func updateElapsed(_ seconds: TimeInterval, in session: QuizSession) throws {
+        guard session.status == .inProgress, seconds.isFinite, seconds > session.elapsedSeconds else { return }
+        session.elapsedSeconds = seconds
+    }
+
     enum MockError: Error { case invalidIndex }
 }
 
@@ -131,11 +136,7 @@ final class MockTreeManager: TreeManaging {
 }
 
 /// 아무것도 재생하지 않는 피드백
-struct MockFeedbackPlayer: FeedbackPlaying {
-    func playCorrect() {}
-    func playWrong() {}
-    func playTreeComplete() {}
-}
+typealias MockFeedbackPlayer = SilentFeedbackPlayer
 
 /// 파일을 다루지 않는 미디어 관리자
 struct MockMediaFileManager: MediaFileManaging {

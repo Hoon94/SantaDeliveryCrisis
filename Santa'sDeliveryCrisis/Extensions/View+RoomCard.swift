@@ -4,10 +4,10 @@ import SwiftUI
 /// 색은 모두 Asset 카탈로그의 `Room*` 색 세트(라이트/다크)를 쓴다.
 extension View {
     /// 시안의 카드: 카드 배경, 1pt 테두리, 둥근 모서리
-    func roomCard(padding: EdgeInsets = EdgeInsets(top: 10, leading: 12, bottom: 10, trailing: 12)) -> some View {
+    func roomCardBackground(padding: EdgeInsets = EdgeInsets(top: 10, leading: 12, bottom: 10, trailing: 12)) -> some View {
         self
             .padding(padding)
-            .background(Color.roomCard, in: RoundedRectangle(cornerRadius: 14))
-            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.roomLine, lineWidth: 1))
+            .background(Color.roomCardBackground, in: RoundedRectangle(cornerRadius: 14))
+            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.roomBorder, lineWidth: 1))
     }
 }
