@@ -14,7 +14,7 @@ struct MainTabView: View {
     /// 탭별 이동 경로를 유지하고 작업실의 새 퀴즈 요청을 출제 탭으로 전달한다.
     var body: some View {
         TabView(selection: $selectedTab) {
-            TabRoot(title: "작업실") {
+            TabRoot(title: "산타의 작업실") {
                 TaskHomeView {
                     setupRequestID = UUID()
                     selectedTab = .select

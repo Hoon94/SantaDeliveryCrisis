@@ -61,7 +61,7 @@ struct SelectSetupPopup: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text("오늘의 출제 설정")
+            Text("문제 유형 선택")
                 .font(.title3.weight(.heavy))
                 .foregroundStyle(Color.nightPrimaryText)
                 .accessibilityAddTraits(.isHeader)

@@ -38,10 +38,10 @@ struct TaskHomeView: View {
         .padding(.horizontal, 20)
         .padding(.vertical, 10)
         .background(Color.roomBackground)
-        .navigationTitle("작업실")
+        .navigationTitle("산타의 작업실")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ScreenTitleToolbar(title: "작업실", color: .roomPrimaryText)
+            ScreenTitleToolbar(title: "산타의 작업실", color: .roomPrimaryText)
         }
         .fullScreenCover(item: $activeQuizSession) { session in
             QuizEntryPresentation(session: session)
