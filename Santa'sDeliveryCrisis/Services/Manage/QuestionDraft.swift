@@ -54,6 +54,8 @@ struct QuestionDraft: Equatable {
         case resourceURLInvalid
         /// 같은 문제 안에서 같은 보기가 두 번 이상 있음
         case duplicateChoices
+        /// 해설이 비어 있음. 비어 있으면 퀴즈 피드백 카드에 빈 칸이 보이므로 저장할 수 없다.
+        case explanationEmpty
     }
 
     /// 지금 입력값에서 저장을 막는 문제들. 비어 있으면 저장할 수 있다.
@@ -65,6 +67,7 @@ struct QuestionDraft: Equatable {
         }
         if !isResourceURLValid { result.insert(.resourceURLInvalid) }
         if !duplicateChoiceIndices.isEmpty { result.insert(.duplicateChoices) }
+        if Self.trimmed(explanation).isEmpty { result.insert(.explanationEmpty) }
         return result
     }
 

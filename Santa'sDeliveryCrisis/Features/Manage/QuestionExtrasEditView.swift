@@ -8,9 +8,15 @@ struct QuestionExtrasEditView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
-                section("해설") {
+                section("해설 (필수)") {
                     TextField("정답이 왜 맞는지 적어 주세요", text: $draft.explanation, axis: .vertical)
                         .lineLimit(3...10)
+                }
+                if QuestionDraft.trimmed(draft.explanation).isEmpty {
+                    Text("해설을 입력해 주세요")
+                        .font(.caption.bold())
+                        .foregroundStyle(Color.roomNegative)
+                        .padding(.top, -6)
                 }
                 section("힌트") {
                     TextField("풀이에 도움이 되는 힌트", text: $draft.hint, axis: .vertical)
@@ -51,7 +57,8 @@ struct QuestionExtrasEditView: View {
     }
 
     private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
-        let hasError = title == "학습 자료 주소" && !draft.isResourceURLValid
+        let hasError = (title == "학습 자료 주소" && !draft.isResourceURLValid)
+            || (title == "해설 (필수)" && QuestionDraft.trimmed(draft.explanation).isEmpty)
         return VStack(alignment: .leading, spacing: 2) {
             Text(title)
                 .font(.caption)

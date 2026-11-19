@@ -55,6 +55,7 @@ struct QuestionEditView: View {
                     }
                 }
                 extrasLink
+                if showsError(.explanationEmpty) { errorText("해설을 입력해 주세요") }
             }
             .padding()
             .frame(maxWidth: 720)
@@ -179,10 +180,10 @@ struct QuestionEditView: View {
                 Text("해설 · 힌트 · 학습 자료 · 태그")
                     .font(.subheadline)
                 Spacer()
-                if showsError(.resourceURLInvalid) {
+                if showsError(.resourceURLInvalid) || showsError(.explanationEmpty) {
                     Image(systemName: "exclamationmark.circle.fill")
                         .foregroundStyle(Color.roomNegative)
-                        .accessibilityLabel("학습 자료 주소를 확인해 주세요")
+                        .accessibilityLabel(extrasWarningLabel)
                 }
                 Image(systemName: "chevron.right")
                     .font(.footnote)
@@ -193,6 +194,15 @@ struct QuestionEditView: View {
             .roomCardBackground(padding: EdgeInsets(top: 4, leading: 12, bottom: 4, trailing: 12))
         }
         .buttonStyle(.plain)
+    }
+
+    /// 해설·힌트·학습 자료·태그 줄의 경고 아이콘을 VoiceOver가 읽을 말
+    private var extrasWarningLabel: String {
+        switch (showsError(.explanationEmpty), showsError(.resourceURLInvalid)) {
+        case (true, true): "해설과 학습 자료 주소를 확인해 주세요"
+        case (true, false): "해설을 입력해 주세요"
+        default: "학습 자료 주소를 확인해 주세요"
+        }
     }
 
     private func errorText(_ message: String) -> some View {
