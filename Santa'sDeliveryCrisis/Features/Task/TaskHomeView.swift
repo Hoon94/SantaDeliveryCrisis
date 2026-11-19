@@ -3,19 +3,16 @@ import SwiftUI
 
 /// 작업실의 이동 경로와 탭 바 표시를 한곳에서 관리한다.
 struct TaskHomeNavigationView: View {
-    @State private var sessionPath: [UUID] = []
-
     /// 오늘의 출제 버튼에서 출제 탭으로 이동하는 동작.
     let onSelectQuestions: () -> Void
 
-    /// 작업실에서는 탭 바를 표시하고 세션으로 이동한 동안에는 숨긴다.
+    /// 작업실 루트를 보여 준다. 퀴즈는 전체 화면으로 열려 탭 바를 가린다.
     var body: some View {
-        NavigationStack(path: $sessionPath) {
+        NavigationStack {
             TaskHomeView(onSelectQuestions: onSelectQuestions)
                 .navigationTitle("작업실")
                 .navigationBarTitleDisplayMode(.inline)
         }
-        .toolbar(sessionPath.isEmpty ? .visible : .hidden, for: .tabBar)
     }
 }
 
@@ -32,6 +29,8 @@ struct TaskHomeView: View {
     /// 완성한 트리 기록을 관찰해 표시 번호를 갱신한다.
     @Query(filter: #Predicate<TreeRecord> { $0.completedAt != nil })
     private var completedTrees: [TreeRecord]
+    /// 이어서 풀기로 전체 화면에 연 세션.
+    @State private var resumingSession: QuizSession?
 
     /// 오늘의 출제 버튼에서 출제 탭으로 이동하는 동작.
     let onSelectQuestions: () -> Void
@@ -55,17 +54,9 @@ struct TaskHomeView: View {
         .padding(.vertical, 10)
         .background(Color.roomBackground)
         .toolbar(.hidden, for: .navigationBar)
-        .navigationDestination(for: UUID.self) { sessionID in
-            // FIXME: [B 교체] 실제 퀴즈 화면 연결 시 같은 세션을 전달한다.
-            if let session = history.first(where: { $0.id == sessionID }) {
-                QuizEntryPlaceholderView(session: session)
-            } else {
-                ContentUnavailableView(
-                    "세션을 찾을 수 없어요", systemImage: "exclamationmark.triangle"
-                )
-                .navigationTitle("세션 정보")
-                .toolbar(.visible, for: .navigationBar)
-            }
+        .fullScreenCover(item: $resumingSession) { session in
+            QuizEntryPresentation(session: session)
+                .presentationBackground(.clear)
         }
     }
 
@@ -94,7 +85,7 @@ struct TaskHomeView: View {
                 .accessibilityLabel(TaskHomeCopy.remainingText(filledCount: filledCount))
 
             if let session = services.sessions.resumableSession() {
-                TaskResumeCard(session: session)
+                TaskResumeCard(session: session) { resumingSession = session }
             } else {
                 selectQuestionsButton
             }

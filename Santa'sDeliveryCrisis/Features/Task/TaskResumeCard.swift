@@ -4,10 +4,12 @@ import SwiftUI
 struct TaskResumeCard: View {
     /// 이어서 풀 대상인 진행 중 세션.
     let session: QuizSession
+    /// 카드를 눌렀을 때 세션을 이어 푸는 동작.
+    let onResume: () -> Void
 
     /// 학습 시작 버튼 위치에서 작업과 진행 정보를 표시하고 같은 세션으로 이동한다.
     var body: some View {
-        NavigationLink(value: session.id) {
+        Button(action: onResume) {
             VStack(spacing: 4) {
                 Text("이어서 풀기")
                     .font(.body.weight(.heavy))
@@ -37,13 +39,8 @@ struct TaskResumeCard: View {
     let session = QuizSession(
         category: nil, difficulty: .normal, questionSnapshots: [], passThresholdPercent: 80
     )
-    NavigationStack {
-        TaskResumeCard(session: session)
+    TaskResumeCard(session: session) {}
         .padding()
         .background(Color.roomBackground)
-        .navigationDestination(for: UUID.self) { _ in
-            QuizEntryPlaceholderView(session: session)
-        }
-    }
 }
 #endif
