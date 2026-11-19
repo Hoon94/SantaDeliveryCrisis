@@ -184,7 +184,7 @@ private struct DecorationSelectTree: View {
             let treeHeight = TreeSlots.designSize.height * scale
             let top = (geometry.size.height - treeHeight) / 2
             let ornamentWidth = 44 * scale
-            let ornamentHeight = ornamentWidth * DecorationView.designSize.height / DecorationView.designSize.width
+            let ornamentHeight = ornamentWidth * DecorationView.designSize.height / DecorationView.designSize.width + 24
 
             ZStack(alignment: .topLeading) {
                 ChristmasTreeImage(imageScale: 1.8)

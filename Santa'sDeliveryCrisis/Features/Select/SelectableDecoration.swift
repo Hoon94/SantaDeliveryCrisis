@@ -25,9 +25,26 @@ struct SelectableDecoration: View {
             .disabled(availability.isEnabled == false)
             .accessibilityLabel("\(availability.task.displayName), \(availability.isEnabled ? "켜짐" : "꺼짐")")
 
+            HStack(spacing: 8) {
+                ForEach(Difficulty.allCases, id: \.self) { difficulty in
+                    let earned = rewardMask & availability.task.rewardBit(for: difficulty) != 0
+                    Circle()
+                        .fill(earned ? indicatorColor(difficulty) : .clear)
+                        .overlay { Circle().strokeBorder(indicatorColor(difficulty), lineWidth: 1.5) }
+                        .frame(width: 10, height: 10)
+                        .accessibilityLabel("\(availability.task.displayName), \(difficulty.displayName), \(earned ? "장식 획득" : "미획득")")
+                }
+            }
+            .opacity(availability.isEnabled ? 1 : 0.5)
         }
     }
-
+    private func indicatorColor(_ difficulty: Difficulty) -> Color {
+        switch difficulty {
+        case .easy: .green
+        case .normal: .orange
+        case .hard: .red
+        }
+    }
 }
 
 #if DEBUG
