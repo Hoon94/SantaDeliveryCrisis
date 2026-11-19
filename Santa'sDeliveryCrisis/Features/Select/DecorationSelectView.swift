@@ -11,8 +11,14 @@ struct DecorationSelectView: View {
     /// 카테고리별로 계산한 장식 활성 상태와 후보 부족 정보.
     let availability: [DecorationAvailability]
 
-    /// 설정 팝업을 다시 여는 동작.
+    /// 현재 트리에서 획득한 장식 수. 표시만 하며 트리 기록은 변경하지 않는다.
+    let filledCount: Int
+
+    /// 적용한 조건으로 설정 팝업을 다시 여는 동작.
     let onEdit: () -> Void
+
+    /// 출제 설정만 기본값으로 되돌리는 동작.
+    let onResetSettings: () -> Void
 
     /// 활성 장식의 카테고리로 세션 시작을 요청하는 동작.
     let onSelect: (QuizCategory) -> Void
@@ -22,7 +28,7 @@ struct DecorationSelectView: View {
 
     private var reduceMotion: Bool { systemReduceMotion || forceReduceMotion }
 
-    /// 조건 칩과 안내, 화면 너비에 맞춰 늘어나는 트리 및 장식을 배치한다.
+    /// 상단에 제목·조건 칩·설정 초기화·장식 진행도를 표시하고 아래에 트리와 장식을 배치한다.
     var body: some View {
         TimelineView(.animation(minimumInterval: 1.0 / 30, paused: reduceMotion)) { timeline in
             content(time: reduceMotion ? 0 : timeline.date.timeIntervalSinceReferenceDate)
@@ -48,7 +54,13 @@ struct DecorationSelectView: View {
                         time: time, reduceMotion: reduceMotion
                     )
                 }
-                // FIXME: [가정 8] 초기화·n/4 알약·범례·문 열림·통과 점·체크 배지는 표시하지 않음
+                Text("장식 12개를 모두 켜면 작업실 문이 열려요")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Color.nightSecondaryText)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                // FIXME: [가정 8] 범례·통과 점·체크 배지는 별도 작업에서 반영
             }
             .padding(14)
         }
@@ -60,14 +72,67 @@ struct DecorationSelectView: View {
         let layout = dynamicTypeSize.isAccessibilitySize
             ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
             : AnyLayout(HStackLayout(spacing: 8))
-        return layout {
-            Text("출제")
-                .font(.title2.weight(.heavy))
-                .foregroundStyle(Color.nightPrimaryText)
-                .accessibilityAddTraits(.isHeader)
-            conditionChip
+
+        return VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("출제")
+                    .font(.title2.weight(.heavy))
+                    .foregroundStyle(Color.nightPrimaryText)
+                    .accessibilityAddTraits(.isHeader)
+                Spacer()
+                Button(action: onResetSettings) {
+                    Label("초기화", systemImage: "arrow.counterclockwise")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(Color.nightPrimaryText)
+                        .padding(.horizontal, 11)
+                        .padding(.vertical, 6)
+                        .background(Color.nightCardBackground, in: Capsule())
+                        .overlay { Capsule().strokeBorder(Color.nightBorder, lineWidth: 1) }
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("출제 설정 초기화")
+                .accessibilityHint("난이도, 카테고리와 문제 수를 기본값으로 되돌립니다")
+            }
+
+            layout {
+                conditionChip
+                if dynamicTypeSize.isAccessibilitySize == false {
+                    Spacer(minLength: 0)
+                }
+                decorationProgress
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var conditionChip: some View {
+        Button(action: onEdit) {
+            Label(
+                "\(filter.difficulty.displayName) · 카테고리 \(filter.categories.count)개 · \(filter.count)문제",
+                systemImage: "gearshape"
+            )
+            .font(.caption.weight(.bold))
+            .foregroundStyle(Color.nightOnAccentText)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.horizontal, 11)
+            .padding(.vertical, 6)
+            .background(Color.nightAccent, in: Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("출제 설정, \(filter.difficulty.displayName), 카테고리 \(filter.categories.count)개, \(filter.count)문제")
+        .accessibilityHint("문제 유형 선택 팝업을 다시 엽니다")
+    }
+
+    private var decorationProgress: some View {
+        Text("\(TreeSlots.clampedCount(filledCount)) / \(TreeSlots.count) 장식")
+            .font(.caption.weight(.heavy))
+            .foregroundStyle(Color.nightPrimaryText)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.horizontal, 11)
+            .padding(.vertical, 6)
+            .background(Color.nightCardBackground, in: Capsule())
+            .overlay { Capsule().strokeBorder(Color.nightBorder, lineWidth: 1) }
+            .accessibilityLabel("장식 \(TreeSlots.count)개 중 \(TreeSlots.clampedCount(filledCount))개 획득")
     }
 
     private func accessibleDecorations(time: TimeInterval) -> some View {
@@ -93,24 +158,6 @@ struct DecorationSelectView: View {
         }
     }
 
-    private var conditionChip: some View {
-        Button(action: onEdit) {
-            Label(
-                "\(filter.difficulty.displayName) · 카테고리 \(filter.categories.count)개 · \(filter.count)문제",
-                systemImage: "gearshape"
-            )
-            .font(.caption.weight(.bold))
-            .foregroundStyle(Color.nightPrimaryText)
-            .fixedSize(horizontal: false, vertical: true)
-            .padding(.horizontal, 11)
-            .padding(.vertical, 6)
-            .background(Color.nightCardBackground, in: Capsule())
-            .overlay { Capsule().strokeBorder(Color.nightBorder, lineWidth: 1) }
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("출제 설정, \(filter.difficulty.displayName), 카테고리 \(filter.categories.count)개, \(filter.count)문제")
-        .accessibilityHint("출제 설정 팝업을 다시 엽니다")
-    }
 }
 
 private struct DecorationSelectTree: View {
@@ -170,6 +217,7 @@ private struct DecorationSelectTree: View {
 #if DEBUG
 private struct DecorationSelectPreview: View {
     let filter: SelectFilter
+    var filledCount = 6
     var forceReduceMotion = false
 
     var body: some View {
@@ -185,7 +233,8 @@ private struct DecorationSelectPreview: View {
             filter: filter, questions: questions, selector: QuestionSelector()
         )
         DecorationSelectView(
-            filter: filter, availability: results, onEdit: {}, onSelect: { _ in },
+            filter: filter, availability: results, filledCount: filledCount,
+            onEdit: {}, onResetSettings: {}, onSelect: { _ in },
             forceReduceMotion: forceReduceMotion
         )
             .background {
@@ -200,6 +249,14 @@ private struct DecorationSelectPreview: View {
 
 #Preview("장식 선택 · 모두 켜짐") {
     DecorationSelectPreview(filter: SelectFilter(difficulty: .easy))
+}
+
+#Preview("장식 선택 · 획득 장식 없음") {
+    DecorationSelectPreview(filter: SelectFilter(), filledCount: 0)
+}
+
+#Preview("장식 선택 · 장식 12개") {
+    DecorationSelectPreview(filter: SelectFilter(), filledCount: TreeSlots.count)
 }
 
 #Preview("장식 선택 · 일부 켜짐과 후보 부족") {

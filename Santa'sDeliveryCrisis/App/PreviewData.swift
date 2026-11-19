@@ -10,7 +10,7 @@ import SwiftUI
 /// ```swift
 /// #Preview {
 ///     let preview = PreviewData.make()
-///     TaskHomeView()
+///     TaskHomeView(onSelectQuestions: {})
 ///         .modelContainer(preview.container)
 ///         .environment(\.services, preview.services)
 /// }
