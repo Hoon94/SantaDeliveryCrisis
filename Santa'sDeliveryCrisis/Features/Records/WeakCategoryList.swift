@@ -9,7 +9,8 @@ struct WeakCategoryList: View {
     /// 보여 줄 카테고리(정렬된 상태)
     let categories: [CategoryAccuracy]
 
-    /// 이 값 미만이면 낮음(빨강). 출제의 "약한 문제" 기준과 같은 값이라 한 곳(`SelectionCriteria`)에서만 고친다.
+    /// 이 값 미만이면 낮음(빨강). 정답률 기준값만 출제의 "약한 문제"와 공유하므로 한 곳(`SelectionCriteria`)에서만 고친다.
+    /// 출제의 "약한 문제"에는 "마지막 풀이가 오답"도 포함되지만, 기록 화면의 빨강은 정답률 기준만 따른다.
     static var lowThreshold: Int { SelectionCriteria.weakAccuracyPercent }
     /// 이 값 이상이면 높음(초록)
     static let highThreshold = 80
