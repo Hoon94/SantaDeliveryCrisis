@@ -11,8 +11,8 @@ protocol TaskRecommending {
 protocol QuestionSelecting {
     /// 조건에 맞는 문제를 `count`개 고른다.
     /// - Parameters:
-    ///   - category: nil이면 4개 작업 전체에서 고르는 오늘의 출제
-    ///   - tags: 비어 있으면 전체 태그. 여러 개면 하나라도 가진 문제. 오늘의 출제는 비움
+    ///   - category: nil이면 4개 작업 전체에서 고름. 여러 카테고리를 골라 섞는 경우는 `select(categories:...)` 확장을 쓴다
+    ///   - tags: 비어 있으면 전체 태그. 여러 개면 하나라도 가진 문제. 1차 UI는 항상 비움
     ///   - history: 답(정오답, 시각)과 풀 당시 스냅샷(카테고리, 태그)을 함께 읽는 세션 기록
     func select(
         category: QuizCategory?,
@@ -30,7 +30,7 @@ protocol QuestionSelecting {
 
 /// 세션 생성·진행·종료. SwiftData 저장을 담당한다.
 protocol SessionManaging {
-    /// 세션을 시작한다. category가 nil이면 오늘의 출제다.
+    /// 세션을 시작한다. category가 nil이면 4개 작업 전체에서 고른다.
     func startSession(category: QuizCategory?, difficulty: Difficulty, tags: Set<String>, count: Int) throws -> QuizSession
 
     /// 선택한 카테고리들에서 문제를 고르게 섞어 세션을 시작한다(`select(categories:...)` 규칙).

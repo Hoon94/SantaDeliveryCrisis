@@ -1,11 +1,11 @@
 import SwiftUI
 
-/// 장식의 색 구성. 작업별 장식은 그 작업의 색, 오늘의 출제는 네 작업 색이 섞인 무지개 장식이다.
+/// 장식의 색 구성. 작업별 장식은 그 작업의 색, 여러 작업을 섞은 세션은 네 작업 색이 섞인 무지개 장식이다.
 enum OrnamentStyle: Equatable {
     case category(QuizCategory)
     case mixed
 
-    /// 세션의 작업으로 장식 스타일을 정한다. nil이면 오늘의 출제.
+    /// 세션의 작업으로 장식 스타일을 정한다. nil이면 여러 작업을 섞은 세션.
     init(category: QuizCategory?) {
         self = category.map(OrnamentStyle.category) ?? .mixed
     }
@@ -22,7 +22,7 @@ enum OrnamentStyle: Equatable {
     var title: String {
         switch self {
         case .category(let category): "\(category.taskName) 장식"
-        case .mixed: "오늘의 출제 장식"
+        case .mixed: "여러 작업 섞음 장식"
         }
     }
 

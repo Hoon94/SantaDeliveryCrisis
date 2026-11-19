@@ -78,8 +78,8 @@ final class SessionManager: SessionManaging {
 
         let questions = try context.fetch(FetchDescriptor<Question>())
         let picked = pick(questions, sessions)
-        // 제목이 같은 문제는 [3/5]처럼 번호를 붙여 구별한다. 풀 당시 모습이므로 스냅샷에만 붙인다.
-        let titleLabels = DuplicateTitleLabeler.labels(for: questions)
+        // 이번 세션에서 제목이 같은 문제는 [1/2]처럼 번호를 붙여 구별한다. 풀 당시 모습이므로 스냅샷에만 붙인다.
+        let titleLabels = DuplicateTitleLabeler.labels(for: picked)
         guard !picked.isEmpty else { throw SessionError.noCandidates }
 
         let session = QuizSession(

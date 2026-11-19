@@ -133,15 +133,14 @@ func run() throws {
         check(sel.availableCount(categories: [.hig, .aiUsage], difficulty: .easy, tags: [], questions: mixed) == 12, "복수: 후보 수 합산")
         check(sel.select(categories: [], difficulty: .easy, tags: [], count: 5, questions: mixed, history: []).isEmpty, "복수: 빈 카테고리 집합은 빈 배열")
     }
-    // ---- 같은 제목 번호표
+    // ---- 같은 제목 번호표(이번 세션 안에서만)
     do {
-        let a = q(.swiftSyntax, .easy), b = q(.swiftSyntax, .hard), c = q(.hig, .easy)
-        a.text = "같은 제목"; b.text = "같은 제목 "; c.text = "다른 제목"
-        let third = q(.aiUsage, .normal); third.text = "같은 제목"
-        let labels = DuplicateTitleLabeler.labels(for: [a, b, c, third])
-        check(c.id != a.id && labels[c.id] == nil, "번호표: 제목이 하나면 없음")
-        check(Set([a, b, third].compactMap { labels[$0.id] }) == ["[1/3] ", "[2/3] ", "[3/3] "], "번호표: 같은 제목 3개는 1/3~3/3 (공백 차이 무시, 난이도·카테고리 무관)")
-        check(DuplicateTitleLabeler.labels(for: [a, b, third]) == labels.filter { [a.id, b.id, third.id].contains($0.key) }, "번호표: 같은 입력이면 같은 번호")
+        let a = q(.swiftSyntax, .easy), b = q(.swiftSyntax, .hard), c = q(.hig, .easy), d = q(.aiUsage, .normal)
+        a.text = "같은 제목"; b.text = "같은 제목 "; c.text = "다른 제목"; d.text = "같은 제목"
+        let labels = DuplicateTitleLabeler.labels(for: [a, c, b, d])
+        check(labels[c.id] == nil, "번호표: 제목이 하나면 없음")
+        check(labels[a.id] == "[1/3] " && labels[b.id] == "[2/3] " && labels[d.id] == "[3/3] ", "번호표: 같은 제목은 세션 순서대로 1/3~3/3 (공백 차이 무시)")
+        check(DuplicateTitleLabeler.labels(for: [a, c]).isEmpty, "번호표: 세션 밖의 같은 제목은 세지 않음")
         check(QuestionSnapshot(a, titleLabel: "[1/3] ").text == "[1/3] 같은 제목" && QuestionSnapshot(c).text == "다른 제목", "번호표: 스냅샷 제목 앞에만 붙음")
     }
     // ---- SessionManager

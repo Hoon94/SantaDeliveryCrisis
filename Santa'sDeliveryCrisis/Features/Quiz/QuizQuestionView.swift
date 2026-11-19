@@ -162,15 +162,29 @@ struct QuizQuestionView: View {
         .frame(maxWidth: .infinity)
     }
 
+    /// 작업, 난이도, 태그 칩. 태그에는 그 문제의 카테고리 이름이 맨 앞에 들어간다.
+    /// 칩이 한 줄에 다 들어가지 않으면(큰 글자 등) 카테고리 태그만 남기고 나머지 태그를 줄인다.
     private func chips(_ snapshot: QuestionSnapshot) -> some View {
+        let categoryTag = snapshot.category.categoryName
+        let extraTag = snapshot.tags.first { $0 != categoryTag }
+        return ViewThatFits(in: .horizontal) {
+            chipRow(categoryTag: categoryTag, extraTag: extraTag)
+            chipRow(categoryTag: categoryTag, extraTag: nil)
+        }
+    }
+
+    private func chipRow(categoryTag: String, extraTag: String?) -> some View {
         HStack(spacing: 8) {
             chip(model.theme.title, tint: model.theme.accent, filled: true)
             chip(model.session.difficulty.displayName, tint: .nightSecondaryText, filled: false)
-            if let tag = snapshot.tags.first {
-                chip("#\(tag)", tint: .nightSecondaryText, filled: false)
+            chip("#\(categoryTag)", tint: .nightSecondaryText, filled: false)
+            if let extraTag {
+                chip("#\(extraTag)", tint: .nightSecondaryText, filled: false)
             }
         }
         .lineLimit(1)
+        .fixedSize(horizontal: true, vertical: false)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func chip(_ text: String, tint: Color, filled: Bool) -> some View {
