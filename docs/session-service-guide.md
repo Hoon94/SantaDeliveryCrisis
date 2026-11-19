@@ -54,6 +54,18 @@ result.treeCompleted       // true면 트리 완성 연출
 ```
 문제 내용은 원본 `Question`이 아니라 `session.questionSnapshots[index]`에서 읽습니다.
 
+### 소요 시간 저장 (B)
+퀴즈 화면이 시간을 누적하고, 서비스는 저장만 합니다. 화면이 떠 있고 앱이 활성 상태인 동안만 더합니다.
+```swift
+// 증가분이 아니라 누적 총합을 넘긴다. 이어 풀 때는 session.elapsedSeconds에서 시작해 더한다.
+try services.sessions.updateElapsed(totalSeconds, in: session)
+```
+- 호출 시점: 답을 제출한 직후, 앱이 백그라운드로 갈 때, `finish` 직전
+- 같은 값을 여러 번 불러도 결과가 같고, 저장된 값보다 작은 값은 무시합니다(시간이 줄어들지 않음).
+- 완료(`completed`)나 포기(`abandoned`) 세션에 부르면 오류 없이 무시합니다. 완료 직후 백그라운드 진입 같은 호출이 와도 안전합니다.
+- 음수, NaN, 무한대는 `SessionError.invalidElapsed` 오류입니다.
+- 결과 화면은 `SessionResult.elapsed`를 읽으면 됩니다. C는 이 함수를 부를 일이 없습니다.
+
 ### 이어 풀기 (B, C)
 - 복원 위치는 `session.answers.count`번째 문제입니다. `currentIndex`와 다르면 `answers.count`를 따릅니다.
 - 모든 문제의 답이 저장된 상태라면 문제 화면 없이 `finish`를 호출합니다.
@@ -76,6 +88,9 @@ services.trees.completedTrees()                 // 완성한 트리, 최근 완�
 | 조건에 맞는 문제가 0개 | `noCandidates` 오류 |
 | 후보가 요청한 문제 수보다 적음 | 가능한 만큼만 출제 `[가정]` |
 | 저장 실패 | 바뀐 값을 되돌리고 오류를 던짐. 세션은 `inProgress`로 남아 재시도 가능 |
+| 완료·포기 세션에 `updateElapsed` | 오류 없이 무시하고 값을 바꾸지 않음 |
+| 저장된 값보다 작은 값으로 `updateElapsed` | 무시(더 큰 값 유지) |
+| 음수·NaN으로 `updateElapsed` | `invalidElapsed` 오류 |
 
 오류는 모두 `SessionError`이며 한국어 설명(`error.localizedDescription`)이 있습니다.
 
@@ -119,8 +134,8 @@ services.trees.completedTrees()                 // 완성한 트리, 최근 완�
 
 | 항목 | 상태 |
 | --- | --- |
-| 소요 시간(`elapsedSeconds`) 저장 방식 | 규약에 저장 함수가 없음. B와 협의 필요 |
-| 사용자가 삭제한 시드 문제 | 앱을 다시 켜면 `SeedLoader`가 다시 넣음. D와 협의 필요 |
+| 소요 시간(`elapsedSeconds`) 저장 방식 | `updateElapsed(_:in:)`로 합의하고 구현함 (위 "소요 시간 저장") |
+| 사용자가 삭제한 시드 문제 | 1차에서는 시드 문제의 수정·삭제를 막기로 합의함(D). 나중에 삭제를 허용하면 `SeedLoader`가 되살리므로 삭제한 시드 ID 기록이나 시드 버전 관리가 필요 |
 | "하루" 계산 기준, "최근 오답"의 범위 | 팀 확인 필요 |
 | 기록 화면의 점수 계산 | 내림으로 합의함. D가 `RecordsStatistics`를 `Accuracy`와 같은 내림으로 맞추는 중 |
 | 단위 테스트 타깃과 프레임워크 | `app-foundation` 결정 대기. 확정되면 `Tools/service-check/main.swift`의 시나리오를 옮김 |
