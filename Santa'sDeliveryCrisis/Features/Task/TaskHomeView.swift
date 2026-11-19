@@ -3,6 +3,12 @@ import SwiftUI
 
 /// 현재 트리와 남은 장식을 보여 주는 작업실 화면.
 struct TaskHomeView: View {
+    @Environment(\.services) private var services
+    @State private var activeQuizSession: QuizSession?
+
+    /// 기본 출제 설정을 열도록 상위 탭 화면에 요청한다.
+    let onSelectQuestions: () -> Void
+
     @Query private var questions: [Question]
     @Query private var history: [QuizSession]
     /// 현재 트리는 서비스와 동일하게 가장 먼저 시작한 기록을 사용한다.
@@ -37,6 +43,10 @@ struct TaskHomeView: View {
         .toolbar {
             ScreenTitleToolbar(title: "작업실", color: .roomPrimaryText)
         }
+        .fullScreenCover(item: $activeQuizSession) { session in
+            QuizEntryPresentation(session: session)
+                .presentationBackground(.clear)
+        }
     }
 
     private func content(
@@ -66,8 +76,40 @@ struct TaskHomeView: View {
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(TaskHomeCopy.remainingText(filledCount: filledCount))
 
+            learningAction
+
             UnsolvedQuestionTiles(stats: stats)
         }
+    }
+
+    /// 진행 중 세션이 있으면 복원하고, 없으면 출제 탭으로 이동하는 하나의 진입 버튼.
+    private var learningAction: some View {
+        let session = services.sessions.resumableSession()
+        return Button {
+            if let session {
+                activeQuizSession = session
+            } else {
+                onSelectQuestions()
+            }
+        } label: {
+            VStack(spacing: 4) {
+                Text(session == nil ? "퀴즈 시작하기" : "이어서 풀기")
+                    .font(.body.weight(.heavy))
+                if let session {
+                    Text("\(session.category?.taskName ?? "작업 정보 없음") · \(session.difficulty.displayName) · \(session.answers.count) / \(session.questionSnapshots.count) 문제")
+                        .font(.caption)
+                        .opacity(0.85)
+                }
+            }
+            .multilineTextAlignment(.center)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity)
+            .padding(14)
+            .foregroundStyle(Color.roomOnAccentText)
+            .background(Color.roomAccent, in: RoundedRectangle(cornerRadius: 14))
+        }
+        .buttonStyle(.plain)
+        .accessibilityHint(session == nil ? "출제 탭에서 기본 출제 설정을 엽니다" : "저장된 퀴즈를 이어서 풉니다")
     }
 
     private func remainingMessage(filledCount: Int) -> Text {
@@ -85,7 +127,7 @@ struct TaskHomeView: View {
 #if DEBUG
 @ViewBuilder
 private func taskHomePreview(
-    filledCount: Int, empty: Bool = false
+    filledCount: Int, empty: Bool = false, resumeAnsweredCount: Int? = nil
 ) -> some View {
     let questions = empty ? [] : Difficulty.allCases.flatMap { difficulty in
         QuizCategory.allCases.flatMap { category in
@@ -98,11 +140,19 @@ private func taskHomePreview(
             answered: 1, status: .completed
         )
     }
+    let resumableQuestions = resumeAnsweredCount == nil ? [] : TaskSelectPreviewData.questions(
+        category: .swiftSyntax, difficulty: .normal, count: 5
+    )
+    let resumable = resumeAnsweredCount.map { answered in
+        TaskSelectPreviewData.session(
+            questions: resumableQuestions, category: .swiftSyntax, difficulty: .normal, answered: answered
+        )
+    }
     if let preview = try? TaskSelectPreviewData.environment(
-        questions: questions, sessions: history,
+        questions: questions + resumableQuestions, sessions: history + [resumable].compactMap { $0 },
         trees: [TreeRecord(decorationCount: filledCount)]
     ) {
-        NavigationStack { TaskHomeView() }
+        NavigationStack { TaskHomeView(onSelectQuestions: {}) }
             .modelContainer(preview.container)
             .environment(\.services, preview.services)
     } else {
@@ -136,6 +186,19 @@ private func taskHomePreview(
 
 #Preview("작업실 · 문제 없음") {
     taskHomePreview(filledCount: 0, empty: true)
+}
+
+#Preview("작업실 · 이어서 풀기") {
+    taskHomePreview(filledCount: 6, resumeAnsweredCount: 2)
+}
+
+#Preview("작업실 · 이어서 풀기 · 큰 글자") {
+    taskHomePreview(filledCount: 6, resumeAnsweredCount: 2)
+        .dynamicTypeSize(.accessibility3)
+}
+
+#Preview("작업실 · 모든 답 저장 후 결과 복원") {
+    taskHomePreview(filledCount: 6, resumeAnsweredCount: 5)
 }
 
 #endif
