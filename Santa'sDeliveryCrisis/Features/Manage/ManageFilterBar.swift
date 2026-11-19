@@ -7,7 +7,7 @@ struct ManageSearchField: View {
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: "magnifyingglass")
-                .foregroundStyle(Color.roomSub)
+                .foregroundStyle(Color.roomSecondaryText)
                 .accessibilityHidden(true)
             TextField("문제 검색", text: $text)
                 .textInputAutocapitalization(.never)
@@ -18,7 +18,7 @@ struct ManageSearchField: View {
                     text = ""
                 } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .foregroundStyle(Color.roomSub)
+                        .foregroundStyle(Color.roomSecondaryText)
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("검색어 지우기")
@@ -26,8 +26,8 @@ struct ManageSearchField: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
-        .background(Color.roomCard, in: RoundedRectangle(cornerRadius: 14))
-        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.roomLine, lineWidth: 1))
+        .background(Color.roomCardBackground, in: RoundedRectangle(cornerRadius: 14))
+        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.roomBorder, lineWidth: 1))
     }
 }
 

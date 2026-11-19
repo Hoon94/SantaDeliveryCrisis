@@ -44,15 +44,15 @@ struct RoomChip: View {
 
     private var foreground: Color {
         switch style {
-        case .normal: .roomSub
-        case .selected: .roomOnAccent
-        case .destructive: .roomBad
+        case .normal: .roomSecondaryText
+        case .selected: .roomOnAccentText
+        case .destructive: .roomNegative
         }
     }
 
     private var background: Color {
         switch style {
-        case .normal: .roomSoft
+        case .normal: .roomSubtleBackground
         case .selected: .roomAccent
         case .destructive: .clear
         }

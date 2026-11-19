@@ -61,7 +61,7 @@ struct QuestionEditView: View {
             .frame(maxWidth: .infinity)
         }
         .scrollDismissesKeyboard(.interactively)
-        .foregroundStyle(Color.roomText)
+        .foregroundStyle(Color.roomPrimaryText)
         .background(Color.roomBackground)
         .navigationTitle(question == nil ? "새 문제" : "문제 편집")
         .navigationBarTitleDisplayMode(.inline)
@@ -104,7 +104,7 @@ struct QuestionEditView: View {
         return VStack(alignment: .leading, spacing: 2) {
             Text("문제")
                 .font(.caption)
-                .foregroundStyle(Color.roomSub)
+                .foregroundStyle(Color.roomSecondaryText)
             TextField("문제를 입력해 주세요", text: $draft.text, axis: .vertical)
                 .lineLimit(1...6)
                 .font(.subheadline.bold())
@@ -112,21 +112,21 @@ struct QuestionEditView: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 9)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.roomCard, in: RoundedRectangle(cornerRadius: 14))
+        .background(Color.roomCardBackground, in: RoundedRectangle(cornerRadius: 14))
         .overlay(
             RoundedRectangle(cornerRadius: 14)
-                .stroke(hasError ? Color.roomBad : Color.roomLine, lineWidth: hasError ? 1.5 : 1)
+                .stroke(hasError ? Color.roomNegative : Color.roomBorder, lineWidth: hasError ? 1.5 : 1)
         )
     }
 
     private var choicesCard: some View {
         VStack(spacing: 0) {
             ForEach(0..<QuestionDraft.choiceCount, id: \.self) { index in
-                if index > 0 { Divider().overlay(Color.roomLine) }
+                if index > 0 { Divider().overlay(Color.roomBorder) }
                 choiceRow(index)
             }
         }
-        .roomCard(padding: EdgeInsets(top: 4, leading: 12, bottom: 4, trailing: 12))
+        .roomCardBackground(padding: EdgeInsets(top: 4, leading: 12, bottom: 4, trailing: 12))
     }
 
     private func choiceRow(_ index: Int) -> some View {
@@ -139,7 +139,7 @@ struct QuestionEditView: View {
             } label: {
                 Image(systemName: isCorrect ? "largecircle.fill.circle" : "circle")
                     .font(.title3)
-                    .foregroundStyle(isCorrect ? Color.roomAccent : Color.roomSub)
+                    .foregroundStyle(isCorrect ? Color.roomAccent : Color.roomSecondaryText)
                     .frame(minWidth: 32, minHeight: 44)
             }
             .buttonStyle(.plain)
@@ -147,7 +147,7 @@ struct QuestionEditView: View {
             .accessibilityAddTraits(isCorrect ? .isSelected : [])
             Text("\(label).")
                 .font(.subheadline)
-                .foregroundStyle(isDuplicate ? Color.roomBad : Color.roomSub)
+                .foregroundStyle(isDuplicate ? Color.roomNegative : Color.roomSecondaryText)
                 .padding(.top, 12)
             TextField("보기를 입력해 주세요", text: choiceBinding(index), axis: .vertical)
                 .font(.subheadline)
@@ -165,10 +165,10 @@ struct QuestionEditView: View {
             content()
                 .pickerStyle(.menu)
                 .labelsHidden()
-                .tint(Color.roomSub)
+                .tint(Color.roomSecondaryText)
         }
         .font(.subheadline)
-        .roomCard(padding: EdgeInsets(top: 4, leading: 12, bottom: 4, trailing: 8))
+        .roomCardBackground(padding: EdgeInsets(top: 4, leading: 12, bottom: 4, trailing: 8))
     }
 
     private var extrasLink: some View {
@@ -181,16 +181,16 @@ struct QuestionEditView: View {
                 Spacer()
                 if showsError(.resourceURLInvalid) {
                     Image(systemName: "exclamationmark.circle.fill")
-                        .foregroundStyle(Color.roomBad)
+                        .foregroundStyle(Color.roomNegative)
                         .accessibilityLabel("학습 자료 주소를 확인해 주세요")
                 }
                 Image(systemName: "chevron.right")
                     .font(.footnote)
-                    .foregroundStyle(Color.roomSub)
+                    .foregroundStyle(Color.roomSecondaryText)
                     .accessibilityHidden(true)
             }
             .frame(minHeight: 36)
-            .roomCard(padding: EdgeInsets(top: 4, leading: 12, bottom: 4, trailing: 12))
+            .roomCardBackground(padding: EdgeInsets(top: 4, leading: 12, bottom: 4, trailing: 12))
         }
         .buttonStyle(.plain)
     }
@@ -198,7 +198,7 @@ struct QuestionEditView: View {
     private func errorText(_ message: String) -> some View {
         Text(message)
             .font(.caption.bold())
-            .foregroundStyle(Color.roomBad)
+            .foregroundStyle(Color.roomNegative)
             .padding(.top, -6)
     }
 

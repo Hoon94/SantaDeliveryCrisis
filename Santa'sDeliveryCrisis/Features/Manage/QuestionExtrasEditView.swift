@@ -28,7 +28,7 @@ struct QuestionExtrasEditView: View {
                 if !draft.isResourceURLValid {
                     Text("http 또는 https로 시작하는 주소를 입력해 주세요")
                         .font(.caption.bold())
-                        .foregroundStyle(Color.roomBad)
+                        .foregroundStyle(Color.roomNegative)
                         .padding(.top, -6)
                 }
                 section("태그") {
@@ -41,7 +41,7 @@ struct QuestionExtrasEditView: View {
             .frame(maxWidth: .infinity)
         }
         .scrollDismissesKeyboard(.interactively)
-        .foregroundStyle(Color.roomText)
+        .foregroundStyle(Color.roomPrimaryText)
         .background(Color.roomBackground)
         .navigationTitle("추가 정보")
         .navigationBarTitleDisplayMode(.inline)
@@ -55,17 +55,17 @@ struct QuestionExtrasEditView: View {
         return VStack(alignment: .leading, spacing: 2) {
             Text(title)
                 .font(.caption)
-                .foregroundStyle(Color.roomSub)
+                .foregroundStyle(Color.roomSecondaryText)
             content()
                 .font(.subheadline)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 9)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.roomCard, in: RoundedRectangle(cornerRadius: 14))
+        .background(Color.roomCardBackground, in: RoundedRectangle(cornerRadius: 14))
         .overlay(
             RoundedRectangle(cornerRadius: 14)
-                .stroke(hasError ? Color.roomBad : Color.roomLine, lineWidth: hasError ? 1.5 : 1)
+                .stroke(hasError ? Color.roomNegative : Color.roomBorder, lineWidth: hasError ? 1.5 : 1)
         )
     }
 }

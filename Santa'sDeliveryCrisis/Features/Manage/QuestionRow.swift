@@ -30,10 +30,10 @@ struct QuestionRow: View {
             Text(titleText)
                 .font(.subheadline.bold())
                 .lineLimit(2)
-                .foregroundStyle(Color.roomText)
+                .foregroundStyle(Color.roomPrimaryText)
             Text(subtitleText)
                 .font(.caption)
-                .foregroundStyle(Color.roomSub)
+                .foregroundStyle(Color.roomSecondaryText)
         }
     }
 

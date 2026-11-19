@@ -36,7 +36,7 @@ struct ManageView: View {
         .padding(.top, 8)
         .frame(maxWidth: 720)
         .frame(maxWidth: .infinity)
-        .foregroundStyle(Color.roomText)
+        .foregroundStyle(Color.roomPrimaryText)
         .background(Color.roomBackground)
         .toolbarBackground(Color.roomBackground, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
@@ -68,13 +68,13 @@ struct ManageView: View {
                         onEdit: { editTarget = .existing(question.id) },
                         onDelete: { pendingDelete = question }
                     )
-                    .listRowBackground(Color.roomCard)
-                    .listRowSeparatorTint(Color.roomLine)
+                    .listRowBackground(Color.roomCardBackground)
+                    .listRowSeparatorTint(Color.roomBorder)
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                         // 내가 만든 일반 문제에만 스와이프 삭제를 붙인다.
                         if isEditable(question) {
                             Button("삭제", role: .destructive) { pendingDelete = question }
-                                .tint(Color.roomBad)
+                                .tint(Color.roomNegative)
                         }
                     }
                 }
@@ -82,7 +82,7 @@ struct ManageView: View {
                 if filteredQuestions.contains(where: { !isEditable($0) }) {
                     Text("🔒 기본 문제는 수정할 수 없어요")
                         .font(.caption)
-                        .foregroundStyle(Color.roomSub)
+                        .foregroundStyle(Color.roomSecondaryText)
                         .frame(maxWidth: .infinity)
                         .padding(.top, 4)
                 }
@@ -105,7 +105,7 @@ struct ManageView: View {
                 .font(.headline)
             Text(questions.isEmpty ? "새 문제를 만들어 보세요" : "필터를 초기화하거나 새 문제를 만들어 보세요")
                 .font(.subheadline)
-                .foregroundStyle(Color.roomSub)
+                .foregroundStyle(Color.roomSecondaryText)
                 .multilineTextAlignment(.center)
             if !questions.isEmpty {
                 Button(action: resetFilters) {
@@ -121,7 +121,7 @@ struct ManageView: View {
             Button { editTarget = .new } label: {
                 Text("＋ 새 문제 만들기")
                     .font(.body.bold())
-                    .foregroundStyle(Color.roomOnAccent)
+                    .foregroundStyle(Color.roomOnAccentText)
                     .frame(maxWidth: .infinity, minHeight: 48)
                     .background(Color.roomAccent, in: RoundedRectangle(cornerRadius: 14))
             }
@@ -227,7 +227,7 @@ private struct ManageToolbar: ToolbarContent {
     private var title: some View {
         Text("문제 관리")
             .font(.title2.bold())
-            .foregroundStyle(Color.roomText)
+            .foregroundStyle(Color.roomPrimaryText)
             .lineLimit(1)
             .fixedSize()
             .accessibilityAddTraits(.isHeader)

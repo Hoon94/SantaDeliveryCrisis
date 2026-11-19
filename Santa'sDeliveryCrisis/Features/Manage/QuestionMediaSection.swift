@@ -45,7 +45,7 @@ struct QuestionMediaSection: View {
                 mediaPreview(title: "선택한 영상", systemImage: "film") {
                     Image(systemName: "film")
                         .font(.title)
-                        .foregroundStyle(Color.roomSub)
+                        .foregroundStyle(Color.roomSecondaryText)
                 } onRemove: {
                     draft.videoFileName = nil
                 }
@@ -77,9 +77,9 @@ struct QuestionMediaSection: View {
     private func pickerLabel(_ title: String) -> some View {
         Text(title)
             .font(.subheadline)
-            .foregroundStyle(Color.roomText)
+            .foregroundStyle(Color.roomPrimaryText)
             .frame(maxWidth: .infinity, minHeight: 44)
-            .roomCard(padding: EdgeInsets(top: 0, leading: 12, bottom: 0, trailing: 12))
+            .roomCardBackground(padding: EdgeInsets(top: 0, leading: 12, bottom: 0, trailing: 12))
     }
 
     // MARK: - 미리보기
@@ -93,23 +93,23 @@ struct QuestionMediaSection: View {
         HStack(spacing: 12) {
             thumbnail()
                 .frame(width: 64, height: 64)
-                .background(Color.roomSoft, in: RoundedRectangle(cornerRadius: 10))
+                .background(Color.roomSubtleBackground, in: RoundedRectangle(cornerRadius: 10))
                 .clipShape(RoundedRectangle(cornerRadius: 10))
                 .accessibilityHidden(true)
             Text(title)
                 .font(.footnote)
-                .foregroundStyle(Color.roomSub)
+                .foregroundStyle(Color.roomSecondaryText)
             Spacer()
             Button(action: onRemove) {
                 Label("삭제", systemImage: "xmark")
                     .font(.footnote.bold())
-                    .foregroundStyle(Color.roomBad)
+                    .foregroundStyle(Color.roomNegative)
                     .frame(minHeight: 44)
             }
             .buttonStyle(.plain)
             .accessibilityLabel("\(title) 삭제")
         }
-        .roomCard()
+        .roomCardBackground()
     }
 
     @ViewBuilder
@@ -118,10 +118,10 @@ struct QuestionMediaSection: View {
             AsyncImage(url: provider.url(for: fileName)) { image in
                 image.resizable().scaledToFill()
             } placeholder: {
-                Image(systemName: "photo").foregroundStyle(Color.roomSub)
+                Image(systemName: "photo").foregroundStyle(Color.roomSecondaryText)
             }
         } else {
-            Image(systemName: "photo").font(.title).foregroundStyle(Color.roomSub)
+            Image(systemName: "photo").font(.title).foregroundStyle(Color.roomSecondaryText)
         }
     }
 
