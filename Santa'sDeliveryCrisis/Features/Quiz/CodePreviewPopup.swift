@@ -1,11 +1,15 @@
 import SwiftUI
 
 /// 코드 전체를 크게 보여 주는 창. 테두리와 제목줄, 닫기 버튼이 없다.
+/// 맥 터미널 창처럼 어두운 배경에 밝은 글자, 작은 모서리 곡률(10pt)을 쓴다. 색은 `TerminalBackground`, `TerminalText`에서 바꾼다.
 /// 창 안이나 바깥의 어느 곳이든 한 번 누르면 닫힌다. 코드가 창보다 크면 위아래, 좌우로 밀어서 볼 수 있다.
 struct CodePreviewPopup: View {
     let code: String
     /// 누르면 닫아야 할 때 부른다.
     let onClose: () -> Void
+
+    /// 창 모서리 곡률. 맥 창처럼 작게 둔다.
+    private static let cornerRadius: CGFloat = 10
 
     /// 코드 글이 실제로 차지하는 크기. 짧은 코드는 창이 그 크기에 맞게 줄어든다.
     @State private var contentSize: CGSize = .zero
@@ -21,7 +25,7 @@ struct CodePreviewPopup: View {
                 ScrollView([.horizontal, .vertical], showsIndicators: false) {
                     Text(code)
                         .font(.system(.body, design: .monospaced))
-                        .foregroundStyle(Color.nightPrimaryText)
+                        .foregroundStyle(Color.terminalText)
                         .fixedSize(horizontal: true, vertical: true)
                         .padding(22)
                         .onGeometryChange(for: CGSize.self) { $0.size } action: { contentSize = $0 }
@@ -32,11 +36,11 @@ struct CodePreviewPopup: View {
                     height: contentSize.height > 0 ? min(contentSize.height, maxHeight) : maxHeight
                 )
                 .background(
-                    RoundedRectangle(cornerRadius: 22, style: .continuous)
-                        .fill(Color.nightCardBackground)
-                        .shadow(color: Color.inkShadow.opacity(0.35), radius: 28, y: 10)
+                    RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous)
+                        .fill(Color.terminalBackground)
+                        .shadow(color: Color.inkShadow.opacity(0.45), radius: 30, y: 12)
                 )
-                .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: Self.cornerRadius, style: .continuous))
             }
             .frame(width: proxy.size.width, height: proxy.size.height)
             .contentShape(Rectangle())

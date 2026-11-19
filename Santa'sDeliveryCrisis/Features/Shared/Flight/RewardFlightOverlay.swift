@@ -159,6 +159,8 @@ struct RewardFlightOverlay: View {
         }
 
         return ZStack {
+            treeGlow(flight, items: items, overlayOrigin: overlayOrigin)
+
             // 가장 늦게 출발하는 장식이 아래, 먼저 나는 장식이 위
             ForEach(items.reversed(), id: \.index) { item in
                 ornament(flight, item: item, now: now)
@@ -240,6 +242,40 @@ struct RewardFlightOverlay: View {
                     .opacity(1 - RevealMath.smooth((p - 0.3) / 0.25))
                     .position(g.target)
             }
+        }
+    }
+
+    // MARK: - 트리 전체의 은은한 후광
+
+    /// 장식이 칸에 박히는 순간 트리 전체에 아주 약하고 작게 번졌다 사라지는 따뜻한 빛.
+    /// 장식 하나가 박힐 때마다 한 번씩 겹쳐 오르며, 세기는 일부러 낮게 둔다.
+    @ViewBuilder
+    private func treeGlow(
+        _ flight: RewardFlightCenter.Flight,
+        items: [(index: Int, geometry: Geometry, phase: Phase)],
+        overlayOrigin: CGPoint
+    ) -> some View {
+        let strength = items.reduce(0.0) { total, item in
+            guard case .absorbing(let p) = item.phase else { return total }
+            // 닿은 직후 빠르게 올라 천천히 가라앉는다.
+            return total + RevealMath.smooth(p / 0.1) * exp(-max(p - 0.1, 0) * 4.5)
+        }
+        if !reduceMotion, strength > 0.003, center.hasTreeFrame {
+            let frame = center.treeSceneFrame
+            let alpha = min(strength, 1.4) * 0.15
+            RadialGradient(
+                colors: [
+                    Color.glowCore.opacity(alpha),
+                    flight.style.tint.opacity(alpha * 0.45),
+                    .clear
+                ],
+                center: .center,
+                startRadius: 0,
+                endRadius: frame.width * 0.62
+            )
+            .frame(width: frame.width * 1.3, height: frame.height * 1.3)
+            .blendMode(.plusLighter)
+            .position(x: frame.midX - overlayOrigin.x, y: frame.midY - overlayOrigin.y)
         }
     }
 
