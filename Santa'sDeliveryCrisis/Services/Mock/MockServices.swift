@@ -131,11 +131,7 @@ final class MockTreeManager: TreeManaging {
 }
 
 /// 아무것도 재생하지 않는 피드백
-struct MockFeedbackPlayer: FeedbackPlaying {
-    func playCorrect() {}
-    func playWrong() {}
-    func playTreeComplete() {}
-}
+typealias MockFeedbackPlayer = SilentFeedbackPlayer
 
 /// 파일을 다루지 않는 미디어 관리자
 struct MockMediaFileManager: MediaFileManaging {
