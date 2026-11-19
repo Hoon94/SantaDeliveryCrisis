@@ -56,14 +56,14 @@ private struct QuizFlowContent: View {
         .animation(.easeInOut(duration: 0.45), value: model.phase == .result)
         .sheet(isPresented: feedbackBinding) { feedbackSheet }
         .alert("퀴즈를 그만할까요?", isPresented: $isExitAlertShown) {
-            Button("나가기") { onClose() }
+            Button("나가기") { leave() }
             Button("계속 풀기", role: .cancel) {}
         } message: {
             Text(exitMessage)
         }
         .alert("문제가 생겼어요", isPresented: failedBinding) {
             Button("다시 시도") { model.retry() }
-            Button("나가기", role: .cancel) { onClose() }
+            Button("나가기", role: .cancel) { leave() }
         } message: {
             if case .failed(let message) = model.phase { Text(message) }
         }
@@ -74,8 +74,12 @@ private struct QuizFlowContent: View {
         }
     }
 
-    private var exitMessage: String {
-        "지금 푸는 \(model.index + 1)번째 문제는 아직 채점 전이라 선택한 답이 저장되지 않아요. 이어서 풀면 이 문제부터 다시 시작해요.\n나중에 작업실에서 이어서 풀 수 있어요."
+    private var exitMessage: String { model.exitMessage }
+
+    /// 시간을 저장한 뒤 화면을 닫는다. 세션은 `inProgress`로 남아 이어 풀 수 있다.
+    private func leave() {
+        model.prepareToLeave()
+        onClose()
     }
 
     private var feedbackBinding: Binding<Bool> {

@@ -83,17 +83,39 @@ final class QuizFlowModel {
     /// [확인]을 누를 수 있는가
     var canConfirm: Bool { phase == .answering && selectedIndex != nil }
 
-    /// 보기의 현재 상태
+    /// 지금 문제의 답이 저장되어 채점된 상태인가. 저장에 실패했다면 false다.
+    private var isCurrentAnswerSaved: Bool {
+        guard let snapshot = currentSnapshot else { return false }
+        return session.answers.contains { $0.questionID == snapshot.questionID }
+    }
+
+    /// 보기의 현재 상태.
+    /// 답 저장에 실패해 `.failed`가 된 경우에는 채점이 일어나지 않았으므로 정답을 보여 주지 않고 선택 상태만 둔다.
     func choiceState(at choice: Int) -> QuizChoiceState {
         guard let snapshot = currentSnapshot else { return .idle }
+        let isGraded: Bool
         switch phase {
-        case .answering:
-            return selectedIndex == choice ? .selected : .idle
-        case .feedback, .finishing, .result, .failed:
-            if choice == snapshot.correctIndex { return .correct }
-            if choice == selectedIndex { return .wrong }
-            return .dimmed
+        case .answering: isGraded = false
+        case .failed: isGraded = isCurrentAnswerSaved
+        case .feedback, .finishing, .result: isGraded = true
         }
+        guard isGraded else { return selectedIndex == choice ? .selected : .idle }
+        if choice == snapshot.correctIndex { return .correct }
+        if choice == selectedIndex { return .wrong }
+        return .dimmed
+    }
+
+    /// 나가기 확인 알림에 보여 줄 안내. 채점 전과 후, 모든 문제에 답한 뒤의 문구가 다르다.
+    var exitMessage: String {
+        let saved = session.answers.count
+        let guide = "나중에 작업실에서 이어서 풀 수 있어요."
+        if totalCount > 0, saved >= totalCount {
+            return "모든 문제의 답이 저장됐어요. 이어서 풀면 바로 결과를 계산해요.\n\(guide)"
+        }
+        if isCurrentAnswerSaved {
+            return "지금까지 푼 \(saved)문제까지 저장돼요. 이어서 풀면 \(saved + 1)번째 문제부터 시작해요.\n\(guide)"
+        }
+        return "지금 푸는 \(index + 1)번째 문제는 아직 채점 전이라 선택한 답이 저장되지 않아요. 이어서 풀면 이 문제부터 다시 시작해요.\n\(guide)"
     }
 
     /// 지금까지 쓴 시간(초)
@@ -120,6 +142,11 @@ final class QuizFlowModel {
             activeSince = nil
             syncElapsed()
         }
+    }
+
+    /// 화면을 떠나기 전에 시간 쌓기를 멈추고 지금까지의 시간을 저장한다. 나가기를 고르면 부른다.
+    func prepareToLeave() {
+        setActive(false)
     }
 
     /// 지금까지의 누적 시간을 서비스에 저장한다. 답을 낸 직후, 앱이 백그라운드로 갈 때, 결과를 계산하기 직전에 부른다.
@@ -152,9 +179,10 @@ final class QuizFlowModel {
     /// [확인]. 답을 저장하고 채점 결과를 보여 준다.
     func confirm() {
         guard phase == .answering, let choice = selectedIndex, currentSnapshot != nil else { return }
-        syncElapsed()
         do {
             let answer = try services.sessions.submit(answerIndex: choice, forQuestionAt: index, in: session)
+            // 답을 저장한 직후 지금까지의 시간도 함께 저장한다.
+            syncElapsed()
             // 이미 저장된 답이 있으면 처음 저장된 답이 돌아온다. 화면도 그 답을 따른다.
             selectedIndex = answer.selectedIndex
             let isCorrect = answer.isCorrect
