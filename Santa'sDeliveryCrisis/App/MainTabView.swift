@@ -28,12 +28,13 @@ struct MainTabView: View {
                 .tag(Tab.manage)
         }
         .tint(.appTint)
-        .environment(\.rewardFlight, rewardFlight)
         // 장식이 날아가기 시작하면 트리가 있는 작업실 탭으로 옮긴다. 퀴즈 화면은 그 위에서 페이드로 닫힌다.
         .onChange(of: rewardFlight.flight?.id) { _, id in
             if id != nil { selectedTab = .task }
         }
+        // 환경은 오버레이를 붙인 뒤에 넣어야 연출 층도 같은 상태 객체를 받는다.
         .overlay { RewardFlightOverlay() }
+        .environment(\.rewardFlight, rewardFlight)
     }
 }
 
