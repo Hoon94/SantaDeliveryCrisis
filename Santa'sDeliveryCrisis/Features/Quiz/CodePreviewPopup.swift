@@ -15,7 +15,7 @@ struct CodePreviewPopup: View {
             let maxWidth = min(proxy.size.width - 32, 760)
             let maxHeight = proxy.size.height * 0.82
             ZStack {
-                Color.black.opacity(0.55)
+                Color.revealScrim.opacity(0.7)
                     .ignoresSafeArea()
 
                 ScrollView([.horizontal, .vertical], showsIndicators: false) {
@@ -34,7 +34,7 @@ struct CodePreviewPopup: View {
                 .background(
                     RoundedRectangle(cornerRadius: 22, style: .continuous)
                         .fill(Color.nightCardBackground)
-                        .shadow(color: .black.opacity(0.35), radius: 28, y: 10)
+                        .shadow(color: Color.inkShadow.opacity(0.35), radius: 28, y: 10)
                 )
                 .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
             }
