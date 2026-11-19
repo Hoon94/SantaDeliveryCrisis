@@ -85,7 +85,7 @@ struct ResultPopupCard: View {
             threshold: summary.thresholdPercent,
             correct: summary.result.correctCount,
             total: summary.result.totalCount,
-            isSuccess: summary.isSuccess,
+            isSuccess: summary.passedThreshold,
             tint: tint,
             t: shownFor
         )
@@ -122,7 +122,7 @@ struct ResultPopupCard: View {
 
     /// 통과 여부. 색 외에 아이콘과 문구로도 구분한다.
     private var passBanner: some View {
-        let isSuccess = summary.isSuccess
+        let isSuccess = summary.passedThreshold
         return HStack(spacing: 10) {
             Image(systemName: isSuccess ? "checkmark.seal.fill" : "xmark.seal.fill")
                 .font(.title3)
@@ -131,7 +131,7 @@ struct ResultPopupCard: View {
                 Text(isSuccess ? "기준 \(summary.thresholdPercent)% 통과" : "기준 \(summary.thresholdPercent)%에 못 미쳤어요")
                     .font(.subheadline.weight(.bold))
                     .foregroundStyle(Color.nightPrimaryText)
-                Text(isSuccess ? "장식을 1개 받았어요" : "벌칙은 없어요. 다시 도전해 보세요")
+                Text(summary.rewardMessage)
                     .font(.caption)
                     .foregroundStyle(Color.nightSecondaryText)
             }

@@ -325,7 +325,7 @@ private struct RevealLab: View {
 }
 
 #Preview("획득 연출 · 소원 접수") {
-    RevealLab(style: .category(.aiUsage), summary: .previewSuccess)
+    RevealLab(style: .task(.wishReception), summary: .previewSuccess)
 }
 
 #Preview("획득 연출 · 오늘의 출제(트리 완성)") {
@@ -333,6 +333,6 @@ private struct RevealLab: View {
 }
 
 #Preview("획득 연출 · 포장") {
-    RevealLab(style: .category(.hig), summary: .previewSuccess)
+    RevealLab(style: .task(.wrapping), summary: .previewSuccess)
 }
 #endif

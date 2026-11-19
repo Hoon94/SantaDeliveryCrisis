@@ -1,19 +1,19 @@
 import SwiftUI
 
-/// 장식의 색 구성. 작업별 장식은 그 작업의 색, 여러 작업을 섞은 세션은 네 작업 색이 섞인 무지개 장식이다.
+/// 보상 작업의 장식 색 구성. 무지개 스타일은 연출 프리뷰용이다.
 enum OrnamentStyle: Equatable {
-    case category(QuizCategory)
+    case task(WorkshopTask)
     case mixed
 
-    /// 세션의 작업으로 장식 스타일을 정한다. nil이면 여러 작업을 섞은 세션.
-    init(category: QuizCategory?) {
-        self = category.map(OrnamentStyle.category) ?? .mixed
+    /// 문제 카테고리와 무관하게 세션에 저장된 작업으로 장식 스타일을 정한다.
+    init(task: WorkshopTask) {
+        self = .task(task)
     }
 
     /// 장식을 대표하는 색. 버튼과 빛에 쓴다.
     var tint: Color {
         switch self {
-        case .category(let category): category.themeColor
+        case .task(let task): task.themeColor
         case .mixed: .glowGold
         }
     }
@@ -21,15 +21,15 @@ enum OrnamentStyle: Equatable {
     /// 장식 이름
     var title: String {
         switch self {
-        case .category(let category): "\(category.taskName) 장식"
+        case .task(let task): "\(task.displayName) 장식"
         case .mixed: "여러 작업 섞음 장식"
         }
     }
 
     fileprivate var bodyFill: AnyShapeStyle {
         switch self {
-        case .category(let category):
-            AnyShapeStyle(category.themeColor)
+        case .task(let task):
+            AnyShapeStyle(task.themeColor)
         case .mixed:
             AnyShapeStyle(AngularGradient(
                 colors: [.categoryAiUsage, .categorySwiftSyntax, .categoryHig, .categorySwiftUIPractice, .categoryAiUsage],
@@ -203,9 +203,9 @@ struct OrnamentView: View {
 
 #Preview("평범함에서 빛남까지") {
     HStack(spacing: 20) {
-        OrnamentView(style: .category(.aiUsage), radiance: 0, size: 100)
-        OrnamentView(style: .category(.aiUsage), radiance: 0, heat: 0.7, size: 100)
-        OrnamentView(style: .category(.aiUsage), radiance: 1, glint: 0.5, size: 100)
+        OrnamentView(style: .task(.wishReception), radiance: 0, size: 100)
+        OrnamentView(style: .task(.wishReception), radiance: 0, heat: 0.7, size: 100)
+        OrnamentView(style: .task(.wishReception), radiance: 1, glint: 0.5, size: 100)
         OrnamentView(style: .mixed, radiance: 1, size: 100)
     }
     .padding(30)
@@ -214,8 +214,8 @@ struct OrnamentView: View {
 
 #Preview("네 작업 장식") {
     HStack(spacing: 14) {
-        ForEach(QuizCategory.allCases, id: \.self) { category in
-            OrnamentView(style: .category(category), radiance: 1, size: 80)
+        ForEach(WorkshopTask.allCases, id: \.self) { task in
+            OrnamentView(style: .task(task), radiance: 1, size: 80)
         }
     }
     .padding(30)

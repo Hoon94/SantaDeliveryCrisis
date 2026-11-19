@@ -17,6 +17,7 @@ enum MockData {
 
     static func session(answered: Int = 0) -> QuizSession {
         let session = QuizSession(
+            task: .giftProduction,
             category: nil,
             difficulty: .easy,
             questionSnapshots: [QuestionSnapshot(question)],
@@ -50,10 +51,17 @@ struct MockQuestionSelector: QuestionSelecting {
 /// 저장 없이 메모리에서만 동작하는 세션 관리자
 final class MockSessionManager: SessionManaging {
     private var current: QuizSession?
+    private let trees: any TreeManaging
 
-    func startSession(category: QuizCategory?, difficulty: Difficulty, tags: Set<String>, count: Int) throws -> QuizSession {
+    init(trees: (any TreeManaging)? = nil) {
+        self.trees = trees ?? MockTreeManager()
+    }
+
+    func startSession(task: WorkshopTask, categories: Set<QuizCategory>, difficulty: Difficulty, tags: Set<String>, count: Int) throws -> QuizSession {
+        guard resumableSession() == nil else { throw SessionError.sessionAlreadyInProgress }
         let session = MockData.session()
-        session.category = category
+        session.task = task
+        session.category = categories.count == 1 ? categories.first : nil
         session.difficulty = difficulty
         current = session
         return session
@@ -78,19 +86,31 @@ final class MockSessionManager: SessionManaging {
     }
 
     func finish(_ session: QuizSession) throws -> SessionResult {
+        guard session.status != .abandoned else { throw SessionError.sessionNotInProgress }
         let correct = session.answers.filter(\.isCorrect).count
         let total = session.questionSnapshots.count
-        let percent = Accuracy.percent(correct: correct, total: total)
-        session.status = .completed
+        let passed = Accuracy.meetsThreshold(correct: correct, total: total, thresholdPercent: session.passThresholdPercent)
+        if session.status == .inProgress {
+            guard session.questionSnapshots.allSatisfy({ snapshot in
+                session.answers.contains { $0.questionID == snapshot.questionID }
+            }) else { throw SessionError.notAllAnswered }
+            if passed {
+                let grant = try trees.grant(task: session.task, difficulty: session.difficulty)
+                session.rewardOutcome = grant.rewardOutcome
+                session.treeCompleted = grant.completedTree != nil
+            } else {
+                session.rewardOutcome = trees.currentTree().hasReward(task: session.task, difficulty: session.difficulty)
+                    ? .alreadyEarned : .notEarned
+            }
+            session.earnedDecorations = session.rewardOutcome == .earned ? 1 : 0
+            session.status = .completed
+            session.finishedAt = Date()
+        }
         return SessionResult(
-            correctCount: correct,
-            totalCount: total,
-            accuracyPercent: percent,
-            elapsed: session.elapsedSeconds,
-            earnedDecorations: Accuracy.meetsThreshold(
-                correct: correct, total: total, thresholdPercent: session.passThresholdPercent
-            ) ? 1 : 0,
-            treeCompleted: false,
+            correctCount: correct, totalCount: total,
+            accuracyPercent: Accuracy.percent(correct: correct, total: total), elapsed: session.elapsedSeconds,
+            passedThreshold: passed, rewardOutcome: session.rewardOutcome,
+            earnedDecorations: session.earnedDecorations, treeCompleted: session.treeCompleted,
             wrongAnswers: session.answers.filter { !$0.isCorrect }
         )
     }
@@ -119,17 +139,18 @@ final class MockTreeManager: TreeManaging {
 
     func currentTree() -> TreeRecord { tree }
 
-    func grant(decorations: Int) throws -> TreeGrantResult {
-        tree.decorationCount += decorations
-        guard tree.decorationCount >= TreeRecord.slotCount else {
-            return TreeGrantResult(completedTree: nil, currentDecorationCount: tree.decorationCount)
+    func grant(task: WorkshopTask, difficulty: Difficulty) throws -> TreeGrantResult {
+        guard tree.recordReward(task: task, difficulty: difficulty) else {
+            return TreeGrantResult(completedTree: nil, currentDecorationCount: tree.decorationCount, rewardOutcome: .alreadyEarned)
+        }
+        guard tree.decorationCount == TreeRecord.slotCount else {
+            return TreeGrantResult(completedTree: nil, currentDecorationCount: tree.decorationCount, rewardOutcome: .earned)
         }
         let finished = tree
-        finished.decorationCount = TreeRecord.slotCount
         finished.completedAt = Date()
         completed.append(finished)
         tree = TreeRecord()
-        return TreeGrantResult(completedTree: finished, currentDecorationCount: 0)
+        return TreeGrantResult(completedTree: finished, currentDecorationCount: 0, rewardOutcome: .earned)
     }
 
     func completedTrees() -> [TreeRecord] { completed }

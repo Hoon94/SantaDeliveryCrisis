@@ -4,7 +4,9 @@ import Foundation
 struct QuizResultSummary {
     /// 서비스가 돌려준 결과
     let result: SessionResult
-    /// 세션의 작업. nil이면 여러 카테고리를 골라 섞어 낸 세션("여러 작업 섞음")
+    /// 퀴즈를 시작할 때 선택한 보상 작업.
+    let task: WorkshopTask
+    /// 단일 학습 카테고리. 여러 카테고리를 고른 세션이면 nil이다.
     let category: QuizCategory?
     /// 난이도
     let difficulty: Difficulty
@@ -16,8 +18,21 @@ struct QuizResultSummary {
     /// 장식을 받았는가
     var isSuccess: Bool { result.earnedDecorations > 0 }
 
+    /// 기준 통과 여부. 이미 보상을 받은 재풀이도 통과로 표시한다.
+    var passedThreshold: Bool { result.passedThreshold }
+
+    /// 신규 획득·이미 획득·기준 미달을 구별하는 안내.
+    var rewardMessage: String {
+        switch result.rewardOutcome {
+        case .earned: "장식을 1개 받았어요"
+        case .alreadyEarned: "이미 획득한 장식은 그대로예요. 추가 보상은 없어요"
+        case .notEarned: "벌칙은 없어요. 다시 도전해 보세요"
+        case .pending: "아직 결과가 확정되지 않았어요"
+        }
+    }
+
     /// 화면에 보여 줄 작업 이름
-    var taskTitle: String { category?.taskName ?? "여러 작업 섞음" }
+    var taskTitle: String { task.displayName }
 
     /// 카테고리 이름. 혼합 세션이면 설명 문구
     var categoryTitle: String { category?.categoryName ?? "여러 카테고리 섞음" }

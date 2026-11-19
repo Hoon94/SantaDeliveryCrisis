@@ -1,6 +1,6 @@
 import Foundation
 
-/// 문제 카테고리. UI에서는 산타 테마의 "작업" 이름으로 보여 준다.
+/// 문제의 학습 카테고리. 보상을 쌓는 작업은 WorkshopTask로 구분한다.
 nonisolated enum QuizCategory: String, Codable, CaseIterable, Sendable {
     /// 소원 접수 (AI 활용)
     case aiUsage
@@ -11,7 +11,7 @@ nonisolated enum QuizCategory: String, Codable, CaseIterable, Sendable {
     /// 썰매 적재 (SwiftUI 실전)
     case swiftUIPractice
 
-    /// UI에 표시하는 작업 이름
+    /// 기존 문제별 테마 이름. 실제 보상 작업 이름은 WorkshopTask.displayName을 사용한다.
     var taskName: String {
         switch self {
         case .aiUsage: "소원 접수"
