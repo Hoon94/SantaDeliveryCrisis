@@ -49,7 +49,9 @@ struct TaskTreePanel: View {
 
     // FIXME: [자산 교체] 임시 도형으로 그린 작업실 바닥과 창문을 실제 작업실 배경 이미지로 교체
     private func roomScene(scale: CGFloat, size: CGSize) -> some View {
-        ZStack(alignment: .topLeading) {
+        let windowSize = CGSize(width: 66 * scale, height: 75 * scale)
+
+        return ZStack(alignment: .topLeading) {
             Rectangle()
                 .fill(Color.roomFloor)
                 .frame(width: size.width, height: 44 * scale)
@@ -67,14 +69,14 @@ struct TaskTreePanel: View {
                 }
                 .overlay {
                     Path { path in
-                        path.move(to: CGPoint(x: 22 * scale, y: 0))
-                        path.addLine(to: CGPoint(x: 22 * scale, y: 50 * scale))
-                        path.move(to: CGPoint(x: 0, y: 25 * scale))
-                        path.addLine(to: CGPoint(x: 44 * scale, y: 25 * scale))
+                        path.move(to: CGPoint(x: windowSize.width / 2, y: 0))
+                        path.addLine(to: CGPoint(x: windowSize.width / 2, y: windowSize.height))
+                        path.move(to: CGPoint(x: 0, y: windowSize.height / 2))
+                        path.addLine(to: CGPoint(x: windowSize.width, y: windowSize.height / 2))
                     }
                     .stroke(Color.roomFloor, lineWidth: 2 * scale)
                 }
-                .frame(width: 44 * scale, height: 50 * scale)
+                .frame(width: windowSize.width, height: windowSize.height)
                 .offset(x: 8 * scale, y: 30 * scale)
         }
         .frame(width: size.width, height: size.height, alignment: .topLeading)

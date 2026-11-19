@@ -8,14 +8,23 @@ struct MainTabView: View {
     }
 
     @State private var selectedTab: Tab = .task
+    @State private var setupRequestID: UUID?
+    @State private var activeQuizSession: QuizSession?
 
-    /// 선택 상태를 공유하며 각 탭의 독립된 화면 이동 경로를 유지한다.
+    /// 탭별 이동 경로를 유지하고 작업실의 새 퀴즈 요청을 출제 탭으로 전달한다.
     var body: some View {
         TabView(selection: $selectedTab) {
-            TaskHomeNavigationView(onSelectQuestions: { selectedTab = .select })
+            TabRoot(title: "산타의 작업실") {
+                TaskHomeView {
+                    setupRequestID = UUID()
+                    selectedTab = .select
+                }
+            }
                 .tabItem { Label("작업실", systemImage: "gift") }
                 .tag(Tab.task)
-            TabRoot(title: "출제") { SelectView() }
+            TabRoot(title: "출제") {
+                SelectView(activeQuizSession: $activeQuizSession, setupRequestID: setupRequestID)
+            }
                 .tabItem { Label("출제", systemImage: "tree") }
                 .tag(Tab.select)
             TabRoot(title: "기록") { RecordsView() }
@@ -26,6 +35,19 @@ struct MainTabView: View {
                 .tag(Tab.manage)
         }
         .tint(.appTint)
+        .fullScreenCover(item: $activeQuizSession) { session in
+            QuizEntryPresentation(session: session, onWillClose: prepareWorkshopReturn)
+                .presentationBackground(.clear)
+        }
+    }
+
+    /// 퀴즈가 화면을 덮고 있을 때 복귀 탭을 바꿔 출제 화면이 잠깐 보이는 것을 방지한다.
+    private func prepareWorkshopReturn() {
+        var transaction = Transaction(animation: nil)
+        transaction.disablesAnimations = true
+        withTransaction(transaction) {
+            selectedTab = .task
+        }
     }
 }
 
@@ -54,3 +76,35 @@ private struct TabRoot<Content: View>: View {
         )
     }
 }
+
+#if DEBUG
+/// 실제 세션 서비스를 사용해 탭 전환과 퀴즈 종료 후 복귀를 확인하는 프리뷰.
+@ViewBuilder
+private func quizNavigationPreview(existingSession: Bool) -> some View {
+    let questions = QuizCategory.allCases.flatMap { category in
+        Difficulty.allCases.flatMap { difficulty in
+            TaskSelectPreviewData.questions(category: category, difficulty: difficulty, count: 15)
+        }
+    }
+    let sessions = existingSession ? [TaskSelectPreviewData.session(
+        questions: Array(questions.filter { $0.category == .swiftSyntax && $0.difficulty == .normal }.prefix(5)),
+        category: .swiftSyntax, difficulty: .normal, answered: 2
+    )] : []
+
+    if let preview = try? TaskSelectPreviewData.environment(questions: questions, sessions: sessions) {
+        MainTabView()
+            .modelContainer(preview.container)
+            .environment(\.services, preview.services)
+    } else {
+        ContentUnavailableView("미리보기 데이터를 준비하지 못했어요", systemImage: "exclamationmark.triangle")
+    }
+}
+
+#Preview("탭 흐름 · 새 퀴즈 시작과 작업실 복귀") {
+    quizNavigationPreview(existingSession: false)
+}
+
+#Preview("탭 흐름 · 진행 중 세션 복원과 작업실 복귀") {
+    quizNavigationPreview(existingSession: true)
+}
+#endif

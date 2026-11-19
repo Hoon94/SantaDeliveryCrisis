@@ -3,6 +3,12 @@ import SwiftUI
 
 /// 출제 조건 편집과 장식 선택, 세션 진입을 연결하는 화면.
 struct SelectView: View {
+    /// 퀴즈는 탭 전환에도 유지되는 상위 화면에서 표시한다.
+    @Binding var activeQuizSession: QuizSession?
+
+    /// 작업실에서 새 퀴즈를 요청할 때 바뀌는 값. 직접 탭 전환은 설정을 초기화하지 않는다.
+    var setupRequestID: UUID? = nil
+
     private struct PendingStart: Identifiable {
         let id = UUID()
         let existing: QuizSession
@@ -10,15 +16,24 @@ struct SelectView: View {
         let filter: SelectFilter
     }
 
+    private struct DeferredPresentation {
+        let result: StartSessionCoordinator.Outcome
+        let resetsFilter: Bool
+    }
+
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.services) private var services
     @Query private var sessions: [QuizSession]
     @Query private var questions: [Question]
+    /// 작업실과 동일하게 가장 먼저 시작한 현재 트리의 장식 수를 표시한다.
+    @Query(
+        filter: #Predicate<TreeRecord> { $0.completedAt == nil },
+        sort: \TreeRecord.startedAt
+    ) private var activeTrees: [TreeRecord]
     @State private var filterState = SelectFilterState()
     @State private var isEditing = true
-    @State private var activeQuizSession: QuizSession?
     @State private var pendingStart: PendingStart?
-    @State private var deferredOutcome: StartSessionCoordinator.Outcome?
+    @State private var deferredPresentation: DeferredPresentation?
     @State private var showsStartFailure = false
 
     /// 장식 선택 위에 설정 팝업을 표시하고 세션 처리 결과에 따라 화면을 연다.
@@ -30,20 +45,24 @@ struct SelectView: View {
             }
         }
         .background(background)
-        .toolbar(.hidden, for: .navigationBar)
-        .fullScreenCover(item: quizPresentation) { session in
-            QuizEntryPresentation(session: session)
-                .presentationBackground(.clear)
+        .onChange(of: setupRequestID) { _, _ in
+            filterState = SelectFilterState()
+            isEditing = true
         }
+        .navigationTitle("출제")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.hidden, for: .navigationBar)
         .sheet(item: $pendingStart, onDismiss: finishResumeChoice) { request in
             ResumeChoiceSheet(
                 session: request.existing,
-                onResume: { completeResumeChoice(coordinator.resume(request.existing)) },
+                onResume: {
+                    completeResumeChoice(coordinator.resume(request.existing), resetsFilter: false)
+                },
                 onRestart: {
                     completeResumeChoice(coordinator.restart(
                         replacing: request.existing, category: request.category,
                         filter: request.filter, questions: questions
-                    ))
+                    ), resetsFilter: true)
                 }
             )
         }
@@ -72,7 +91,10 @@ struct SelectView: View {
             availability: DecorationAvailability.calculate(
                 filter: filterState.applied, questions: questions, selector: services.selector
             ),
-            onEdit: beginEditing, onSelect: startSession
+            filledCount: activeTrees.first?.decorationCount ?? 0,
+            onEdit: beginEditing,
+            onResetSettings: resetSettings,
+            onSelect: startSession
         )
         .blur(radius: isEditing ? 5 : 0)
         .accessibilityHidden(isEditing)
@@ -87,19 +109,9 @@ struct SelectView: View {
                     recommendedCategory: services.recommender.recommendedCategory(sessions: sessions),
                     onApply: applyEditing, onCancel: cancelEditing
                 )
-                // 팝업 내부의 빈 영역은 바깥 취소 버튼으로 탭을 전달하지 않는다.
-                .contentShape(Rectangle())
-                .onTapGesture {}
                 .padding(.horizontal, 14)
                 .padding(.vertical, 16)
                 .frame(maxWidth: .infinity, minHeight: geometry.size.height)
-                .background {
-                    Button(action: cancelEditing) {
-                        Color.clear.contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("출제 설정 취소하고 닫기")
-                }
             }
             .scrollClipDisabled()
         }
@@ -131,20 +143,24 @@ struct SelectView: View {
 
     private func startSession(category: QuizCategory) {
         guard activeQuizSession == nil, pendingStart == nil,
-              deferredOutcome == nil, showsStartFailure == false else { return }
+              deferredPresentation == nil, showsStartFailure == false else { return }
         let result = coordinator.start(
             category: category, filter: filterState.applied, questions: questions
         )
         if case .needsResumeChoice(let existing) = result {
             pendingStart = PendingStart(existing: existing, category: category, filter: filterState.applied)
         } else {
-            present(result)
+            present(result, resetsFilter: true)
         }
     }
 
-    private func present(_ result: StartSessionCoordinator.Outcome) {
+    /// 새 세션 생성 성공일 때만 다음 출제 조건을 초기화한다. 복원·실패 시에는 유지한다.
+    private func present(_ result: StartSessionCoordinator.Outcome, resetsFilter: Bool) {
         switch result {
         case .started(let session):
+            if resetsFilter {
+                filterState = SelectFilterState()
+            }
             quizPresentation.wrappedValue = session
         case .failed:
             showsStartFailure = true
@@ -153,16 +169,16 @@ struct SelectView: View {
         }
     }
 
-    private func completeResumeChoice(_ result: StartSessionCoordinator.Outcome) {
+    private func completeResumeChoice(_ result: StartSessionCoordinator.Outcome, resetsFilter: Bool) {
         // 시트가 닫힌 뒤에 다음 화면을 열어 두 표시 요청이 겹치지 않게 한다.
-        deferredOutcome = result
+        deferredPresentation = DeferredPresentation(result: result, resetsFilter: resetsFilter)
         pendingStart = nil
     }
 
     private func finishResumeChoice() {
-        guard let result = deferredOutcome else { return }
-        deferredOutcome = nil
-        present(result)
+        guard let presentation = deferredPresentation else { return }
+        deferredPresentation = nil
+        present(presentation.result, resetsFilter: presentation.resetsFilter)
     }
 
     private func cancelEditing() {
@@ -179,9 +195,28 @@ struct SelectView: View {
         filterState.beginEditing()
         isEditing = true
     }
+
+    /// 트리·장식·세션 기록은 유지하고 출제 조건만 기본값으로 되돌려 팝업을 연다.
+    private func resetSettings() {
+        filterState = SelectFilterState()
+        isEditing = true
+    }
 }
 
 #if DEBUG
+/// 독립된 출제 프리뷰에서도 상위 화면이 퀴즈 표시 상태를 관리한다.
+private struct SelectPreviewContent: View {
+    @State private var activeQuizSession: QuizSession?
+
+    var body: some View {
+        NavigationStack { SelectView(activeQuizSession: $activeQuizSession) }
+            .fullScreenCover(item: $activeQuizSession) { session in
+                QuizEntryPresentation(session: session)
+                    .presentationBackground(.clear)
+            }
+    }
+}
+
 @ViewBuilder
 private func selectPreview(
     recommendedCategory: QuizCategory? = nil, existingSession: Bool = false,
@@ -201,7 +236,7 @@ private func selectPreview(
         questions: questions, sessions: sessions,
         recommendedCategory: recommendedCategory, failure: failure
     ) {
-        NavigationStack { SelectView() }
+        SelectPreviewContent()
             .modelContainer(preview.container)
             .environment(\.services, preview.services)
     } else {
