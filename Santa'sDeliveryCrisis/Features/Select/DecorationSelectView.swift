@@ -54,7 +54,13 @@ struct DecorationSelectView: View {
                         time: time, reduceMotion: reduceMotion
                     )
                 }
-                // FIXME: [가정 8] 범례·문 열림·통과 점·체크 배지는 별도 작업에서 반영
+                Text("장식 12개를 모두 켜면 작업실 문이 열려요")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Color.nightSecondaryText)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                // FIXME: [가정 8] 범례·통과 점·체크 배지는 별도 작업에서 반영
             }
             .padding(14)
         }
