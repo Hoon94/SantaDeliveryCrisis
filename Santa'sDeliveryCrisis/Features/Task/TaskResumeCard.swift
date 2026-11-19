@@ -30,7 +30,7 @@ struct TaskResumeCard: View {
     }
 
     private var taskName: String {
-        session.category?.taskName ?? "작업 정보 없음"
+        session.category?.taskName ?? "여러 작업 섞음"
     }
 }
 

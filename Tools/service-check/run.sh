@@ -28,6 +28,7 @@ swiftc -swift-version 5 -default-isolation MainActor -suppress-warnings \
   "$APP/Services/Accuracy.swift" \
   "$APP/Services/SeedLoader.swift" \
   "$APP/Services/QuestionSelector.swift" \
+  "$APP/Services/BalancedSelection.swift" \
   "$APP/Services/TaskRecommender.swift" \
   "$APP/Services/TreeManager.swift" \
   "$APP/Services/SessionManager.swift" \

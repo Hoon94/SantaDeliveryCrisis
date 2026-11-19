@@ -116,12 +116,39 @@ func run() throws {
     check(trees.completedTrees().count == 1, "트리: 완성 목록 1개")
     do { _ = try trees.grant(decorations: -1); check(false, "트리: 음수 오류") } catch { check(true, "트리: 음수 오류") }
     check(ctx.saves == 0, "트리: save를 호출하지 않음")
+    // ---- 복수 카테고리 고르게 출제
+    do {
+        let mixed = QuizCategory.allCases.flatMap { c in (0..<6).map { _ in q(c, .easy) } }
+        func counts(_ r: [Question]) -> [QuizCategory: Int] { Dictionary(grouping: r, by: { $0.category }).mapValues { $0.count } }
+        let all4 = sel.select(categories: Set(QuizCategory.allCases), difficulty: .easy, tags: [], count: 5, questions: mixed, history: [])
+        check(all4.count == 5 && Set(all4.map { $0.id }).count == 5, "복수: 4카테고리 5문제 중복 없음")
+        check(counts(all4).values.allSatisfy { $0 <= 2 } && counts(all4).count == 4, "복수: 4카테고리 5문제는 2·1·1·1")
+        let two = sel.select(categories: [.hig, .aiUsage], difficulty: .easy, tags: [], count: 10, questions: mixed, history: [])
+        check(two.count == 10 && counts(two)[.hig] == 5 && counts(two)[.aiUsage] == 5 && counts(two).count == 2, "복수: 2카테고리 10문제는 5·5")
+        let three = sel.select(categories: [.hig, .aiUsage, .swiftSyntax], difficulty: .easy, tags: [], count: 10, questions: mixed, history: [])
+        check(three.count == 10 && counts(three).values.sorted() == [3, 3, 4] && counts(three)[.swiftUIPractice] == nil, "복수: 3카테고리 10문제는 4·3·3, 고르지 않은 카테고리 없음")
+        let sparse = [q(.hig, .easy)] + (0..<6).map { _ in q(.aiUsage, .easy) }
+        let fill = sel.select(categories: [.hig, .aiUsage], difficulty: .easy, tags: [], count: 5, questions: sparse, history: [])
+        check(fill.count == 5 && counts(fill)[.hig] == 1, "복수: 한 카테고리가 모자라면 다른 카테고리로 채움")
+        check(sel.availableCount(categories: [.hig, .aiUsage], difficulty: .easy, tags: [], questions: mixed) == 12, "복수: 후보 수 합산")
+        check(sel.select(categories: [], difficulty: .easy, tags: [], count: 5, questions: mixed, history: []).isEmpty, "복수: 빈 카테고리 집합은 빈 배열")
+    }
     // ---- SessionManager
     let ctx2 = ModelContext()
     let defaults = UserDefaults(suiteName: "svc-test")!; defaults.removePersistentDomain(forName: "svc-test")
     let settings = SettingsStore(defaults: defaults)
     let trees2 = TreeManager(context: ctx2, now: { t0 })
     let mgr = SessionManager(context: ctx2, selector: QuestionSelector(now: { t0 }, shuffle: { $0 }), trees: trees2, settings: settings, now: { t0 })
+    do {
+        let c3 = ModelContext()
+        let m3 = SessionManager(context: c3, selector: QuestionSelector(now: { t0 }, shuffle: { $0 }), trees: TreeManager(context: c3, now: { t0 }), settings: settings, now: { t0 })
+        QuizCategory.allCases.forEach { c in (0..<6).forEach { _ in c3.insert(q(c, .easy)) } }
+        let ms = try m3.startSession(categories: Set(QuizCategory.allCases), difficulty: .easy, tags: [], count: 5)
+        check(ms.category == nil && ms.questionSnapshots.count == 5 && Set(ms.questionSnapshots.map { $0.category }).count == 4, "세션: 4카테고리 5문제가 4개 카테고리를 모두 포함, category nil")
+        try m3.abandon(ms)
+        let one = try m3.startSession(categories: [.hig], difficulty: .easy, tags: [], count: 5)
+        check(one.category == .hig && one.questionSnapshots.allSatisfy { $0.category == .hig }, "세션: 카테고리 하나면 그 카테고리")
+    }
     let pool = (0..<6).map { _ in q() }
     pool.forEach { ctx2.insert($0) }
     do { _ = try mgr.startSession(category: .hig, difficulty: .easy, tags: [], count: 5); check(false, "후보 0개 오류") } catch { check((error as? SessionError) == .noCandidates, "start: 후보 0개 오류") }

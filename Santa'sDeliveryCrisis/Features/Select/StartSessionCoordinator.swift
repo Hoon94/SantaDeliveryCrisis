@@ -22,7 +22,8 @@ struct StartSessionCoordinator {
         self.selector = selector
     }
 
-    /// 진행 중 세션이 있으면 선택을 요청하고, 없으면 눌린 카테고리 하나로 시작한다.
+    /// 진행 중 세션이 있으면 선택을 요청하고, 없으면 선택한 카테고리들에서 고르게 섞어 시작한다.
+    /// 눌린 장식의 카테고리는 문제 구성에 쓰지 않는다(장식과 문제 카테고리는 연동하지 않는다).
     /// - Parameters:
     ///   - category: 사용자가 누른 장식의 카테고리.
     ///   - filter: 마지막으로 적용한 출제 설정.
@@ -35,7 +36,7 @@ struct StartSessionCoordinator {
         guard canStart(category: category, filter: filter, questions: questions) else {
             return .failed
         }
-        return createSession(category: category, filter: filter)
+        return createSession(filter: filter)
     }
 
     /// 기존 세션을 그대로 반환한다. 진행 위치와 팝업 설정은 변경하지 않는다.
@@ -67,22 +68,23 @@ struct StartSessionCoordinator {
         } catch {
             return .failed
         }
-        return createSession(category: category, filter: filter)
+        return createSession(filter: filter)
     }
 
     private func canStart(
         category: QuizCategory, filter: SelectFilter, questions: [Question]
     ) -> Bool {
         // 사용자 결정: 후보 수가 요청 수보다 적으면 세션 생성과 기존 세션 포기를 막는다.
-        DecorationAvailability.calculate(
-            category: category, filter: filter, questions: questions, selector: selector
-        ).isEnabled
+        // 문제는 눌린 장식이 아니라 선택한 카테고리 전체에서 고르므로 후보도 합산해서 센다.
+        selector.availableCount(
+            categories: filter.categories, difficulty: filter.difficulty, tags: [], questions: questions
+        ) >= filter.count
     }
 
-    private func createSession(category: QuizCategory, filter: SelectFilter) -> Outcome {
+    private func createSession(filter: SelectFilter) -> Outcome {
         do {
             let session = try sessions.startSession(
-                category: category,
+                categories: filter.categories,
                 difficulty: filter.difficulty,
                 tags: [],
                 count: filter.count

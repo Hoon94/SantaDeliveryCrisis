@@ -33,6 +33,10 @@ protocol SessionManaging {
     /// 세션을 시작한다. category가 nil이면 오늘의 출제다.
     func startSession(category: QuizCategory?, difficulty: Difficulty, tags: Set<String>, count: Int) throws -> QuizSession
 
+    /// 선택한 카테고리들에서 문제를 고르게 섞어 세션을 시작한다(`select(categories:...)` 규칙).
+    /// 카테고리가 하나면 그 카테고리, 둘 이상이면 `QuizSession.category`는 nil이다.
+    func startSession(categories: Set<QuizCategory>, difficulty: Difficulty, tags: Set<String>, count: Int) throws -> QuizSession
+
     /// `questionIndex`번째 문제(0부터)에 답을 저장한다. 문제는 순서대로만 제출할 수 있다.
     /// 이미 답이 있는 문제에 다시 호출하면 처음 저장된 답을 돌려주고 새로 저장하지 않는다.
     /// 아직 답하지 않은 앞선 문제가 있는 순서로 호출하면 오류를 던진다.
@@ -137,4 +141,13 @@ enum TraceSceneAction { case none }
 protocol TraceSceneRegistry {
     /// 장면을 찾지 못하면 nil
     func scene(for animationID: String) -> (steps: [TraceStep], view: AnyView)?
+}
+
+extension SessionManaging {
+    /// 기본 구현: 카테고리가 하나면 그 카테고리로, 아니면 전체 혼합(nil)으로 시작한다.
+    /// 실제 서비스(`SessionManager`)는 선택한 카테고리만 고르게 섞는 구현으로 대체한다.
+    func startSession(categories: Set<QuizCategory>, difficulty: Difficulty, tags: Set<String>, count: Int) throws -> QuizSession {
+        try startSession(category: categories.count == 1 ? categories.first : nil,
+                         difficulty: difficulty, tags: tags, count: count)
+    }
 }
