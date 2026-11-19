@@ -91,13 +91,13 @@ struct QuizChoiceButton: View {
         case .correct:
             Label("정답", systemImage: "checkmark.circle.fill")
                 .font(.footnote.weight(.bold))
-                .foregroundStyle(Color.appCorrect)
+                .foregroundStyle(Color.roomPositive)
                 .labelStyle(.titleAndIcon)
                 .transition(.scale(scale: 0.6).combined(with: .opacity))
         case .wrong:
             Label("오답", systemImage: "xmark.circle.fill")
                 .font(.footnote.weight(.bold))
-                .foregroundStyle(Color.appWrong)
+                .foregroundStyle(Color.roomNegative)
                 .labelStyle(.titleAndIcon)
                 .transition(.scale(scale: 0.6).combined(with: .opacity))
         case .selected:
@@ -112,11 +112,11 @@ struct QuizChoiceButton: View {
 
     private var background: some View {
         ZStack {
-            Color.nightCard.opacity(0.88)
+            Color.nightCardBackground.opacity(0.88)
             switch state {
             case .selected: theme.accent.opacity(0.16)
-            case .correct: Color.appCorrect.opacity(0.18)
-            case .wrong: Color.appWrong.opacity(0.18)
+            case .correct: Color.roomPositive.opacity(0.18)
+            case .wrong: Color.roomNegative.opacity(0.18)
             default: Color.clear
             }
         }
@@ -138,30 +138,30 @@ struct QuizChoiceButton: View {
 
     private var borderColor: Color {
         switch state {
-        case .idle, .dimmed: .nightLine
+        case .idle, .dimmed: .nightBorder
         case .selected: theme.accent
-        case .correct: .appCorrect
-        case .wrong: .appWrong
+        case .correct: .roomPositive
+        case .wrong: .roomNegative
         }
     }
 
     private var textColor: Color {
-        .nightText
+        .nightPrimaryText
     }
 
     private var badgeFill: Color {
         switch state {
         case .selected: theme.accent
-        case .correct: .appCorrect
-        case .wrong: .appWrong
-        default: .nightSoft
+        case .correct: .roomPositive
+        case .wrong: .roomNegative
+        default: .nightSubtleBackground
         }
     }
 
     private var badgeText: Color {
         switch state {
-        case .selected, .correct, .wrong: .treeHighlight
-        default: .nightSubText
+        case .selected, .correct, .wrong: .glowWhite
+        default: .nightSecondaryText
         }
     }
 

@@ -239,7 +239,7 @@ private struct RevealTitle: View {
         let sweep = (t - 0.7) / 0.7
         if !reduced, sweep > 0, sweep < 1 {
             Rectangle()
-                .fill(LinearGradient(colors: [.clear, Color.treeHighlight.opacity(0.9), .clear], startPoint: .leading, endPoint: .trailing))
+                .fill(LinearGradient(colors: [.clear, Color.glowWhite.opacity(0.9), .clear], startPoint: .leading, endPoint: .trailing))
                 .frame(width: 46)
                 .rotationEffect(.degrees(20))
                 .offset(x: (sweep * 2 - 1) * 180)

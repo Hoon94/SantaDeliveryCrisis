@@ -84,7 +84,7 @@ struct OrnamentView: View {
         RoundedRectangle(cornerRadius: d * 0.035, style: .continuous)
             .fill(LinearGradient(colors: [.glowGold, .decorationCap, .glowEmber.opacity(0.9)], startPoint: .leading, endPoint: .trailing))
             .overlay(alignment: .top) {
-                Capsule().fill(Color.treeHighlight.opacity(0.55)).frame(height: d * 0.012).padding(.horizontal, d * 0.02).padding(.top, d * 0.014)
+                Capsule().fill(Color.glowWhite.opacity(0.55)).frame(height: d * 0.012).padding(.horizontal, d * 0.02).padding(.top, d * 0.014)
             }
             .frame(width: d * 0.2, height: d * 0.12)
             .offset(y: -d * 0.46)
@@ -103,7 +103,7 @@ struct OrnamentView: View {
     }
 
     private var rimGradient: LinearGradient {
-        LinearGradient(colors: [.treeHighlight.opacity(0.9), .clear, .inkShadow.opacity(0.4)], startPoint: .topLeading, endPoint: .bottomTrailing)
+        LinearGradient(colors: [.glowWhite.opacity(0.9), .clear, .inkShadow.opacity(0.4)], startPoint: .topLeading, endPoint: .bottomTrailing)
     }
 
     /// 빛이 없는 평범한 장식: 무광 회색
@@ -111,13 +111,13 @@ struct OrnamentView: View {
         ZStack {
             Circle().fill(Color.plainOrnamentShade)
             Circle().fill(RadialGradient(
-                colors: [.treeHighlight.opacity(0.55), .plainOrnament, .plainOrnamentShade],
+                colors: [.glowWhite.opacity(0.55), .plainOrnament, .plainOrnamentShade],
                 center: UnitPoint(x: 0.35, y: 0.3),
                 startRadius: 0,
                 endRadius: d * 0.7
             ))
             Ellipse()
-                .fill(Color.treeHighlight.opacity(0.35))
+                .fill(Color.glowWhite.opacity(0.35))
                 .frame(width: d * 0.26, height: d * 0.13)
                 .rotationEffect(.degrees(-30))
                 .offset(x: -d * 0.2, y: -d * 0.24)
@@ -131,7 +131,7 @@ struct OrnamentView: View {
             Circle().fill(style.bodyFill)
             // 입체감: 왼쪽 위는 밝게, 오른쪽 아래는 어둡게
             Circle().fill(RadialGradient(
-                colors: [.treeHighlight.opacity(0.55), .clear],
+                colors: [.glowWhite.opacity(0.55), .clear],
                 center: UnitPoint(x: 0.32, y: 0.26),
                 startRadius: 0,
                 endRadius: d * 0.5
@@ -149,13 +149,13 @@ struct OrnamentView: View {
                 .offset(y: d * 0.36)
             band(d)
             Ellipse()
-                .fill(Color.treeHighlight.opacity(0.85))
+                .fill(Color.glowWhite.opacity(0.85))
                 .frame(width: d * 0.26, height: d * 0.12)
                 .rotationEffect(.degrees(-32))
                 .offset(x: -d * 0.22, y: -d * 0.26)
                 .blur(radius: d * 0.008)
             Circle()
-                .fill(Color.treeHighlight)
+                .fill(Color.glowWhite)
                 .frame(width: d * 0.05, height: d * 0.05)
                 .offset(x: -d * 0.31, y: -d * 0.12)
             if (0...1).contains(glint) {
@@ -168,13 +168,13 @@ struct OrnamentView: View {
     private func band(_ d: CGFloat) -> some View {
         ZStack {
             Rectangle()
-                .fill(Color.treeHighlight.opacity(0.2))
+                .fill(Color.glowWhite.opacity(0.2))
                 .frame(height: d * 0.17)
-            Rectangle().fill(Color.treeHighlight.opacity(0.55)).frame(height: d * 0.008).offset(y: -d * 0.085)
-            Rectangle().fill(Color.treeHighlight.opacity(0.55)).frame(height: d * 0.008).offset(y: d * 0.085)
+            Rectangle().fill(Color.glowWhite.opacity(0.55)).frame(height: d * 0.008).offset(y: -d * 0.085)
+            Rectangle().fill(Color.glowWhite.opacity(0.55)).frame(height: d * 0.008).offset(y: d * 0.085)
             HStack(spacing: d * 0.07) {
                 ForEach(0..<7, id: \.self) { _ in
-                    Circle().fill(Color.treeHighlight.opacity(0.7)).frame(width: d * 0.028, height: d * 0.028)
+                    Circle().fill(Color.glowWhite.opacity(0.7)).frame(width: d * 0.028, height: d * 0.028)
                 }
             }
         }
@@ -185,7 +185,7 @@ struct OrnamentView: View {
     /// 비스듬한 빛줄기가 장식 위를 훑고 지나간다.
     private func glintSweep(_ d: CGFloat) -> some View {
         Rectangle()
-            .fill(LinearGradient(colors: [.clear, .treeHighlight.opacity(0.85), .clear], startPoint: .leading, endPoint: .trailing))
+            .fill(LinearGradient(colors: [.clear, .glowWhite.opacity(0.85), .clear], startPoint: .leading, endPoint: .trailing))
             .frame(width: d * 0.24, height: d * 1.4)
             .rotationEffect(.degrees(24))
             .offset(x: (glint * 1.7 - 0.85) * d)

@@ -12,7 +12,7 @@ struct QuizFeedbackSheet: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var appeared = false
 
-    private var tint: Color { isCorrect ? .appCorrect : .appWrong }
+    private var tint: Color { isCorrect ? .roomPositive : .roomNegative }
 
     var body: some View {
         ScrollView {
@@ -44,8 +44,8 @@ struct QuizFeedbackSheet: View {
             .frame(maxWidth: .infinity)
         }
         .scrollBounceBehavior(.basedOnSize)
-        .background(Color.nightCard)
-        .presentationBackground(Color.nightCard)
+        .background(Color.nightCardBackground)
+        .presentationBackground(Color.nightCardBackground)
         .onAppear {
             withAnimation(reduceMotion ? .easeOut(duration: 0.2) : .spring(response: 0.5, dampingFraction: 0.6).delay(0.05)) {
                 appeared = true
@@ -68,7 +68,7 @@ struct QuizFeedbackSheet: View {
                 .shadow(color: tint.opacity(0.5), radius: 14, y: 4)
             Image(systemName: isCorrect ? "checkmark" : "xmark")
                 .font(.system(size: 30, weight: .heavy))
-                .foregroundStyle(Color.treeHighlight)
+                .foregroundStyle(Color.glowWhite)
                 .symbolEffect(.bounce, value: appeared)
         }
         .frame(width: 68, height: 68)
@@ -79,22 +79,22 @@ struct QuizFeedbackSheet: View {
     private var correctAnswerRow: some View {
         HStack(alignment: .top, spacing: 10) {
             Image(systemName: "checkmark.circle.fill")
-                .foregroundStyle(Color.appCorrect)
+                .foregroundStyle(Color.roomPositive)
             VStack(alignment: .leading, spacing: 2) {
                 Text("정답")
                     .font(.caption.weight(.bold))
-                    .foregroundStyle(Color.appCorrect)
+                    .foregroundStyle(Color.roomPositive)
                 Text(correctChoiceText)
                     .font(.body.weight(.semibold))
-                    .foregroundStyle(Color.nightText)
+                    .foregroundStyle(Color.nightPrimaryText)
                     .fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 0)
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color.appCorrect.opacity(0.13)))
-        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Color.appCorrect.opacity(0.5), lineWidth: 1))
+        .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color.roomPositive.opacity(0.13)))
+        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Color.roomPositive.opacity(0.5), lineWidth: 1))
     }
 
     private var correctChoiceText: String {
@@ -108,14 +108,14 @@ struct QuizFeedbackSheet: View {
         VStack(alignment: .leading, spacing: 6) {
             Label("해설", systemImage: "text.book.closed.fill")
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(Color.nightSubText)
+                .foregroundStyle(Color.nightSecondaryText)
             Text(snapshot.explanation)
                 .font(.callout)
-                .foregroundStyle(Color.nightText)
+                .foregroundStyle(Color.nightPrimaryText)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color.nightSoft))
+        .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color.nightSubtleBackground))
     }
 }

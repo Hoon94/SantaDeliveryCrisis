@@ -118,14 +118,14 @@ final class QuizFlowModel {
         } else if let since = activeSince {
             accumulated += Date().timeIntervalSince(since)
             activeSince = nil
-            session.elapsedSeconds = baseElapsed + accumulated
+            syncElapsed()
         }
     }
 
-    /// 지금까지의 시간을 세션에 적는다. 저장은 다음 `submit`이나 `finish`의 저장에 함께 묶인다.
-    // FIXME: [가정] 소요 시간 저장 함수가 아직 규약(9장)에 없어서 세션 값을 직접 갱신한다. A와 합의되면 서비스 호출로 바꾼다.
+    /// 지금까지의 누적 시간을 서비스에 저장한다. 답을 낸 직후, 앱이 백그라운드로 갈 때, 결과를 계산하기 직전에 부른다.
+    /// 시간 저장에 실패해도 풀이를 막지 않는다. 다음 호출에서 누적 총합을 다시 저장한다.
     private func syncElapsed() {
-        session.elapsedSeconds = elapsed
+        try? services.sessions.updateElapsed(elapsed, in: session)
     }
 
     // MARK: - 풀이

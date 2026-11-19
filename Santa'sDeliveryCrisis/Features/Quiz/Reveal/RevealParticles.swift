@@ -7,7 +7,7 @@ enum RevealParticles {
 
     /// 입자 색. 트리 장식 색과 빛 색을 쓴다.
     static let palette: [Color] = [
-        .ornament1, .ornament2, .ornament3, .ornament4, .ornament5, .ornament6, .treeStar, .glowGold, .glowCore
+        .ornamentRed, .ornamentGold, .ornamentBlue, .ornamentPink, .ornamentGreen, .ornamentOrange, .ornamentGold, .glowGold, .glowCore
     ]
 
     // MARK: - 입자 정의
@@ -319,7 +319,7 @@ enum RevealParticles {
         context.fill(
             Path(ellipseIn: body),
             with: .radialGradient(
-                Gradient(colors: [Color.treeHighlight.opacity(alpha), color.opacity(alpha), Color.inkShadow.opacity(alpha * 0.8)]),
+                Gradient(colors: [Color.glowWhite.opacity(alpha), color.opacity(alpha), Color.inkShadow.opacity(alpha * 0.8)]),
                 center: CGPoint(x: point.x - r * 0.35, y: point.y - r * 0.4), startRadius: 0, endRadius: r * 1.5
             )
         )
@@ -342,6 +342,6 @@ enum RevealParticles {
                 path.addLine(to: CGPoint(x: mid.x + CGFloat(cos(branch) * radius * 0.32), y: mid.y + CGFloat(sin(branch) * radius * 0.32)))
             }
         }
-        context.stroke(path, with: .color(Color.treeHighlight.opacity(alpha)), style: StrokeStyle(lineWidth: 1.4, lineCap: .round))
+        context.stroke(path, with: .color(Color.glowWhite.opacity(alpha)), style: StrokeStyle(lineWidth: 1.4, lineCap: .round))
     }
 }

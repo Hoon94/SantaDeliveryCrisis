@@ -49,9 +49,9 @@ struct ThemeCharacterView: View {
 
     private var bubbleTint: Color {
         switch mood {
-        case .happy: .appCorrect
-        case .sad: .appWrong
-        default: .nightSubText
+        case .happy: .roomPositive
+        case .sad: .roomNegative
+        default: .nightSecondaryText
         }
     }
 
@@ -240,13 +240,13 @@ struct SpeechBubble: View {
     var body: some View {
         Text(text)
             .font(.caption.weight(.bold))
-            .foregroundStyle(Color.nightText)
+            .foregroundStyle(Color.nightPrimaryText)
             .multilineTextAlignment(.leading)
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
             .background(
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(Color.nightCard)
+                    .fill(Color.nightCardBackground)
                     .overlay(
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
                             .strokeBorder(tint.opacity(0.8), lineWidth: 1.5)
@@ -255,7 +255,7 @@ struct SpeechBubble: View {
             )
             .overlay(alignment: .bottomLeading) {
                 BubbleTail()
-                    .fill(Color.nightCard)
+                    .fill(Color.nightCardBackground)
                     .overlay(BubbleTail().stroke(tint.opacity(0.8), lineWidth: 1.5))
                     .frame(width: 14, height: 9)
                     .offset(x: 12, y: 8)

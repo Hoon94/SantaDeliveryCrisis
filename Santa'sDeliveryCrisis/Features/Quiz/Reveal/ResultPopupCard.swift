@@ -46,11 +46,11 @@ struct ResultPopupCard: View {
         .scrollBounceBehavior(.basedOnSize)
         .background(
             RoundedRectangle(cornerRadius: 32, style: .continuous)
-                .fill(Color.nightCard)
+                .fill(Color.nightCardBackground)
                 .overlay(
                     RoundedRectangle(cornerRadius: 32, style: .continuous)
                         .strokeBorder(
-                            LinearGradient(colors: [tint.opacity(0.9), Color.nightLine, tint.opacity(0.3)], startPoint: .top, endPoint: .bottom),
+                            LinearGradient(colors: [tint.opacity(0.9), Color.nightBorder, tint.opacity(0.3)], startPoint: .top, endPoint: .bottom),
                             lineWidth: 1.5
                         )
                 )
@@ -65,14 +65,14 @@ struct ResultPopupCard: View {
     private var header: some View {
         HStack(spacing: 8) {
             Image(systemName: summary.isSuccess ? "gift.fill" : "gift")
-                .foregroundStyle(summary.isSuccess ? tint : Color.nightSubText)
+                .foregroundStyle(summary.isSuccess ? tint : Color.nightSecondaryText)
             Text("세션 결과")
                 .font(.headline)
-                .foregroundStyle(Color.nightText)
+                .foregroundStyle(Color.nightPrimaryText)
             Spacer(minLength: 0)
             Text(summary.taskTitle)
                 .font(.caption.weight(.bold))
-                .foregroundStyle(Color.treeHighlight)
+                .foregroundStyle(Color.glowWhite)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 5)
                 .background(Capsule().fill(tint))
@@ -110,10 +110,10 @@ struct ResultPopupCard: View {
             VStack(alignment: .leading, spacing: 0) {
                 Text(title)
                     .font(.caption)
-                    .foregroundStyle(Color.nightSubText)
+                    .foregroundStyle(Color.nightSecondaryText)
                 Text(value)
                     .font(.subheadline.weight(.bold))
-                    .foregroundStyle(Color.nightText)
+                    .foregroundStyle(Color.nightPrimaryText)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -126,14 +126,14 @@ struct ResultPopupCard: View {
         return HStack(spacing: 10) {
             Image(systemName: isSuccess ? "checkmark.seal.fill" : "xmark.seal.fill")
                 .font(.title3)
-                .foregroundStyle(isSuccess ? Color.appCorrect : Color.appWrong)
+                .foregroundStyle(isSuccess ? Color.roomPositive : Color.roomNegative)
             VStack(alignment: .leading, spacing: 2) {
                 Text(isSuccess ? "기준 \(summary.thresholdPercent)% 통과" : "기준 \(summary.thresholdPercent)%에 못 미쳤어요")
                     .font(.subheadline.weight(.bold))
-                    .foregroundStyle(Color.nightText)
+                    .foregroundStyle(Color.nightPrimaryText)
                 Text(isSuccess ? "장식을 1개 받았어요" : "벌칙은 없어요. 다시 도전해 보세요")
                     .font(.caption)
-                    .foregroundStyle(Color.nightSubText)
+                    .foregroundStyle(Color.nightSecondaryText)
             }
             Spacer(minLength: 0)
         }
@@ -141,7 +141,7 @@ struct ResultPopupCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill((isSuccess ? Color.appCorrect : Color.appWrong).opacity(0.13))
+                .fill((isSuccess ? Color.roomPositive : Color.roomNegative).opacity(0.13))
         )
         .accessibilityElement(children: .combine)
     }
@@ -153,11 +153,11 @@ struct ResultPopupCard: View {
             HStack {
                 Label("트리", systemImage: "tree.fill")
                     .font(.subheadline.weight(.bold))
-                    .foregroundStyle(Color.nightText)
+                    .foregroundStyle(Color.nightPrimaryText)
                 Spacer()
                 Text(summary.result.treeCompleted ? "완성! \(slots) / \(slots)" : "\(count) / \(slots)")
                     .font(.subheadline.weight(.heavy).monospacedDigit())
-                    .foregroundStyle(summary.result.treeCompleted ? tint : Color.nightText)
+                    .foregroundStyle(summary.result.treeCompleted ? tint : Color.nightPrimaryText)
             }
             TreePips(
                 filled: count,
@@ -173,11 +173,11 @@ struct ResultPopupCard: View {
             } else {
                 Text("\(slots - count)칸 남았어요")
                     .font(.caption)
-                    .foregroundStyle(Color.nightSubText)
+                    .foregroundStyle(Color.nightSecondaryText)
             }
         }
         .padding(14)
-        .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color.nightSoft))
+        .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color.nightSubtleBackground))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("트리 장식 \(slots)칸 중 \(count)칸")
     }
@@ -186,10 +186,10 @@ struct ResultPopupCard: View {
         let wrong = summary.result.wrongAnswers.count
         return HStack(spacing: 10) {
             Image(systemName: wrong == 0 ? "party.popper.fill" : "xmark.circle.fill")
-                .foregroundStyle(wrong == 0 ? Color.treeStar : Color.appWrong)
+                .foregroundStyle(wrong == 0 ? Color.ornamentGold : Color.roomNegative)
             Text(wrong == 0 ? "틀린 문제가 없어요. 모두 맞혔어요!" : "오답 \(wrong)개")
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(Color.nightText)
+                .foregroundStyle(Color.nightPrimaryText)
             Spacer(minLength: 0)
         }
         .padding(.horizontal, 14)
@@ -213,10 +213,10 @@ private struct AccuracyRing: View {
     var body: some View {
         let fill = RevealMath.easeOut((t - 0.25) / 1.25)
         let shown = Int((Double(percent) * fill).rounded(.down))
-        let ringColor: Color = isSuccess ? tint : .appWrong
+        let ringColor: Color = isSuccess ? tint : .roomNegative
 
         ZStack {
-            Circle().stroke(Color.nightSoft, lineWidth: 12)
+            Circle().stroke(Color.nightSubtleBackground, lineWidth: 12)
             Circle()
                 .trim(from: 0, to: Double(percent) / 100 * fill)
                 .stroke(
@@ -228,7 +228,7 @@ private struct AccuracyRing: View {
 
             // 기준 눈금
             Capsule()
-                .fill(Color.nightText.opacity(0.8))
+                .fill(Color.nightPrimaryText.opacity(0.8))
                 .frame(width: 3, height: 18)
                 .offset(y: -64)
                 .rotationEffect(.degrees(Double(threshold) / 100 * 360))
@@ -238,12 +238,12 @@ private struct AccuracyRing: View {
                 Text("\(shown)%")
                     .font(.system(.title, design: .rounded).weight(.black))
                     .monospacedDigit()
-                    .foregroundStyle(Color.nightText)
+                    .foregroundStyle(Color.nightPrimaryText)
                     .minimumScaleFactor(0.6)
                     .lineLimit(1)
                 Text("\(correct) / \(total) 정답")
                     .font(.caption2.weight(.semibold))
-                    .foregroundStyle(Color.nightSubText)
+                    .foregroundStyle(Color.nightSecondaryText)
                     .minimumScaleFactor(0.7)
                     .lineLimit(1)
             }
@@ -281,10 +281,10 @@ private struct TreePips: View {
         let appear = isNewest ? RevealMath.smooth((t - 1.05) / 0.12) : 1
         return ZStack {
             Circle()
-                .strokeBorder(Color.nightLine, lineWidth: 1.5)
+                .strokeBorder(Color.nightBorder, lineWidth: 1.5)
             if isFilled && (!isNewest || appear > 0) {
                 Circle()
-                    .fill(RadialGradient(colors: [.treeHighlight.opacity(0.8), isNewest ? tint : .treeStar, .decorationCap], center: UnitPoint(x: 0.35, y: 0.3), startRadius: 0, endRadius: 14))
+                    .fill(RadialGradient(colors: [.glowWhite.opacity(0.8), isNewest ? tint : .ornamentGold, .decorationCap], center: UnitPoint(x: 0.35, y: 0.3), startRadius: 0, endRadius: 14))
                     .scaleEffect(isNewest ? pop : 1)
                     .shadow(color: isNewest ? tint.opacity(0.9) : .clear, radius: isNewest ? 8 * appear : 0)
             }

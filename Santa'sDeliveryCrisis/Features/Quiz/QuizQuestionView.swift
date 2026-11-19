@@ -43,7 +43,7 @@ struct QuizQuestionView: View {
                 } label: {
                     Image(systemName: "xmark")
                         .font(.body.weight(.bold))
-                        .foregroundStyle(Color.nightText)
+                        .foregroundStyle(Color.nightPrimaryText)
                 }
                 .buttonStyle(RoundIconButtonStyle())
                 .accessibilityLabel("퀴즈 나가기")
@@ -52,7 +52,7 @@ struct QuizQuestionView: View {
 
                 Text("\(min(model.index + 1, max(model.totalCount, 1))) / \(model.totalCount)")
                     .font(.headline.monospacedDigit())
-                    .foregroundStyle(Color.nightText)
+                    .foregroundStyle(Color.nightPrimaryText)
                     .contentTransition(.numericText())
                     .animation(.snappy, value: model.index)
                     .accessibilityLabel("\(model.index + 1)번째 문제, 총 \(model.totalCount)문제")
@@ -78,7 +78,7 @@ struct QuizQuestionView: View {
             } label: {
                 Image(systemName: model.isHintVisible ? "lightbulb.fill" : "lightbulb")
                     .font(.body.weight(.semibold))
-                    .foregroundStyle(model.isHintVisible ? Color.treeStar : Color.nightText)
+                    .foregroundStyle(model.isHintVisible ? Color.ornamentGold : Color.nightPrimaryText)
                     .symbolEffect(.bounce, value: model.isHintVisible)
             }
             .buttonStyle(RoundIconButtonStyle())
@@ -97,7 +97,7 @@ struct QuizQuestionView: View {
 
             Text(snapshot.text)
                 .font(.title3.weight(.bold))
-                .foregroundStyle(Color.nightText)
+                .foregroundStyle(Color.nightPrimaryText)
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(18)
@@ -116,7 +116,7 @@ struct QuizQuestionView: View {
                 // 애니메이션 문제는 장면이 아직 없다. 장면이 없으면 판정과 해설만 보여 주는 규칙을 따른다.
                 Label("이 문제의 애니메이션은 준비 중이에요", systemImage: "sparkles")
                     .font(.footnote)
-                    .foregroundStyle(Color.nightSubText)
+                    .foregroundStyle(Color.nightSecondaryText)
             }
 
             VStack(spacing: 10) {
@@ -143,9 +143,9 @@ struct QuizQuestionView: View {
     private func chips(_ snapshot: QuestionSnapshot) -> some View {
         HStack(spacing: 8) {
             chip(model.theme.title, tint: model.theme.accent, filled: true)
-            chip(model.session.difficulty.displayName, tint: .nightSubText, filled: false)
+            chip(model.session.difficulty.displayName, tint: .nightSecondaryText, filled: false)
             if let tag = snapshot.tags.first {
-                chip("#\(tag)", tint: .nightSubText, filled: false)
+                chip("#\(tag)", tint: .nightSecondaryText, filled: false)
             }
         }
         .lineLimit(1)
@@ -154,27 +154,27 @@ struct QuizQuestionView: View {
     private func chip(_ text: String, tint: Color, filled: Bool) -> some View {
         Text(text)
             .font(.caption.weight(.bold))
-            .foregroundStyle(filled ? Color.treeHighlight : tint)
+            .foregroundStyle(filled ? Color.glowWhite : tint)
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
-            .background(Capsule().fill(filled ? tint : Color.nightSoft.opacity(0.9)))
+            .background(Capsule().fill(filled ? tint : Color.nightSubtleBackground.opacity(0.9)))
     }
 
     private func codeBlock(_ code: String) -> some View {
         ScrollView(.horizontal, showsIndicators: false) {
             Text(code)
                 .font(.system(.callout, design: .monospaced))
-                .foregroundStyle(Color.nightText)
+                .foregroundStyle(Color.nightPrimaryText)
                 .padding(16)
                 .textSelection(.enabled)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(Color.nightSoft.opacity(0.95))
+                .fill(Color.nightSubtleBackground.opacity(0.95))
                 .overlay(
                     RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .strokeBorder(Color.nightLine, lineWidth: 1)
+                        .strokeBorder(Color.nightBorder, lineWidth: 1)
                 )
         )
         .accessibilityLabel("코드")
@@ -185,28 +185,28 @@ struct QuizQuestionView: View {
         VStack(alignment: .leading, spacing: 6) {
             Label("힌트", systemImage: "lightbulb.fill")
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(Color.treeStar)
+                .foregroundStyle(Color.ornamentGold)
             Text(hint)
                 .font(.callout)
-                .foregroundStyle(Color.nightText)
+                .foregroundStyle(Color.nightPrimaryText)
                 .fixedSize(horizontal: false, vertical: true)
             Text("힌트를 봐도 점수와 보상은 달라지지 않아요")
                 .font(.caption)
-                .foregroundStyle(Color.nightSubText)
+                .foregroundStyle(Color.nightSecondaryText)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(Color.treeStar.opacity(0.14))
-                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Color.treeStar.opacity(0.6), lineWidth: 1.2))
+                .fill(Color.ornamentGold.opacity(0.14))
+                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Color.ornamentGold.opacity(0.6), lineWidth: 1.2))
         )
     }
 
     private var card: some View {
         RoundedRectangle(cornerRadius: 20, style: .continuous)
-            .fill(Color.nightCard.opacity(0.9))
-            .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).strokeBorder(Color.nightLine, lineWidth: 1))
+            .fill(Color.nightCardBackground.opacity(0.9))
+            .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).strokeBorder(Color.nightBorder, lineWidth: 1))
             .shadow(color: Color.inkShadow.opacity(0.18), radius: 12, y: 6)
     }
 
@@ -253,14 +253,14 @@ private struct ProgressTrack: View {
         GeometryReader { proxy in
             let width = proxy.size.width * progress
             ZStack(alignment: .leading) {
-                Capsule().fill(Color.nightSoft)
+                Capsule().fill(Color.nightSubtleBackground)
                 Capsule()
                     .fill(LinearGradient(colors: [tint.opacity(0.7), tint], startPoint: .leading, endPoint: .trailing))
                     .frame(width: max(width, progress > 0 ? 8 : 0))
                     .overlay(alignment: .trailing) {
                         if progress > 0 {
                             Circle()
-                                .fill(Color.treeHighlight)
+                                .fill(Color.glowWhite)
                                 .frame(width: 7, height: 7)
                                 .shadow(color: tint, radius: 6)
                                 .padding(.trailing, 1)

@@ -24,7 +24,7 @@ struct SolvedCountChart: View {
                     if period == .week {
                         Text("\(day.solvedCount)")
                             .font(.caption2)
-                            .foregroundStyle(Color.roomSub)
+                            .foregroundStyle(Color.roomSecondaryText)
                     }
                 }
             }
@@ -37,12 +37,12 @@ struct SolvedCountChart: View {
                             format: .dateTime.weekday(.narrow).locale(Self.koreanLocale),
                             centered: true
                         )
-                        .foregroundStyle(Color.roomSub)
+                        .foregroundStyle(Color.roomSecondaryText)
                     }
                 case .month:
                     AxisMarks(values: .stride(by: .day, count: 5)) { _ in
                         AxisValueLabel(format: .dateTime.day().locale(Self.koreanLocale), centered: true)
-                            .foregroundStyle(Color.roomSub)
+                            .foregroundStyle(Color.roomSecondaryText)
                     }
                 }
             }
@@ -51,7 +51,7 @@ struct SolvedCountChart: View {
             .accessibilityValue(accessibilityText)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .roomCard()
+        .roomCardBackground()
     }
 
     private var accessibilityText: String {

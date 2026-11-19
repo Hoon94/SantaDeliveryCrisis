@@ -48,8 +48,8 @@ private struct QuizFlowContent: View {
                 if model.phase == .finishing {
                     ProgressView("결과를 계산하고 있어요")
                         .padding(24)
-                        .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(Color.nightCard))
-                        .foregroundStyle(Color.nightText)
+                        .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(Color.nightCardBackground))
+                        .foregroundStyle(Color.nightPrimaryText)
                 }
             }
         }

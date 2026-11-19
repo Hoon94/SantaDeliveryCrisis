@@ -9,7 +9,7 @@ struct GlowButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.headline.weight(.heavy))
-            .foregroundStyle(isEnabled ? Color.treeHighlight : Color.nightDisabledText)
+            .foregroundStyle(isEnabled ? Color.glowWhite : Color.nightSecondaryText)
             .frame(maxWidth: .infinity, minHeight: 54)
             .padding(.horizontal, 20)
             .background {
@@ -17,13 +17,13 @@ struct GlowButtonStyle: ButtonStyle {
                     .fill(
                         isEnabled
                             ? AnyShapeStyle(LinearGradient(colors: [tint, tint.opacity(0.78)], startPoint: .top, endPoint: .bottom))
-                            : AnyShapeStyle(Color.nightDisabled)
+                            : AnyShapeStyle(Color.nightBorder)
                     )
                     .overlay(alignment: .top) {
                         // 윗면 하이라이트
                         RoundedRectangle(cornerRadius: 20, style: .continuous)
                             .strokeBorder(
-                                LinearGradient(colors: [Color.treeHighlight.opacity(isEnabled ? 0.55 : 0.1), .clear], startPoint: .top, endPoint: .center),
+                                LinearGradient(colors: [Color.glowWhite.opacity(isEnabled ? 0.55 : 0.1), .clear], startPoint: .top, endPoint: .center),
                                 lineWidth: 1.5
                             )
                     }
@@ -44,8 +44,8 @@ struct RoundIconButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .frame(minWidth: 44, minHeight: 44)
-            .background(Circle().fill(Color.nightCard.opacity(0.85)))
-            .overlay(Circle().strokeBorder(Color.nightLine, lineWidth: 1))
+            .background(Circle().fill(Color.nightCardBackground.opacity(0.85)))
+            .overlay(Circle().strokeBorder(Color.nightBorder, lineWidth: 1))
             .scaleEffect(configuration.isPressed ? 0.88 : 1)
             .animation(reduceMotion ? nil : .spring(response: 0.2, dampingFraction: 0.6), value: configuration.isPressed)
     }

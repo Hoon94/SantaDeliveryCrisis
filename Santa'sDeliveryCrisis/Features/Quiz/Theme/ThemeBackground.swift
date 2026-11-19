@@ -42,7 +42,7 @@ struct ThemeBackground: View {
         GeometryReader { proxy in
             Text(theme.title)
                 .font(.system(size: min(proxy.size.width * 0.34, 150), weight: .black, design: .rounded))
-                .foregroundStyle(Color.nightText.opacity(0.06))
+                .foregroundStyle(Color.nightPrimaryText.opacity(0.06))
                 .lineLimit(1)
                 .minimumScaleFactor(0.4)
                 .fixedSize()
@@ -108,7 +108,7 @@ private struct Snowfall: View {
                     let x = flake.x * size.width + sin(t * 0.7 + flake.phase * 20) * flake.sway
                     let rect = CGRect(x: x, y: y, width: flake.size, height: flake.size)
                     context.opacity = 0.18 + 0.28 * (flake.size / 5)
-                    context.fill(Path(ellipseIn: rect), with: .color(.treeHighlight))
+                    context.fill(Path(ellipseIn: rect), with: .color(.glowWhite))
                 }
             }
         }
