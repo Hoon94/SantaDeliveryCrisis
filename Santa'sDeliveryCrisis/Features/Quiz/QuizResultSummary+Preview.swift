@@ -36,7 +36,7 @@ extension QuizResultSummary {
         )
     }
 
-    /// 전부 맞히고 트리까지 완성한 결과(여러 작업 섞음)
+    /// 전부 맞히고 트리까지 완성한 결과(여러 카테고리 섞음)
     static var previewTreeComplete: QuizResultSummary {
         QuizResultSummary(
             result: SessionResult(

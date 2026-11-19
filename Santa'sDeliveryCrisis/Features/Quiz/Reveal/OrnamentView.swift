@@ -22,7 +22,7 @@ enum OrnamentStyle: Equatable {
     var title: String {
         switch self {
         case .category(let category): "\(category.taskName) 장식"
-        case .mixed: "여러 작업 섞음 장식"
+        case .mixed: "여러 카테고리 섞음 장식"
         }
     }
 
