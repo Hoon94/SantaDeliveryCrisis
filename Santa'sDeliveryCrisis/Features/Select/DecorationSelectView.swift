@@ -106,12 +106,11 @@ struct DecorationSelectView: View {
                 systemImage: "gearshape"
             )
             .font(.caption.weight(.bold))
-            .foregroundStyle(Color.nightPrimaryText)
+            .foregroundStyle(Color.nightOnAccentText)
             .fixedSize(horizontal: false, vertical: true)
             .padding(.horizontal, 11)
             .padding(.vertical, 6)
-            .background(Color.nightCardBackground, in: Capsule())
-            .overlay { Capsule().strokeBorder(Color.nightBorder, lineWidth: 1) }
+            .background(Color.nightAccent, in: Capsule())
         }
         .buttonStyle(.plain)
         .accessibilityLabel("출제 설정, \(filter.difficulty.displayName), 카테고리 \(filter.categories.count)개, \(filter.count)문제")
@@ -121,11 +120,12 @@ struct DecorationSelectView: View {
     private var decorationProgress: some View {
         Text("\(TreeSlots.clampedCount(filledCount)) / \(TreeSlots.count) 장식")
             .font(.caption.weight(.heavy))
-            .foregroundStyle(Color.nightOnAccentText)
+            .foregroundStyle(Color.nightPrimaryText)
             .fixedSize(horizontal: false, vertical: true)
             .padding(.horizontal, 11)
             .padding(.vertical, 6)
-            .background(Color.nightAccent, in: Capsule())
+            .background(Color.nightCardBackground, in: Capsule())
+            .overlay { Capsule().strokeBorder(Color.nightBorder, lineWidth: 1) }
             .accessibilityLabel("장식 \(TreeSlots.count)개 중 \(TreeSlots.clampedCount(filledCount))개 획득")
     }
 
