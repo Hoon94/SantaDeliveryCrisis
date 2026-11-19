@@ -186,6 +186,8 @@ code{font-family:ui-monospace,Menlo,monospace;font-size:.92em;background:color-m
 .vpip{fill:none;stroke:var(--pp);stroke-width:2.2}
 .vpip.on{fill:var(--pp);filter:drop-shadow(0 0 4px var(--pp))}
 .setchip{font-size:11px;font-weight:800;padding:6px 11px;border-radius:99px;background:var(--card);border:1px solid var(--line);white-space:nowrap;position:relative}
+.setchip.act{background:var(--accent);color:var(--onacc);border-color:transparent}
+.vpill.mute{background:var(--card);color:inherit;border:1px solid var(--line)}
 .otree{flex:1;min-height:0;position:relative}
 .setup{position:absolute;left:14px;right:14px;top:50%;transform:translateY(-50%);z-index:30;background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:26px;padding:16px 14px 14px;box-shadow:0 20px 60px rgba(0,0,0,.35);display:flex;flex-direction:column;gap:7px}
 .setup.static{position:relative;left:auto;right:auto;top:auto;transform:none;box-shadow:0 6px 24px rgba(0,0,0,.12)}
@@ -497,12 +499,11 @@ function vTree(sel,done){
  return `<svg viewBox="0 0 360 540" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%;overflow:visible"><g class="vsnow">${snow}</g><path class="t3" d="M180 220 L350 474 L10 474Z"/><path class="t2" d="M180 120 L312 334 L48 334Z"/><path class="t1" d="M180 36 L272 214 L88 214Z"/><g class="vlt">${lights}</g><rect class="trunk" x="160" y="470" width="40" height="36" rx="4"/><text x="180" y="42" font-size="38" text-anchor="middle">⭐</text>${orn}<text x="180" y="530" font-size="22" text-anchor="middle">🎁 🧸 🎁</text></svg>`;
 }
 const S2Bbody=(o={})=>{const m=o.m,sel=o.sel??[0,1,2,3],d=o.diff??1,q=o.q??5,done=o.done||{};
- const nlit=[0,1,2,3].filter(i=>(done[i]||[0,0,0]).every(Boolean)).length;
- return `<div class="vh"><div class="hl"><span class="vht">출제</span><div class="setchip">⚙ ${DL[d][0]} · 카테고리 ${sel.length}개 · ${q}문제${mk(m&&1,'rt')}</div></div><div class="hr2"><div class="setchip">↺ 초기화${mk(m&&2,'rt')}</div><span class="vpill"><b>${nlit}</b> / 4 장식${mk(m&&3,'rt')}</span></div></div>
+ return `<div class="vh"><div class="hl"><span class="vht">출제</span><div class="setchip act">⚙ ${DL[d][0]} · 카테고리 ${sel.length}개 · ${q}문제${mk(m&&1,'rt')}</div></div><div class="hr2"><div class="setchip">↺ 초기화${mk(m&&2,'rt')}</div><span class="vpill mute"><b>${o.n??5}</b> / 12 장식${mk(m&&3,'rt')}</span></div></div>
  <div class="vhint">장식을 눌러 퀴즈를 시작하세요${mk(m&&4,'rt')}</div>
  <div class="otree">${vTree(sel,done)}${mk(m&&5)}${mk(m&&6,'rt')}</div>
  <div class="vleg">${DL.map((x,i)=>`<span style="--pp:${DCL[i]}"><i></i>${x[0]}</span>`).join('')}<em>채워지면 통과${mk(m&&7,'rt')}</em></div>
- <div class="vhint sm">장식 4개를 모두 켜면 작업실 문이 열려요 🔑${mk(m&&8,'rt')}</div>`};
+ <div class="vhint sm">장식 12개를 모두 켜면 작업실 문이 열려요 🔑${mk(m&&8,'rt')}</div>`};
 const S2B=(o={})=>phone(S2Bbody(o),{tab:1,tm:o.m?9:0,over:o.over,v3:true});
 
 /* 장식을 눌렀을 때 진행 중 세션 선택 시트 / 새로 시작 확인 알림 / 시작 실패 알림 */
@@ -799,7 +800,7 @@ function buildManual(skin){
  <li><b>보관함(S8) 화면</b>은 없앴습니다. 완성한 트리 수는 기록에 숫자로만 남습니다.</li>
  <li><b>기록(S9)과 설정(S12)</b>은 기록 탭에 그대로 있습니다.</li></ul></div>
 <div class="panel" style="flex:1;min-width:380px"><h3>v3 시안 1에서 가져온 출제 필터</h3><ul>
- <li>화면 구성: 헤더(출제, ⚙ 조건 칩, ↺ 초기화, N / 4 장식), 반짝이는 조명과 눈 내리는 트리, 난이도 점 범례. 눈 내림·조명 깜빡임·장식 흔들림 애니메이션을 넣었습니다.</li><li>난이도: 가로 한 줄 3칸(별 + 이름). 고른 칸이 강조됩니다.</li>
+ <li>화면 구성: 헤더(출제, ⚙ 조건 칩(강조), ↺ 초기화, N / 12 장식), 반짝이는 조명과 눈 내리는 트리, 난이도 점 범례. 눈 내림·조명 깜빡임·장식 흔들림 애니메이션을 넣었습니다.</li><li>난이도: 가로 한 줄 3칸(별 + 이름). 고른 칸이 강조됩니다.</li>
  <li>카테고리: 2×2 카드(카테고리 이름만 표시), 여러 개 선택(체크 원), 최소 1개는 항상 선택됩니다. 팝업을 마치면 트리의 장식에는 소원 접수 · 선물 생산 · 포장 · 썰매 적재 이름이 표시됩니다.</li>
  <li>문제 수: 5 · 10 · 15를 한 줄 세그먼트로 고릅니다. 기본값은 보통 · 5문제.</li>
  <li>흐려진 트리 위에 중앙 팝업("문제 유형 선택")으로 표시합니다. 조건 요약, 정답률 80% 기준 안내, 시작 버튼이 아래에 있습니다.</li><li>v3의 장식 4개 고르기, ↺ 초기화, 설정 칩은 확정 규칙과 달라 넣지 않았습니다.</li></ul></div></div>
