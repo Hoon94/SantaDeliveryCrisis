@@ -32,14 +32,21 @@ struct TaskHomeView: View {
         .padding(.horizontal, 20)
         .padding(.vertical, 10)
         .background(Color.roomBackground)
-        .toolbar(.hidden, for: .navigationBar)
+        .navigationTitle("작업실")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ScreenTitleToolbar(title: "작업실", color: .roomPrimaryText)
+        }
     }
 
     private func content(
         filledCount: Int, treeNumber: Int, stats: UnsolvedQuestionStats, scrollable: Bool = false
     ) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            header(treeNumber: treeNumber)
+            Text("크리스마스 · \(treeNumber)번째 트리")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(Color.roomSecondaryText)
+                .fixedSize(horizontal: false, vertical: true)
 
             if scrollable {
                 TaskTreePanel(filledCount: filledCount)
@@ -61,19 +68,6 @@ struct TaskHomeView: View {
 
             UnsolvedQuestionTiles(stats: stats)
         }
-    }
-
-    private func header(treeNumber: Int) -> some View {
-        VStack(alignment: .leading, spacing: 1) {
-            Text("산타의 작업실")
-                .font(.title2.weight(.heavy))
-                .foregroundStyle(Color.roomPrimaryText)
-                .accessibilityAddTraits(.isHeader)
-            Text("크리스마스 · \(treeNumber)번째 트리")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(Color.roomSecondaryText)
-        }
-        .fixedSize(horizontal: false, vertical: true)
     }
 
     private func remainingMessage(filledCount: Int) -> Text {

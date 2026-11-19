@@ -30,7 +30,21 @@ struct SelectView: View {
             }
         }
         .background(background)
-        .toolbar(.hidden, for: .navigationBar)
+        .navigationTitle("출제")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ScreenTitleToolbar(title: "출제", color: .nightPrimaryText)
+            ToolbarItem(placement: .topBarTrailing) {
+                Button(action: beginEditing) {
+                    Image(systemName: "slider.horizontal.3")
+                    .font(.subheadline.bold())
+                    .foregroundStyle(Color.nightAccent)
+                }
+                .disabled(isEditing)
+                .accessibilityLabel("출제 설정")
+                .accessibilityHint("출제 설정 팝업을 다시 엽니다")
+            }
+        }
         .fullScreenCover(item: quizPresentation) { session in
             QuizEntryPresentation(session: session)
                 .presentationBackground(.clear)
@@ -72,7 +86,7 @@ struct SelectView: View {
             availability: DecorationAvailability.calculate(
                 filter: filterState.applied, questions: questions, selector: services.selector
             ),
-            onEdit: beginEditing, onSelect: startSession
+            onSelect: startSession
         )
         .blur(radius: isEditing ? 5 : 0)
         .accessibilityHidden(isEditing)

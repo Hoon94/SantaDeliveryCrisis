@@ -11,9 +11,6 @@ struct DecorationSelectView: View {
     /// 카테고리별로 계산한 장식 활성 상태와 후보 부족 정보.
     let availability: [DecorationAvailability]
 
-    /// 설정 팝업을 다시 여는 동작.
-    let onEdit: () -> Void
-
     /// 활성 장식의 카테고리로 세션 시작을 요청하는 동작.
     let onSelect: (QuizCategory) -> Void
 
@@ -22,7 +19,7 @@ struct DecorationSelectView: View {
 
     private var reduceMotion: Bool { systemReduceMotion || forceReduceMotion }
 
-    /// 조건 칩과 안내, 화면 너비에 맞춰 늘어나는 트리 및 장식을 배치한다.
+    /// 출제 조건 요약과 안내 및 화면 너비에 맞는 트리와 장식을 배치한다.
     var body: some View {
         TimelineView(.animation(minimumInterval: 1.0 / 30, paused: reduceMotion)) { timeline in
             content(time: reduceMotion ? 0 : timeline.date.timeIntervalSinceReferenceDate)
@@ -32,7 +29,7 @@ struct DecorationSelectView: View {
     private func content(time: TimeInterval) -> some View {
         ScrollView {
             VStack(spacing: 14) {
-                header
+                conditionSummary
 
                 Text("장식을 눌러 퀴즈를 시작하세요")
                     .font(.subheadline.weight(.bold))
@@ -56,18 +53,13 @@ struct DecorationSelectView: View {
         .scrollClipDisabled()
     }
 
-    private var header: some View {
-        let layout = dynamicTypeSize.isAccessibilitySize
-            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8))
-            : AnyLayout(HStackLayout(spacing: 8))
-        return layout {
-            Text("출제")
-                .font(.title2.weight(.heavy))
-                .foregroundStyle(Color.nightPrimaryText)
-                .accessibilityAddTraits(.isHeader)
-            conditionChip
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
+    private var conditionSummary: some View {
+        Text("\(filter.difficulty.displayName) · 카테고리 \(filter.categories.count)개 · \(filter.count)문제")
+            .font(.caption.weight(.bold))
+            .foregroundStyle(Color.nightSecondaryText)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityLabel("현재 출제 조건, \(filter.difficulty.displayName), 카테고리 \(filter.categories.count)개, \(filter.count)문제")
     }
 
     private func accessibleDecorations(time: TimeInterval) -> some View {
@@ -93,24 +85,6 @@ struct DecorationSelectView: View {
         }
     }
 
-    private var conditionChip: some View {
-        Button(action: onEdit) {
-            Label(
-                "\(filter.difficulty.displayName) · 카테고리 \(filter.categories.count)개 · \(filter.count)문제",
-                systemImage: "gearshape"
-            )
-            .font(.caption.weight(.bold))
-            .foregroundStyle(Color.nightPrimaryText)
-            .fixedSize(horizontal: false, vertical: true)
-            .padding(.horizontal, 11)
-            .padding(.vertical, 6)
-            .background(Color.nightCardBackground, in: Capsule())
-            .overlay { Capsule().strokeBorder(Color.nightBorder, lineWidth: 1) }
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("출제 설정, \(filter.difficulty.displayName), 카테고리 \(filter.categories.count)개, \(filter.count)문제")
-        .accessibilityHint("출제 설정 팝업을 다시 엽니다")
-    }
 }
 
 private struct DecorationSelectTree: View {
@@ -185,7 +159,7 @@ private struct DecorationSelectPreview: View {
             filter: filter, questions: questions, selector: QuestionSelector()
         )
         DecorationSelectView(
-            filter: filter, availability: results, onEdit: {}, onSelect: { _ in },
+            filter: filter, availability: results, onSelect: { _ in },
             forceReduceMotion: forceReduceMotion
         )
             .background {
