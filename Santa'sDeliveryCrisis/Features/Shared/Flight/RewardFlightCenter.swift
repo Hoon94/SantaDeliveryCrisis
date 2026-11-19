@@ -11,6 +11,9 @@ import SwiftUI
 @MainActor
 @Observable
 final class RewardFlightCenter {
+    /// 앱 전체가 함께 쓰는 하나의 상태 객체.
+    static let shared = RewardFlightCenter()
+
     /// 날아갈 장식 한 묶음의 정보.
     struct Flight: Identifiable {
         let id = UUID()
@@ -81,11 +84,13 @@ final class RewardFlightCenter {
 }
 
 private struct RewardFlightCenterKey: EnvironmentKey {
-    @MainActor static let defaultValue = RewardFlightCenter()
+    @MainActor static let defaultValue = RewardFlightCenter.shared
 }
 
 extension EnvironmentValues {
-    /// 장식 비행 연출 상태. 앱의 탭 구성이 주입하고, 주입이 없는 미리보기에서는 아무 화면에도 연결되지 않은 객체를 쓴다.
+    /// 장식 비행 연출 상태. 앱 전체가 `RewardFlightCenter.shared` 하나를 함께 쓴다.
+    /// 퀴즈 덮개, 탭 안의 작업실 트리, 가장 위 연출 층은 서로 다른 화면 계층에 있어서
+    /// 환경 주입에 기대면 일부가 다른 객체를 받을 수 있다. 그래서 기본값을 공유 객체로 두고 따로 주입하지 않는다.
     var rewardFlight: RewardFlightCenter {
         get { self[RewardFlightCenterKey.self] }
         set { self[RewardFlightCenterKey.self] = newValue }
