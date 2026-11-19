@@ -186,6 +186,8 @@ code{font-family:ui-monospace,Menlo,monospace;font-size:.92em;background:color-m
 .vpip{fill:none;stroke:var(--pp);stroke-width:2.2}
 .vpip.on{fill:var(--pp);filter:drop-shadow(0 0 4px var(--pp))}
 .setchip{font-size:11px;font-weight:800;padding:6px 11px;border-radius:99px;background:var(--card);border:1px solid var(--line);white-space:nowrap;position:relative}
+.setchip.act{background:var(--accent);color:var(--onacc);border-color:transparent}
+.vpill.mute{background:var(--card);color:inherit;border:1px solid var(--line)}
 .otree{flex:1;min-height:0;position:relative}
 .setup{position:absolute;left:14px;right:14px;top:50%;transform:translateY(-50%);z-index:30;background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:26px;padding:16px 14px 14px;box-shadow:0 20px 60px rgba(0,0,0,.35);display:flex;flex-direction:column;gap:7px}
 .setup.static{position:relative;left:auto;right:auto;top:auto;transform:none;box-shadow:0 6px 24px rgba(0,0,0,.12)}
@@ -497,12 +499,11 @@ function vTree(sel,done){
  return `<svg viewBox="0 0 360 540" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%;overflow:visible"><g class="vsnow">${snow}</g><path class="t3" d="M180 220 L350 474 L10 474Z"/><path class="t2" d="M180 120 L312 334 L48 334Z"/><path class="t1" d="M180 36 L272 214 L88 214Z"/><g class="vlt">${lights}</g><rect class="trunk" x="160" y="470" width="40" height="36" rx="4"/><text x="180" y="42" font-size="38" text-anchor="middle">⭐</text>${orn}<text x="180" y="530" font-size="22" text-anchor="middle">🎁 🧸 🎁</text></svg>`;
 }
 const S2Bbody=(o={})=>{const m=o.m,sel=o.sel??[0,1,2,3],d=o.diff??1,q=o.q??5,done=o.done||{};
- const nlit=[0,1,2,3].filter(i=>(done[i]||[0,0,0]).every(Boolean)).length;
- return `<div class="vh"><div class="hl"><span class="vht">출제</span><div class="setchip">⚙ ${DL[d][0]} · 카테고리 ${sel.length}개 · ${q}문제${mk(m&&1,'rt')}</div></div><div class="hr2"><div class="setchip">↺ 초기화${mk(m&&2,'rt')}</div><span class="vpill"><b>${nlit}</b> / 4 장식${mk(m&&3,'rt')}</span></div></div>
+ return `<div class="vh"><div class="hl"><span class="vht">출제</span><div class="setchip act">⚙ ${DL[d][0]} · 카테고리 ${sel.length}개 · ${q}문제${mk(m&&1,'rt')}</div></div><div class="hr2"><div class="setchip">↺ 초기화${mk(m&&2,'rt')}</div><span class="vpill mute"><b>${o.n??5}</b> / 12 장식${mk(m&&3,'rt')}</span></div></div>
  <div class="vhint">장식을 눌러 퀴즈를 시작하세요${mk(m&&4,'rt')}</div>
  <div class="otree">${vTree(sel,done)}${mk(m&&5)}${mk(m&&6,'rt')}</div>
  <div class="vleg">${DL.map((x,i)=>`<span style="--pp:${DCL[i]}"><i></i>${x[0]}</span>`).join('')}<em>채워지면 통과${mk(m&&7,'rt')}</em></div>
- <div class="vhint sm">장식 4개를 모두 켜면 작업실 문이 열려요 🔑${mk(m&&8,'rt')}</div>`};
+ <div class="vhint sm">장식 12개를 모두 켜면 작업실 문이 열려요 🔑${mk(m&&8,'rt')}</div>`};
 const S2B=(o={})=>phone(S2Bbody(o),{tab:1,tm:o.m?9:0,over:o.over,v3:true});
 
 /* 장식을 눌렀을 때 진행 중 세션 선택 시트 / 새로 시작 확인 알림 / 시작 실패 알림 */
@@ -731,13 +732,15 @@ const S10=(o={})=>{const m=o.m;
  return phone(`${nav10(m)}
  <div class="field">${mk(m&&3)}🔍 문제 검색</div>
  <div>${mk(m&&4)}<span class="chip red">전체</span><span class="chip">AI 활용</span><span class="chip">Swift 문법</span><span class="chip">HIG</span><span class="chip">SwiftUI</span></div>
+ <div><span class="chip red">전체</span><span class="chip">쉬움</span><span class="chip">보통</span><span class="chip">어려움</span></div>
  <div class="card" style="padding:2px 12px">${mk(m&&5)}${mrow('Optional 체이닝이 nil인 경우','Swift 문법 · 보통 · 내 문제')}${mrow('guard의 else 실행 조건','Swift 문법 · 보통 · 기본 🔒',1,1)}${mrow('HIG 최소 터치 영역은?','HIG · 쉬움 · 기본 🔒',1)}</div>
  <div class="sub" style="text-align:center">🔒 기본 문제는 수정할 수 없어요${mk(m&&6)}</div>`,{tab:3,over:o.over});
 };
 const S10_delete=(m)=>phone(`${nav10()}
  <div class="field">🔍 문제 검색</div><div><span class="chip red">전체</span><span class="chip">AI 활용</span><span class="chip">Swift 문법</span><span class="chip">HIG</span><span class="chip">SwiftUI</span></div>
+ <div><span class="chip red">전체</span><span class="chip">쉬움</span><span class="chip">보통</span><span class="chip">어려움</span></div>
  <div class="swipe">${mk(m&&1)}<div class="del">삭제${mk(m&&2,'rt')}</div><div class="in"><div class="k ell">Optional 체이닝이 nil인 경우</div><div class="sub">Swift 문법 · 보통 · 내 문제</div></div></div>
- <div class="card" style="padding:2px 12px">${mrow('guard의 else 실행 조건','Swift 문법 · 보통 · 기본 🔒',1,1)}${mrow('HIG 최소 터치 영역은?','HIG · 쉬움 · 기본 🔒',1)}</div>`,{tab:3,over:`<div class="dimbg"></div><div class="alert"><h4>이 문제를 삭제할까요?${mk(m&&3)}</h4><p>“Optional 체이닝이 nil인 경우”가 새 출제 대상과 오답 노트에서 사라져요. 이미 끝난 세션의 점수는 그대로예요.</p><div class="ab"><span>취소${mk(m&&4)}</span><span class="b d">삭제${mk(m&&5)}</span></div></div>`});
+ <div class="card" style="padding:2px 12px">${mrow('guard의 else 실행 조건','Swift 문법 · 보통 · 기본 🔒',1,1)}${mrow('HIG 최소 터치 영역은?','HIG · 쉬움 · 기본 🔒',1)}</div>`,{tab:3,over:`<div class="dimbg"></div><div class="alert"><h4>이 문제를 삭제할까요?${mk(m&&3)}</h4><p>“Optional 체이닝이 nil인 경우”가 새 출제 대상과 오답 노트에서 사라져요. 이미 끝난 문제의 점수는 그대로예요.</p><div class="ab"><span>취소${mk(m&&4)}</span><span class="b d">삭제${mk(m&&5)}</span></div></div>`});
 const S11=(o={})=>{const m=o.m,err=o.err;
  return phone(`<div class="nav"><span class="l">취소${mk(m&&1)}</span><span class="t">${o.edit?'문제 편집':'새 문제'}</span><span class="r" style="${err?'opacity:.45':''}">저장${mk(m&&2,'rt')}</span></div>
  <div class="field ${err?'err':''}" style="${err?'':'color:var(--text)'}">${mk(m&&3)}<div class="sub">문제</div><div class="k">${err?'<span style="color:var(--sub);font-weight:500">문제를 입력해 주세요</span>':'Optional 체이닝이 nil을 반환하는 경우는?'}</div></div>${err?'<div class="errtx" style="margin-top:-6px">문제 내용은 비워 둘 수 없어요</div>':''}
@@ -750,7 +753,7 @@ const S11=(o={})=>{const m=o.m,err=o.err;
  <div class="card row" style="padding:9px 12px"><span class="grow">난이도</span><span class="sub">보통 ›</span></div>
  <div class="card row" style="padding:9px 12px"><span class="grow">해설 · 힌트 · 학습 자료 · 태그</span><span class="sub">›</span>${mk(m&&7)}</div>`,{over:o.over});
 };
-const S11_cancel=(m)=>S11({edit:true,over:`<div class="dimbg"></div><div class="alert"><h4>작성한 내용을 버릴까요?${mk(m&&1)}</h4><p>저장하지 않은 내용은 사라져요.</p><div class="ab"><span>계속 작성${mk(m&&2)}</span><span class="b d">버리기${mk(m&&3)}</span></div></div>`});
+const S11_cancel=(m)=>S11({edit:true,over:`<div class="dimbg"></div><div class="alert"><h4>수정한 내용을 지울까요?${mk(m&&1)}</h4><p>저장하지 않은 내용은 사라져요.</p><div class="ab"><span>계속 작성${mk(m&&2)}</span><span class="b d">지우기${mk(m&&3)}</span></div></div>`});
 
 /* ================================================================
    iPad
@@ -839,14 +842,14 @@ SC.push({id:'S2',name:'출제 (필터)',kind:'Push 화면 · 출제 탭 루트',
 SC.push({id:'S2-B',name:'장식 선택',kind:'Push 화면 · 출제 탭 루트',path:'탭 바 [출제] (팝업 뒤 화면) / S2 [장식 선택]',src:'mock',rule:'v3 시안 1 그대로 (spec에는 없음)',
  desc:'v3 시안 1의 출제 화면입니다. 눈이 내리는 트리에 소원 접수 · 선물 생산 · 포장 · 썰매 적재 장식 4개가 달려 있고, 켜진 장식을 눌러 퀴즈를 시작합니다. 장식 아래 점 3개는 쉬움 · 보통 · 어려움이며, 채워진 점은 통과한 난이도, 빈 원은 아직 남은 난이도입니다. S2 팝업에서 고른 조건에 맞춰 선택한 카테고리의 장식만 밝고 나머지는 흐려집니다. 이 화면의 색은 v3 팔레트입니다.',
  frames:[{cap:'기본 (통과한 난이도 없음)',html:S2B({m:1}),items:[
-  [1,'조건 칩','Button','"⚙ 보통 · 카테고리 4개 · 5문제". 탭하면 S2 팝업을 다시 엽니다.'],
+  [1,'조건 칩','Button (강조)','"⚙ 보통 · 카테고리 4개 · 5문제". 이 화면에서 눌러 바꿀 수 있는 대상이라 강조색(노란색)으로 표시합니다. 탭하면 S2 팝업을 다시 열어 난이도 · 카테고리 · 문제 수를 바꿉니다.'],
   [2,'↺ 초기화','Button','탭하면 "정말 초기화?"로 바뀌고 2.5초 안에 한 번 더 누르면 통과 표시를 모두 지웁니다. v3의 동작이며 지우는 범위는 정해지지 않았습니다(8장).'],
-  [3,'장식 진행 알약','Pill','"N / 4 장식". 세 난이도를 모두 통과한 장식의 수.'],
+  [3,'장식 진행 카운터','Text (표시 전용)','"N / 12 장식". 현재 트리에 달린 장식 수(S1 트리와 같은 값)입니다. 누를 수 없는 표시이므로 강조색 없이 카드색으로 표시합니다.'],
   [4,'시작 안내','Text','"장식을 눌러 퀴즈를 시작하세요".'],
   [5,'장식 × 4','Button','소원 접수 · 선물 생산 · 포장 · 썰매 적재. 트리 위에서 살짝 흔들리고 배경에는 눈이 내립니다(모션 줄이기면 정지). 켜진 장식을 탭하면 그 카테고리 하나로 세션을 시작해 S4로 페이드 전환합니다. 흐린 장식은 반응하지 않습니다.'],
   [6,'난이도 통과 점','Indicator × 3','장식 아래 점 3개(쉬움 · 보통 · 어려움, 초록 · 주황 · 분홍). 채워진 점은 통과한 난이도, 빈 원은 아직 남은 난이도입니다. 흐린 장식의 점도 함께 흐려집니다.'],
   [7,'범례','Text','난이도 점 색 안내와 "채워지면 통과".'],
-  [8,'하단 안내','Text','"장식 4개를 모두 켜면 작업실 문이 열려요 🔑". v3 문구이며 확정 규칙과 다릅니다(8장).'],
+  [8,'하단 안내','Text','"장식 12개를 모두 켜면 작업실 문이 열려요 🔑". v3 문구이며 확정 규칙과 다릅니다(8장).'],
   [9,'탭 바','Tab Bar','출제 탭이 강조됩니다.']]}],
  variants:[{cap:'카테고리 2개만 선택, 일부 통과 (어려움 · 10문제)',html:S2B({sel:[0,2],diff:2,q:10,done:{0:[1,1,1],2:[0,1,0]}})}],
  events:[
@@ -1095,8 +1098,8 @@ SC.push({id:'S10',name:'문제 관리',kind:'Push 화면 · 관리 탭 루트',p
  desc:'문제를 검색, 필터, 삭제합니다. 기본(시드) 문제의 수정·삭제 버튼은 화면에 표시하되 비활성화합니다. 애니메이션 문제(🎬)도 같습니다.',
  frames:[{cap:'기본',html:S10({m:1}),items:[
   [1,'제목','Text','"문제 관리".'],[2,'새 문제 (＋)','Button','S11을 새 문제 모드로 엽니다(push).'],[3,'검색','Search Field','문제 텍스트로 검색합니다.'],
-  [4,'필터 칩','Chip','카테고리(문제 유형: AI 활용 · Swift 문법 · HIG · SwiftUI)와 난이도로 거릅니다. 작업 이름(소원 접수 등)이 아니라 문제 유형 이름을 씁니다.'],
-  [5,'문제 목록','List','제목, 작업 · 난이도 · "내 문제 / 기본 🔒". 내 문제는 수정·삭제가 활성이고 기본 문제는 회색으로 비활성입니다. 행을 왼쪽으로 스와이프해도 삭제할 수 있습니다.'],
+  [4,'필터 칩','Chip','카테고리(문제 유형: AI 활용 · Swift 문법 · HIG · SwiftUI)와 난이도(쉬움 · 보통 · 어려움)를 각각 한 줄의 칩으로 거릅니다. 각 줄에서 하나만 고르고 "전체"는 조건 없음입니다. 작업 이름(소원 접수 등)이 아니라 문제 유형 이름을 씁니다.'],
+  [5,'문제 목록','List','제목, 카테고리 · 난이도 · "내 문제 / 기본 🔒". 내 문제는 수정·삭제가 활성이고 기본 문제는 회색으로 비활성입니다. 행을 왼쪽으로 스와이프해도 삭제할 수 있습니다.'],
   [6,'안내','Text','"🔒 기본 문제는 수정할 수 없어요".']]},
   {cap:'검색·필터 결과 없음 (빈 상태)',html:S10({empty:true,m:1}),items:[
   [1,'적용 중인 조건','Chip','검색어와 필터를 표시합니다.'],[2,'필터 초기화','Button (Secondary)','검색어와 필터를 지웁니다.'],[3,'새 문제 만들기','Button (Primary)','S11을 새 문제 모드로 엽니다.']]}],
@@ -1111,7 +1114,7 @@ SC.push({id:'S10-A1',name:'문제 삭제 확인',kind:'알림 (.alert)',path:'S1
  desc:'삭제하면 새 출제 대상과 오답 노트에서 빠지므로 한 번 더 확인합니다.',
  frames:[{cap:'스와이프 후 확인 알림',html:S10_delete(1),items:[
   [1,'스와이프된 행','List Row','왼쪽으로 밀어 [삭제] 액션을 노출합니다.'],[2,'삭제 액션','Swipe Action','빨간색 [삭제].'],
-  [3,'제목과 본문','Text','"이 문제를 삭제할까요?" 새 출제 대상과 오답 노트에서 사라지고 이미 끝난 세션의 점수는 그대로라고 알립니다.'],
+  [3,'제목과 본문','Text','"이 문제를 삭제할까요?" 새 출제 대상과 오답 노트에서 사라지고 이미 끝난 문제의 점수는 그대로라고 알립니다.'],
   [4,'취소','Alert Button','알림만 닫습니다.'],[5,'삭제','Alert Button (파괴적)','문제를 삭제합니다.']]}],
  events:[
   ['[삭제] 탭','—','문제를 지우고 쓰이지 않는 이미지·영상 파일을 정리합니다. 진행 중 세션은 복사본으로 계속 이어 풀 수 있습니다.','S10'],
@@ -1122,28 +1125,29 @@ SC.push({id:'S11',name:'문제 편집',kind:'Push 화면 · 관리 탭',path:'S1
  frames:[{cap:'수정 모드',html:S11({m:1,edit:true}),items:[
   [1,'취소','Nav Button','변경 내용이 있으면 확인 알림(S11-A1), 없으면 바로 닫습니다.'],
   [2,'저장','Nav Button','필수 항목을 검사하고 저장합니다. 검사에 실패하면 비활성화 상태로 보이고 이유를 알려 줍니다.'],
-  [3,'문제 입력','Text Field','비어 있으면 저장할 수 없습니다.'],
+  [3,'문제 입력','Text Field','비어 있으면 저장할 수 없습니다. 같은 문제가 이미 있으면(공백과 영문 대소문자는 구분하지 않고, 기본 문제도 비교 대상) "이미 생성된 문제가 있습니다"를 보여 주고 저장할 수 없습니다. 제목을 바꾸지 않고 다른 항목만 고칠 때는 이 검사를 하지 않습니다.'],
   [4,'이미지 / 영상 추가','Button','시스템 사진 선택기를 엽니다. 고르면 미리보기와 삭제 버튼이 나타납니다. 용량 제한은 없습니다.'],
-  [5,'보기 4개','Radio List','4개 모두 입력해야 하고 정답을 하나 고릅니다.'],
+  [5,'보기 4개','Radio List','4개 모두 입력해야 하고 정답을 하나 고릅니다. 같은 보기가 두 개 이상이면(공백과 영문 대소문자는 구분하지 않음) "이미 작성된 항목이 있습니다"를 보여 주고 저장할 수 없습니다.'],
   [6,'카테고리 / 난이도','Picker','카테고리 4개, 난이도 3개.'],
-  [7,'해설 · 힌트 · 학습 자료 · 태그','Row','탭하면 입력 화면으로 들어갑니다. 학습 자료는 제목과 URL.']]},
+  [7,'해설 · 힌트 · 학습 자료 · 태그','Row','탭하면 입력 화면으로 들어갑니다. 해설은 필수라서 비어 있으면 저장할 수 없습니다. 학습 자료는 제목과 URL(http 또는 https만 허용)이고 태그는 쉼표로 구분합니다.']]},
   {cap:'저장할 수 없을 때 (검증 오류)',html:S11({m:1,err:true}),items:[
   [2,'저장 (비활성)','Nav Button','필수 항목이 비어 있으면 흐리게 표시합니다.'],
   [3,'문제 오류','Inline Error','"문제 내용은 비워 둘 수 없어요". 입력 칸에 빨간 테두리.'],
-  [5,'보기 오류','Inline Error','"보기 4개를 모두 입력해야 저장할 수 있어요".']]}],
+  [5,'보기 오류','Inline Error','"보기 4개를 모두 입력해야 저장할 수 있어요". 같은 보기가 있으면 "이미 작성된 항목이 있습니다".'],
+  [7,'해설 오류','Inline Error','"해설을 입력해 주세요".']]}],
  variants:[{cap:'이미지를 추가한 상태',html:S11({edit:true,media:true})}],
  events:[
   ['[저장] 탭','필수 항목 충족','저장하고 목록으로 돌아갑니다. 이미지·영상은 새 파일명으로 복사 저장하고 이전 파일은 쓰는 곳이 없을 때 정리합니다.','S10'],
   ['[저장] 탭','필수 항목 누락','저장하지 않고 오류를 표시합니다.','S11'],
-  ['[취소] 탭','변경 있음','버릴지 확인합니다.','S11-A1'],
+  ['[취소] 탭','변경 있음','지울지 확인합니다.','S11-A1'],
   ['[취소] 탭','변경 없음','바로 닫습니다.','S10']],
  notes:['애니메이션 문제는 편집 화면을 열 수 없습니다.']});
 
 SC.push({id:'S11-A1',name:'작성 취소 확인',kind:'알림 (.alert)',path:'S11에서 [취소] 탭 (변경 있음)',src:'new',rule:'—',
  desc:'작성하던 내용이 사라지는 것을 막습니다.',
  frames:[{cap:'확인 알림',html:S11_cancel(1),items:[
-  [1,'제목과 본문','Text','"작성한 내용을 버릴까요? 저장하지 않은 내용은 사라져요."'],[2,'계속 작성','Alert Button (기본)','알림을 닫고 편집을 이어갑니다.'],[3,'버리기','Alert Button (파괴적)','변경을 버리고 S10으로 돌아갑니다. 새로 추가했던 이미지·영상 파일도 정리 대상이 됩니다.']]}],
- events:[['[버리기] 탭','—','편집 화면을 닫습니다.','S10'],['[계속 작성] 탭','—','편집으로 돌아갑니다.','S11']]});
+  [1,'제목과 본문','Text','"수정한 내용을 지울까요? 저장하지 않은 내용은 사라져요." 새 문제를 작성하던 중이면 제목이 "작성한 내용을 지울까요?"입니다.'],[2,'계속 작성','Alert Button (기본)','알림을 닫고 편집을 이어갑니다.'],[3,'지우기','Alert Button (파괴적)','변경을 지우고 S10으로 돌아갑니다. 새로 추가했던 이미지·영상 파일도 정리 대상이 됩니다.']]}],
+ events:[['[지우기] 탭','—','편집 화면을 닫습니다.','S10'],['[계속 작성] 탭','—','편집으로 돌아갑니다.','S11']]});
 
 /* ================= F. iPad ================= */
 G('F','F. iPad','가로·세로를 모두 지원하고 SwiftUI 적응형 레이아웃을 씁니다. 별도 시안은 없습니다.');
@@ -1173,7 +1177,7 @@ const FLOWS=[
  ['④ 애니메이션 문제',[N('S4','퀴즈'),A('확인'),N('S4-T','재생 중'),A('재생 끝'),N('S5','판정 · 해설',1),A('다음 문제')]],
  ['⑤ 결과 · 트리 완성 · 오답 노트',[N('S6','세션 결과'),A('트리 완성'),N('S6-C','산타 출발'),A('새 트리 시작하기'),N('S1','새 트리')],[N('S6','세션 결과'),A('오답 노트 보기'),N('S7','오답 노트'),A('오답 탭'),N('S7','상세')]],
  ['⑥ 결과 저장 실패',[N('S5','마지막 문제'),A('결과 보기'),N('S4-L','계산 중',1),A('실패'),N('S4-E1','저장 실패',1),A('다시 시도'),N('S6','세션 결과')]],
- ['⑦ 문제 관리 · 기록 · 설정',[N('S10','문제 관리'),A('＋ / 수정'),N('S11','문제 편집'),A('취소 (변경 있음)'),N('S11-A1','버릴까요?',1),A('버리기'),N('S10','문제 관리')],[N('S10','문제 관리'),A('삭제'),N('S10-A1','삭제 확인',1),A('삭제'),N('S10','문제 관리')],[N('S10','문제 관리'),A('📊 기록'),N('S9','기록'),A('⚙ 설정'),N('S12','설정')]]
+ ['⑦ 문제 관리 · 기록 · 설정',[N('S10','문제 관리'),A('＋ / 수정'),N('S11','문제 편집'),A('취소 (변경 있음)'),N('S11-A1','지울까요?',1),A('지우기'),N('S10','문제 관리')],[N('S10','문제 관리'),A('삭제'),N('S10-A1','삭제 확인',1),A('삭제'),N('S10','문제 관리')],[N('S10','문제 관리'),A('📊 기록'),N('S9','기록'),A('⚙ 설정'),N('S12','설정')]]
 ];
 function N(id,t,d){return `<a class="nd ${d?'dlg':''}" href="#${id}" style="text-decoration:none;color:inherit">${id}<small>${t}</small></a>`}
 function A(t){return `<span class="ar">${t}</span>`}

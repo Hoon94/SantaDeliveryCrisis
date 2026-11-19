@@ -91,12 +91,12 @@ struct RecordsStatistics {
     }
 
     /// 세션 하나의 정답률(0...100, 소수점 버림). 문제가 없는 세션은 nil.
-    /// 결과 화면과 같은 값이 나오도록 정수 나눗셈으로 내림한다. 예: 7/9 → 77
+    /// 결과 화면과 같은 값이 나오도록 `Accuracy.percent`로 계산한다. 예: 7/9 → 77
     func score(of session: QuizSession) -> Int? {
         let total = session.questionIDs.count
         guard total > 0 else { return nil }
         let correct = session.answers.filter(\.isCorrect).count
-        return correct * 100 / total
+        return Accuracy.percent(correct: correct, total: total)
     }
 
     // MARK: - 내부 계산
@@ -153,7 +153,7 @@ struct RecordsStatistics {
                 guard count > 0 else {
                     return CategoryAccuracy(category: category, accuracyPercent: nil, answeredCount: 0)
                 }
-                let percent = (correct[category] ?? 0) * 100 / count
+                let percent = Accuracy.percent(correct: correct[category] ?? 0, total: count)
                 return CategoryAccuracy(category: category, accuracyPercent: percent, answeredCount: count)
             }
             .enumerated()
