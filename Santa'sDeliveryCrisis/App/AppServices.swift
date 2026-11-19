@@ -9,11 +9,11 @@ struct AppServices {
     let recommender: TaskRecommending
     let sessions: SessionManaging
     let trees: TreeManaging
-    let feedback: FeedbackPlaying
+    let feedback: QuizFeedbackPlaying
     let media: MediaFileManaging
     let traceScenes: TraceSceneRegistry
 
-    /// 실제 구현(출제, 추천, 세션, 트리, 미디어, 설정)과 아직 구현되지 않은 mock(피드백, 장면)을 조립한다.
+    /// 실제 구현(출제, 추천, 세션, 트리, 피드백, 미디어, 설정)과 아직 구현되지 않은 mock(장면)을 조립한다.
     /// 세션과 트리는 같은 `ModelContext`를 써야 세션 완료와 장식 지급이 한 번의 저장으로 묶인다.
     static func make(context: ModelContext) -> AppServices {
         let settings = SettingsStore()
@@ -32,7 +32,7 @@ struct AppServices {
                 media: media
             ),
             trees: trees,
-            feedback: MockFeedbackPlayer(),
+            feedback: FeedbackPlayer(settings: settings),
             media: media,
             traceScenes: MockTraceSceneRegistry()
         )
