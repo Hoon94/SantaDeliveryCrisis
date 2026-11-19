@@ -98,7 +98,7 @@ struct QuestionDraft: Equatable {
         var seen = Set<String>()
         return tagsText
             .components(separatedBy: CharacterSet(charactersIn: ",\n"))
-            .map(Self.trimmed)
+            .map { Self.trimmed($0) }
             .filter { !$0.isEmpty && seen.insert($0).inserted }
     }
 
