@@ -9,6 +9,8 @@ struct QuizQuestionView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     /// 코드를 크게 보는 창이 열려 있는 문제의 번호. nil이면 닫힘
     @State private var codePreviewIndex: Int?
+    /// 코드 상자의 화면 좌표. 창이 이 자리에서 펼쳐진다. 스크롤마다 바뀌므로 화면을 다시 그리지 않는 상자에 담아 둔다.
+    @State private var codeFrame = FrameBox()
 
     var body: some View {
         VStack(spacing: 0) {
@@ -37,22 +39,19 @@ struct QuizQuestionView: View {
     }
 
     /// 코드를 누르면 열리는 큰 창. 테두리와 닫기 버튼 없이 창 안이나 바깥을 한 번 누르면 닫힌다.
+    /// 열고 닫는 움직임은 창이 스스로 맡으므로 여기서는 따로 전환을 주지 않는다.
     @ViewBuilder private var codePreview: some View {
         if codePreviewIndex != nil, let code = model.currentSnapshot?.codeSnippet, !code.isEmpty {
-            CodePreviewPopup(code: code) { closeCodePreview() }
-                .transition(reduceMotion ? .opacity : .opacity.combined(with: .scale(scale: 0.94)))
-                .zIndex(1)
+            CodePreviewPopup(code: code, sourceFrame: codeFrame.rect) {
+                codePreviewIndex = nil
+            }
+            .zIndex(1)
         }
     }
 
     private func openCodePreview() {
         services.feedback.play(.select)
-        withAnimation(.spring(response: 0.38, dampingFraction: 0.82)) { codePreviewIndex = model.index }
-    }
-
-    private func closeCodePreview() {
-        services.feedback.play(.button)
-        withAnimation(.easeOut(duration: 0.2)) { codePreviewIndex = nil }
+        codePreviewIndex = model.index
     }
 
     // MARK: - 머리
@@ -210,6 +209,7 @@ struct QuizQuestionView: View {
                 .allowsHitTesting(false)
         }
         .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { codeFrame.rect = $0 }
         .onTapGesture { openCodePreview() }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("코드")
@@ -312,4 +312,9 @@ private struct ProgressTrack: View {
         .accessibilityLabel("진행률")
         .accessibilityValue("\(Int(progress * 100))퍼센트")
     }
+}
+
+/// 값이 바뀌어도 화면을 다시 그리지 않는 작은 상자. 스크롤 중 계속 바뀌는 좌표를 담아 둘 때 쓴다.
+private final class FrameBox {
+    var rect: CGRect?
 }
