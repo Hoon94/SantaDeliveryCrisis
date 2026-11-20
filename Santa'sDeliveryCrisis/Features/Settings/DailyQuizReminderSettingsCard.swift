@@ -6,8 +6,16 @@ struct DailyQuizReminderSettingsCard: View {
     /// 부모 설정 화면이 Environment에서 받은 실제 또는 프리뷰용 알림 서비스.
     let reminders: any DailyQuizReminderManaging
     @State private var isHandlingAction = false
+    @State private var isTimePickerPresented = false
 
     private var isBusy: Bool { isHandlingAction || reminders.isUpdating }
+    private var canChangeTime: Bool { reminders.isEnabled && reminders.authorization == .allowed }
+
+    private var formattedTime: String {
+        let time = reminders.reminderTime
+        let date = Calendar.current.date(from: DateComponents(hour: time.hour, minute: time.minute)) ?? .now
+        return date.formatted(date: .omitted, time: .shortened)
+    }
 
     /// 사용 의사와 시스템 권한이 모두 켜져 있을 때만 토글을 켜짐으로 표시한다.
     /// 기기에서 잠시 차단해도 사용 의사는 유지해 권한을 다시 허용하면 복구한다.
@@ -28,7 +36,25 @@ struct DailyQuizReminderSettingsCard: View {
                 .accessibilityHint("오늘 완료한 퀴즈가 없는 경우 학습 알림을 받아요.")
                 .disabled(isBusy)
 
-            Text("오늘 완료한 퀴즈가 없으면 오후 8시에 알려드려요.")
+            Button {
+                isTimePickerPresented = true
+            } label: {
+                HStack {
+                    Text("알림 시간")
+                    Spacer()
+                    Text(formattedTime)
+                    Image(systemName: "chevron.right")
+                        .font(.caption.bold())
+                }
+                .font(.subheadline)
+                .padding(.vertical, 8)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityHint("매일 학습 알림을 받을 시간을 변경해요.")
+            .disabled(isBusy || !canChangeTime)
+
+            Text("오늘 완료한 퀴즈가 없으면 \(formattedTime)에 알려드려요.")
                 .font(.caption)
                 .foregroundStyle(Color.roomSecondaryText)
                 .fixedSize(horizontal: false, vertical: true)
@@ -77,6 +103,9 @@ struct DailyQuizReminderSettingsCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .roomCardBackground()
         .task { await reminders.refresh() }
+        .sheet(isPresented: $isTimePickerPresented) {
+            DailyQuizReminderTimeSheet(reminders: reminders)
+        }
     }
 
     private func performAction(_ action: @escaping @MainActor () async -> Void) {
@@ -104,6 +133,12 @@ private func reminderCardPreview(_ reminders: MockDailyQuizReminderManager) -> s
 
 #Preview("학습 알림 · 켜짐") {
     reminderCardPreview(MockDailyQuizReminderManager(isEnabled: true, authorization: .allowed))
+}
+
+#Preview("학습 알림 · 사용자 시간") {
+    reminderCardPreview(MockDailyQuizReminderManager(
+        isEnabled: true, reminderTime: DailyQuizReminderTime(hour: 21, minute: 30), authorization: .allowed
+    ))
 }
 
 #Preview("학습 알림 · 기기에서 차단 · 토글 꺼짐") {
