@@ -11,6 +11,8 @@ nonisolated enum DailyQuizReminderAuthorization: Equatable, Sendable {
 protocol DailyQuizReminderManaging: AnyObject {
     /// 사용자가 저장한 알림 사용 의사. 시스템 권한과 별개다.
     var isEnabled: Bool { get }
+    /// 저장된 사용자 알림 시각.
+    var reminderTime: DailyQuizReminderTime { get }
     /// 마지막으로 확인한 시스템 권한 상태.
     var authorization: DailyQuizReminderAuthorization { get }
     /// 권한 요청 또는 예약 작업을 처리하고 있는지 여부.
@@ -19,6 +21,9 @@ protocol DailyQuizReminderManaging: AnyObject {
     var errorMessage: String? { get }
     /// 명시적인 사용자 조작으로 알림을 켜거나 끈다. 켤 때만 권한을 요청할 수 있다.
     func setEnabled(_ enabled: Bool) async
+    /// 켜짐·권한을 다시 확인하고 시간을 저장한다. 재예약 실패 시에도 저장한 값은 유지한다.
+    /// - Returns: 시간 저장을 수락했는지 여부. false이면 기존 시간이 유지된다.
+    func updateTime(_ time: DailyQuizReminderTime) async -> Bool
     /// 앱 활성화 또는 재시도 시 권한·예약을 동기화한다. 권한 팝업을 자동으로 띄우지 않는다.
     func refresh() async
     /// 최초 세션 완료 저장 이후 당일 예약과 전달 알림을 정리한다.
@@ -29,6 +34,7 @@ protocol DailyQuizReminderManaging: AnyObject {
 @MainActor @Observable
 final class MockDailyQuizReminderManager: DailyQuizReminderManaging {
     var isEnabled: Bool
+    var reminderTime: DailyQuizReminderTime
     var authorization: DailyQuizReminderAuthorization
     var isUpdating: Bool
     var errorMessage: String?
@@ -36,11 +42,13 @@ final class MockDailyQuizReminderManager: DailyQuizReminderManaging {
     /// 표시할 프리뷰 상태를 지정한다.
     init(
         isEnabled: Bool = false,
+        reminderTime: DailyQuizReminderTime = .defaultTime,
         authorization: DailyQuizReminderAuthorization = .notDetermined,
         isUpdating: Bool = false,
         errorMessage: String? = nil
     ) {
         self.isEnabled = isEnabled
+        self.reminderTime = reminderTime
         self.authorization = authorization
         self.isUpdating = isUpdating
         self.errorMessage = errorMessage
@@ -56,6 +64,17 @@ final class MockDailyQuizReminderManager: DailyQuizReminderManaging {
             isEnabled = enabled
             if enabled { authorization = .allowed }
         }
+    }
+
+    /// 프리뷰에서 시간 변경 정책만 반영하고 실제 예약은 하지 않는다.
+    func updateTime(_ time: DailyQuizReminderTime) async -> Bool {
+        guard isEnabled, authorization == .allowed else {
+            errorMessage = "학습 알림을 켜고 기기 알림을 허용한 뒤 시간을 변경해 주세요."
+            return false
+        }
+        reminderTime = time
+        errorMessage = nil
+        return true
     }
 
     /// 프리뷰에서는 외부 상태를 조회하지 않는다.

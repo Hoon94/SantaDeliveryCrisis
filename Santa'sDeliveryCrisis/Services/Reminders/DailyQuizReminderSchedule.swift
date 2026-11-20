@@ -6,6 +6,15 @@ nonisolated struct DailyQuizReminderDate: Identifiable, Equatable, Sendable {
     let id: String
     /// 알림을 전달할 시각. 실제 전달은 시스템 설정의 영향을 받는다.
     let date: Date
+
+    /// 시간 변경 전후에도 같은 날짜는 같은 예약으로 식별한다.
+    static func identifier(for date: Date, calendar: Calendar) -> String {
+        let year = calendar.component(.year, from: date)
+        let month = calendar.component(.month, from: date)
+        let day = calendar.component(.day, from: date)
+        return DailyQuizReminderConfiguration.identifierPrefix
+            + String(format: "%04d-%02d-%02d", year, month, day)
+    }
 }
 
 /// 완료 기록과 현재 시각으로 예약할 알림을 계산한다. 권한 요청과 실제 예약은 하지 않는다.
@@ -54,13 +63,8 @@ nonisolated struct DailyQuizReminderSchedule: Sendable {
                       calendar.isDate(date, inSameDayAs: day), date > now else {
                     return nil
                 }
-                let parts = calendar.dateComponents([.year, .month, .day], from: day)
-                guard let year = parts.year, let month = parts.month, let dayNumber = parts.day else {
-                    return nil
-                }
-                let dateKey = String(format: "%04d-%02d-%02d", year, month, dayNumber)
                 return DailyQuizReminderDate(
-                    id: DailyQuizReminderConfiguration.identifierPrefix + dateKey,
+                    id: DailyQuizReminderDate.identifier(for: day, calendar: calendar),
                     date: date
                 )
             }

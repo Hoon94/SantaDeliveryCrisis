@@ -13,6 +13,12 @@ final class SettingsStore {
         static let dailyQuizReminderEnabled = "dailyQuizReminderEnabled"
         /// 사용자가 선택한 알림 시각을 자정 이후 분 수로 저장한다.
         static let dailyQuizReminderMinutes = "dailyQuizReminderMinutes"
+        /// 날짜별 예약 성공 시각. 알림 수신 여부 자체를 증명하는 기록은 아니다.
+        static let dailyQuizReminderReservations = "dailyQuizReminderReservations"
+        /// 기존 예약 시각이 지나 추가 예약을 막아야 하는 날짜별 식별자.
+        static let dailyQuizReminderConsumedDays = "dailyQuizReminderConsumedDays"
+        /// 이력 없는 기존 버전의 예약을 처음 정리했는지 여부.
+        static let dailyQuizReminderHistoryInitialized = "dailyQuizReminderHistoryInitialized"
     }
 
     /// 기본값
@@ -84,6 +90,26 @@ final class SettingsStore {
             return DailyQuizReminderTime(hour: minutes / 60, minute: minutes % 60)
         }
         set { defaults.set(newValue.minutesAfterMidnight, forKey: Key.dailyQuizReminderMinutes) }
+    }
+
+    /// 시스템에 등록한 날짜별 예약 시각. 미래 예약 취소 시 해당 항목을 제거한다.
+    var dailyQuizReminderReservations: [String: Date] {
+        get {
+            defaults.dictionary(forKey: Key.dailyQuizReminderReservations)?.compactMapValues { $0 as? Date } ?? [:]
+        }
+        set { defaults.set(newValue, forKey: Key.dailyQuizReminderReservations) }
+    }
+
+    /// 배너 삭제와 앱 재실행 후에도 당일 추가 알림을 막기 위한 날짜별 식별자.
+    var dailyQuizReminderConsumedDays: Set<String> {
+        get { Set(defaults.stringArray(forKey: Key.dailyQuizReminderConsumedDays) ?? []) }
+        set { defaults.set(newValue.sorted(), forKey: Key.dailyQuizReminderConsumedDays) }
+    }
+
+    /// 최초 업그레이드 시 기존 알림 사용자의 지난 당일 시각을 보수적으로 처리한다.
+    var dailyQuizReminderHistoryInitialized: Bool {
+        get { bool(Key.dailyQuizReminderHistoryInitialized, default: false) }
+        set { defaults.set(newValue, forKey: Key.dailyQuizReminderHistoryInitialized) }
     }
 
     private func bool(_ key: String, default fallback: Bool) -> Bool {
