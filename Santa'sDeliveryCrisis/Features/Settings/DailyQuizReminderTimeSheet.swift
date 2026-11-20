@@ -38,9 +38,11 @@ struct DailyQuizReminderTimeSheet: View {
                 .padding()
             }
             .foregroundStyle(Color.roomPrimaryText)
-            .background(Color.roomBackground)
+            .background { Color.roomBackground.ignoresSafeArea() }
             .navigationTitle("알림 시간")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(Color.roomBackground, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("취소") { dismiss() }
@@ -53,6 +55,7 @@ struct DailyQuizReminderTimeSheet: View {
             }
         }
         .tint(Color.roomAccent)
+        .presentationBackground(Color.roomBackground)
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
         .interactiveDismissDisabled(isSaving)

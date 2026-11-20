@@ -21,7 +21,7 @@ struct DailyQuizReminderSettingsCard: View {
     /// 기기에서 잠시 차단해도 사용 의사는 유지해 권한을 다시 허용하면 복구한다.
     private var selection: Binding<Bool> {
         Binding(
-            get: { reminders.isEnabled && reminders.authorization == .allowed },
+            get: { canChangeTime },
             set: { enabled in
                 performAction { await reminders.setEnabled(enabled) }
             }
@@ -36,25 +36,29 @@ struct DailyQuizReminderSettingsCard: View {
                 .accessibilityHint("오늘 완료한 퀴즈가 없는 경우 학습 알림을 받아요.")
                 .disabled(isBusy)
 
-            Button {
-                isTimePickerPresented = true
-            } label: {
-                HStack {
-                    Text("알림 시간")
-                    Spacer()
-                    Text(formattedTime)
-                    Image(systemName: "chevron.right")
-                        .font(.caption.bold())
+            if canChangeTime {
+                Button {
+                    isTimePickerPresented = true
+                } label: {
+                    HStack {
+                        Text("알림 시간")
+                        Spacer()
+                        Text(formattedTime)
+                        Image(systemName: "chevron.right")
+                            .font(.caption.bold())
+                    }
+                    .font(.subheadline)
+                    .padding(.vertical, 8)
+                    .contentShape(Rectangle())
                 }
-                .font(.subheadline)
-                .padding(.vertical, 8)
-                .contentShape(Rectangle())
+                .buttonStyle(.plain)
+                .accessibilityHint("매일 학습 알림을 받을 시간을 변경해요.")
+                .disabled(isBusy)
             }
-            .buttonStyle(.plain)
-            .accessibilityHint("매일 학습 알림을 받을 시간을 변경해요.")
-            .disabled(isBusy || !canChangeTime)
 
-            Text("오늘 완료한 퀴즈가 없으면 \(formattedTime)에 알려드려요.")
+            Text(canChangeTime
+                 ? "오늘 완료한 퀴즈가 없으면 \(formattedTime)에 알려드려요."
+                 : "알림을 켜면 오늘 완료한 퀴즈가 없을 때 알려드려요.")
                 .font(.caption)
                 .foregroundStyle(Color.roomSecondaryText)
                 .fixedSize(horizontal: false, vertical: true)
