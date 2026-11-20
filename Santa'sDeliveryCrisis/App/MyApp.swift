@@ -4,6 +4,7 @@ import SwiftUI
 @main struct MyApp: App {
     private let container: ModelContainer?
     private let services: AppServices?
+    @Environment(\.scenePhase) private var scenePhase
 
     init() {
         do {
@@ -31,6 +32,11 @@ import SwiftUI
                 MainTabView()
                     .modelContainer(container)
                     .environment(\.services, services)
+                    .onChange(of: scenePhase, initial: true) { _, phase in
+                        if phase == .active {
+                            Task { await services.reminders.refresh() }
+                        }
+                    }
             } else {
                 ContentUnavailableView(
                     "데이터를 불러오지 못했어요",
