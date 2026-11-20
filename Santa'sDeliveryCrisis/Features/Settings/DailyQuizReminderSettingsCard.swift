@@ -9,9 +9,11 @@ struct DailyQuizReminderSettingsCard: View {
 
     private var isBusy: Bool { isHandlingAction || reminders.isUpdating }
 
+    /// 사용 의사와 시스템 권한이 모두 켜져 있을 때만 토글을 켜짐으로 표시한다.
+    /// 기기에서 잠시 차단해도 사용 의사는 유지해 권한을 다시 허용하면 복구한다.
     private var selection: Binding<Bool> {
         Binding(
-            get: { reminders.isEnabled },
+            get: { reminders.isEnabled && reminders.authorization == .allowed },
             set: { enabled in
                 performAction { await reminders.setEnabled(enabled) }
             }
@@ -108,8 +110,12 @@ private func reminderCardPreview(_ reminders: MockDailyQuizReminderManager) -> s
     reminderCardPreview(MockDailyQuizReminderManager(isEnabled: true, authorization: .allowed))
 }
 
-#Preview("학습 알림 · 권한 차단") {
+#Preview("학습 알림 · 기기에서 차단 · 토글 꺼짐") {
     reminderCardPreview(MockDailyQuizReminderManager(isEnabled: true, authorization: .denied))
+}
+
+#Preview("학습 알림 · 권한 허용 · 앱에서 꺼짐") {
+    reminderCardPreview(MockDailyQuizReminderManager(authorization: .allowed))
 }
 
 #Preview("학습 알림 · 권한 거절 후 꺼짐") {
