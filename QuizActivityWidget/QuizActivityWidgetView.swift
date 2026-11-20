@@ -8,6 +8,12 @@ struct QuizActivityWidgetView: View {
 
     /// 미연결·오류 안내 또는 월간 학습 기록을 표시한다.
     var body: some View {
+        content
+            .foregroundStyle(Color.roomPrimaryText)
+    }
+
+    @ViewBuilder
+    private var content: some View {
         switch entry.content {
         case .calendar(let activity):
             HStack(spacing: 16) {
@@ -34,7 +40,7 @@ struct QuizActivityWidgetView: View {
             Spacer(minLength: 0)
             Image(systemName: activity.isTodayCompleted ? "checkmark.circle.fill" : "circle.dashed")
                 .font(.title2)
-                .foregroundStyle(activity.isTodayCompleted ? Color.green : Color.secondary)
+                .foregroundStyle(activity.isTodayCompleted ? Color.roomAccent : Color.roomSecondaryText)
                 .widgetAccentable(activity.isTodayCompleted)
                 .accessibilityHidden(true)
             Text(activity.isTodayCompleted ? "오늘 퀴즈 완료" : "오늘은 아직이에요")
@@ -42,7 +48,7 @@ struct QuizActivityWidgetView: View {
                 .fixedSize(horizontal: false, vertical: true)
             Text("이번 달 \(activity.completedDayCount)일 학습했어요")
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.roomSecondaryText)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
@@ -57,7 +63,7 @@ struct QuizActivityWidgetView: View {
                 ForEach(["일", "월", "화", "수", "목", "금", "토"], id: \.self) { weekday in
                     Text(weekday)
                         .font(.caption2)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Color.roomSecondaryText)
                         .frame(maxWidth: .infinity)
                 }
             }
@@ -82,17 +88,21 @@ struct QuizActivityWidgetView: View {
                 .font(.caption2.weight(day.isCompleted ? .bold : .regular))
                 .minimumScaleFactor(0.7)
                 .lineLimit(1)
-                .foregroundStyle(day.isFuture ? Color.secondary : Color.primary)
+                .foregroundStyle(
+                    day.isCompleted ? Color.roomBackground
+                        : day.isFuture ? Color.roomSecondaryText : Color.roomPrimaryText
+                )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background {
                     RoundedRectangle(cornerRadius: 4)
-                        .fill(day.isCompleted ? Color.green.opacity(0.3) : Color.primary.opacity(0.04))
+                        .fill(day.isCompleted ? Color.roomAccent : Color.roomSubtleBackground)
                 }
                 .overlay {
-                    if day.isToday {
-                        RoundedRectangle(cornerRadius: 4)
-                            .strokeBorder(Color.primary, lineWidth: 1.5)
-                    }
+                    RoundedRectangle(cornerRadius: 4)
+                        .strokeBorder(
+                            day.isToday ? Color.roomAccent : Color.roomBorder,
+                            lineWidth: day.isToday ? 1.5 : 0.5
+                        )
                 }
                 .widgetAccentable(day.isCompleted)
                 .accessibilityLabel("\(month)월 \(day.dayNumber)일\(day.isToday ? ", 오늘" : ""), \(day.isCompleted ? "퀴즈 완료" : day.isFuture ? "예정" : "완료 기록 없음")")
@@ -109,7 +119,7 @@ struct QuizActivityWidgetView: View {
                 .font(.headline)
             Text(message)
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.roomSecondaryText)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
@@ -117,19 +127,39 @@ struct QuizActivityWidgetView: View {
 }
 
 #if DEBUG
-#Preview("월간 학습 · 라이트") {
-    QuizActivityWidgetView(entry: .sample())
-        .padding()
-        .frame(width: 338, height: 158)
-        .background(.background)
-        .preferredColorScheme(.light)
+/// 위젯 확장에서도 실제 위젯 크기로 라이트·다크 색상을 확인하는 프리뷰 전용 구성.
+private struct QuizActivityAppearancePreview: Widget {
+    let colorScheme: ColorScheme
+
+    /// Widget 규약이 요구하는 인자 없는 초기화.
+    init() {
+        colorScheme = .light
+    }
+
+    /// 프리뷰에서 확인할 색상 모드를 지정한다.
+    init(colorScheme: ColorScheme) {
+        self.colorScheme = colorScheme
+    }
+
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: "QuizActivityAppearancePreview", provider: QuizActivityProvider()) { entry in
+            QuizActivityWidgetView(entry: entry)
+                .containerBackground(Color.roomBackground, for: .widget)
+                .environment(\.colorScheme, colorScheme)
+        }
+        .supportedFamilies([.systemMedium])
+    }
 }
 
-#Preview("월간 학습 · 다크") {
-    QuizActivityWidgetView(entry: .sample())
-        .padding()
-        .frame(width: 338, height: 158)
-        .background(.background)
-        .preferredColorScheme(.dark)
+#Preview("월간 학습 · 라이트", as: .systemMedium) {
+    QuizActivityAppearancePreview(colorScheme: .light)
+} timeline: {
+    QuizActivityEntry.sample()
+}
+
+#Preview("월간 학습 · 다크", as: .systemMedium) {
+    QuizActivityAppearancePreview(colorScheme: .dark)
+} timeline: {
+    QuizActivityEntry.sample()
 }
 #endif

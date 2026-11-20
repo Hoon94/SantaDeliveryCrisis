@@ -86,7 +86,7 @@ struct QuizActivityWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: QuizActivityStore.widgetKind, provider: QuizActivityProvider()) { entry in
             QuizActivityWidgetView(entry: entry)
-                .containerBackground(.background, for: .widget)
+                .containerBackground(Color.roomBackground, for: .widget)
         }
         .configurationDisplayName("월간 퀴즈 기록")
         .description("오늘 퀴즈를 마쳤는지, 이번 달에 며칠 학습했는지 확인해요.")
