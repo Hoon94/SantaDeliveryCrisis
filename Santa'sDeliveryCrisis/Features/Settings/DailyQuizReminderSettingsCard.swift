@@ -26,6 +26,7 @@ struct DailyQuizReminderSettingsCard: View {
             Toggle("학습 알림", isOn: selection)
                 .tint(Color.roomAccent)
                 .accessibilityHint("오늘 완료한 퀴즈가 없는 경우 학습 알림을 받아요.")
+                .disabled(isBusy)
 
             Text("오늘 완료한 퀴즈가 없으면 오후 8시에 알려드려요.")
                 .font(.caption)
@@ -41,12 +42,6 @@ struct DailyQuizReminderSettingsCard: View {
             }
             #endif
 
-            if isBusy {
-                ProgressView("알림 설정을 확인하고 있어요")
-                    .font(.caption)
-                    .tint(Color.roomAccent)
-            }
-
             if reminders.authorization == .denied {
                 Label("기기 설정에서 이 앱의 알림이 차단되어 있어요.", systemImage: "bell.slash")
                     .font(.caption)
@@ -57,6 +52,7 @@ struct DailyQuizReminderSettingsCard: View {
                         .font(.subheadline.bold())
                         .foregroundStyle(Color.roomAccent)
                         .accessibilityHint("설정 앱에서 이 앱의 알림 권한을 변경해요.")
+                        .disabled(isBusy)
                 }
             } else if let message = reminders.errorMessage {
                 Label(message, systemImage: "exclamationmark.circle")
@@ -74,9 +70,9 @@ struct DailyQuizReminderSettingsCard: View {
                 }
                 .font(.subheadline.bold())
                 .foregroundStyle(Color.roomAccent)
+                .disabled(isBusy)
             }
         }
-        .disabled(isBusy)
         .foregroundStyle(Color.roomPrimaryText)
         .frame(maxWidth: .infinity, alignment: .leading)
         .roomCardBackground()
