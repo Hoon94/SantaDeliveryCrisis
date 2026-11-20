@@ -91,10 +91,16 @@ struct SettingsView: View {
     }
 
     private var systemCard: some View {
-        VStack(spacing: 0) {
-            infoRow("테마", detail: "시스템 설정을 따라요")
+        VStack(alignment: .leading, spacing: 0) {
+            infoRow("화면 모드", detail: "기기 설정에 따라 자동 적용")
             Divider().overlay(Color.roomBorder)
-            infoRow("글자 크기", detail: "시스템 설정을 따라요")
+            infoRow("글자 크기", detail: "기기 설정에 따라 자동 적용")
+            Divider().overlay(Color.roomBorder)
+            Text("화면 모드와 글자 크기는 기기의 설정 앱에서 변경할 수 있어요.")
+                .font(.caption)
+                .foregroundStyle(Color.roomSecondaryText)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.vertical, 10)
         }
         .roomCardBackground(padding: EdgeInsets(top: 2, leading: 12, bottom: 2, trailing: 12))
     }
