@@ -1,7 +1,8 @@
 import SwiftUI
 
-/// 설정 화면(S12). 정답률 기준, 효과음, 진동을 바꾼다.
-/// 값은 `SettingsStore`와 같은 키의 `@AppStorage`로 저장한다. 테마와 글자 크기는 시스템 설정을 따른다.
+/// 설정 화면(S12). 정답률 기준, 효과음, 진동과 학습 알림을 바꾼다.
+/// 알림은 주입된 서비스가 관리하고, 기존 설정은 `SettingsStore`와 같은 키의 `@AppStorage`로 저장한다.
+/// 테마와 글자 크기는 시스템 설정을 따른다.
 struct SettingsView: View {
     @AppStorage(SettingsStore.Key.passThresholdPercent)
     private var passThresholdPercent = SettingsStore.Default.passThresholdPercent
@@ -11,6 +12,7 @@ struct SettingsView: View {
     private var hapticsEnabled = SettingsStore.Default.hapticsEnabled
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.services) private var services
     @State private var isToastVisible = false
     @State private var toastTask: Task<Void, Never>?
 
@@ -30,6 +32,8 @@ struct SettingsView: View {
                 thresholdCard
                 sectionLabel("피드백")
                 feedbackCard
+                sectionLabel("알림")
+                DailyQuizReminderSettingsCard(reminders: services.reminders)
                 sectionLabel("화면")
                 systemCard
             }
