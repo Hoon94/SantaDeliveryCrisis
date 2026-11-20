@@ -9,6 +9,8 @@ final class SettingsStore {
         static let passThresholdPercent = "passThresholdPercent"
         static let soundEnabled = "soundEnabled"
         static let hapticsEnabled = "hapticsEnabled"
+        /// 고정 시각 학습 알림 사용 여부.
+        static let dailyQuizReminderEnabled = "dailyQuizReminderEnabled"
     }
 
     /// 기본값
@@ -17,6 +19,8 @@ final class SettingsStore {
         static let passThresholdPercent = 80
         static let soundEnabled = true
         static let hapticsEnabled = true
+        /// 사용자가 직접 켜기 전에는 알림을 예약하지 않는다.
+        static let dailyQuizReminderEnabled = false
     }
 
     /// 정답률 기준으로 허용하는 값 (50~100, 10 단위)
@@ -58,6 +62,12 @@ final class SettingsStore {
     var hapticsEnabled: Bool {
         get { bool(Key.hapticsEnabled, default: Default.hapticsEnabled) }
         set { defaults.set(newValue, forKey: Key.hapticsEnabled) }
+    }
+
+    /// 매일 학습 알림 사용 의사. 시스템의 알림 권한과는 별도로 저장한다.
+    var dailyQuizReminderEnabled: Bool {
+        get { bool(Key.dailyQuizReminderEnabled, default: Default.dailyQuizReminderEnabled) }
+        set { defaults.set(newValue, forKey: Key.dailyQuizReminderEnabled) }
     }
 
     private func bool(_ key: String, default fallback: Bool) -> Bool {
