@@ -5,6 +5,7 @@ import UIKit
 struct DailyQuizReminderSettingsCard: View {
     /// 부모 설정 화면이 Environment에서 받은 실제 또는 프리뷰용 알림 서비스.
     let reminders: any DailyQuizReminderManaging
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isHandlingAction = false
     @State private var isTimePickerPresented = false
 
@@ -54,6 +55,7 @@ struct DailyQuizReminderSettingsCard: View {
                 .buttonStyle(.plain)
                 .accessibilityHint("매일 학습 알림을 받을 시간을 변경해요.")
                 .disabled(isBusy)
+                .transition(.opacity)
             }
 
             Text(canChangeTime
@@ -61,6 +63,7 @@ struct DailyQuizReminderSettingsCard: View {
                  : "알림을 켜면 오늘 완료한 퀴즈가 없을 때 알려드려요.")
                 .font(.caption)
                 .foregroundStyle(Color.roomSecondaryText)
+                .contentTransition(.identity)
                 .fixedSize(horizontal: false, vertical: true)
 
             #if DEBUG
@@ -106,6 +109,8 @@ struct DailyQuizReminderSettingsCard: View {
         .foregroundStyle(Color.roomPrimaryText)
         .frame(maxWidth: .infinity, alignment: .leading)
         .roomCardBackground()
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: canChangeTime)
         .task { await reminders.refresh() }
         .sheet(isPresented: $isTimePickerPresented) {
             DailyQuizReminderTimeSheet(reminders: reminders)

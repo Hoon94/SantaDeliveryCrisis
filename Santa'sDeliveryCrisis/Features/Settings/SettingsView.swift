@@ -12,6 +12,7 @@ struct SettingsView: View {
     private var hapticsEnabled = SettingsStore.Default.hapticsEnabled
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.services) private var services
     @State private var isToastVisible = false
     @State private var toastTask: Task<Void, Never>?
@@ -40,6 +41,10 @@ struct SettingsView: View {
             .padding()
             .frame(maxWidth: 720)
             .frame(maxWidth: .infinity)
+            .animation(
+                reduceMotion ? nil : .easeInOut(duration: 0.25),
+                value: services.reminders.isEnabled && services.reminders.authorization == .allowed
+            )
         }
         .foregroundStyle(Color.roomPrimaryText)
         .background(Color.roomBackground)
