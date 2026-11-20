@@ -13,6 +13,7 @@ final class SessionManager: SessionManaging {
     private let settings: SettingsStore
     private let media: MediaFileManaging?
     private let now: () -> Date
+    private let onSessionCompleted: (() -> Void)?
 
     /// - Parameters:
     ///   - context: 저장에 쓰는 ModelContext. `TreeManager`와 같은 것을 넘겨야 한 번의 저장으로 묶인다.
@@ -21,13 +22,15 @@ final class SessionManager: SessionManaging {
     ///   - settings: 정답률 기준을 읽는 설정
     ///   - media: 세션 종료 뒤 쓰지 않는 미디어 파일을 정리할 때 부른다. nil이면 정리하지 않는다.
     ///   - now: 현재 시각. 테스트에서 고정 값을 넘긴다.
+    ///   - onSessionCompleted: 최초 완료 저장이 성공한 뒤 호출할 작업. 실패·완료 재조회 시 호출하지 않는다.
     init(
         context: ModelContext,
         selector: QuestionSelecting,
         trees: TreeManaging,
         settings: SettingsStore,
         media: MediaFileManaging? = nil,
-        now: @escaping () -> Date = { Date() }
+        now: @escaping () -> Date = { Date() },
+        onSessionCompleted: (() -> Void)? = nil
     ) {
         self.context = context
         self.selector = selector
@@ -35,6 +38,7 @@ final class SessionManager: SessionManaging {
         self.settings = settings
         self.media = media
         self.now = now
+        self.onSessionCompleted = onSessionCompleted
     }
 
     // MARK: - 시작
@@ -173,6 +177,7 @@ final class SessionManager: SessionManaging {
             throw error
         }
 
+        onSessionCompleted?()
         try? media?.cleanUnreferencedFiles()
         return makeResult(for: session)
     }

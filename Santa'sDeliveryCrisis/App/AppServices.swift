@@ -20,6 +20,7 @@ struct AppServices {
         let selector = QuestionSelector()
         let trees = TreeManager(context: context)
         let media = MediaFileManager(context: context)
+        let activityPublisher = QuizActivityPublisher(context: context)
         return AppServices(
             settings: settings,
             selector: selector,
@@ -29,7 +30,8 @@ struct AppServices {
                 selector: selector,
                 trees: trees,
                 settings: settings,
-                media: media
+                media: media,
+                onSessionCompleted: { activityPublisher.refresh() }
             ),
             trees: trees,
             feedback: FeedbackPlayer(settings: settings),
