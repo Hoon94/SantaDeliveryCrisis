@@ -162,7 +162,9 @@ final class DailyQuizReminderManager: DailyQuizReminderManaging {
     }
 
     private func scheduleDaily(completedAt: [Date], now: Date, revision: Int) async throws {
-        let reminders = DailyQuizReminderSchedule().reminders(completedAt: completedAt, now: now, mode: .daily)
+        let reminders = DailyQuizReminderSchedule().reminders(
+            completedAt: completedAt, time: settings.dailyQuizReminderTime, now: now, mode: .daily
+        )
         let desiredIDs = Set(reminders.map(\.id))
         let pending = await center.pendingNotificationRequests()
         guard revision == preferenceRevision, isEnabled else { return }

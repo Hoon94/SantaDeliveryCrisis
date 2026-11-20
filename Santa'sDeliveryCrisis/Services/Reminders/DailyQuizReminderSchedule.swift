@@ -23,11 +23,13 @@ nonisolated struct DailyQuizReminderSchedule: Sendable {
     /// 테스트 모드의 앱 실행별 한 번 예약과 기존 타이머 유지는 서비스가 담당한다.
     /// - Parameters:
     ///   - completedAt: 완료한 세션의 시각 목록. 정답률·보상 여부와 관계없이 전달한다.
+    ///   - time: 기기의 현지 시각으로 적용할 시·분. 테스트 모드에서는 사용하지 않는다.
     ///   - now: 예약 계산 기준 시각. 실제 예약 서비스는 권한 확인 뒤의 시각을 사용한다.
     ///   - mode: 예약 방식. 기본값은 빌드 종류와 개발용 설정에 따라 결정한다.
     /// - Returns: 완료한 날과 이미 지난 시각을 제외한 예약 목록.
     func reminders(
         completedAt: [Date],
+        time: DailyQuizReminderTime = .defaultTime,
         now: Date = Date(),
         mode: DailyQuizReminderConfiguration.Mode = DailyQuizReminderConfiguration.mode
     ) -> [DailyQuizReminderDate] {
@@ -44,8 +46,8 @@ nonisolated struct DailyQuizReminderSchedule: Sendable {
                 guard let day = calendar.date(byAdding: .day, value: offset, to: today),
                       !completedDays.contains(calendar.startOfDay(for: day)),
                       let date = calendar.date(
-                        bySettingHour: DailyQuizReminderConfiguration.hour,
-                        minute: DailyQuizReminderConfiguration.minute,
+                        bySettingHour: time.hour,
+                        minute: time.minute,
                         second: 0,
                         of: day
                       ),

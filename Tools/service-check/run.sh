@@ -24,6 +24,7 @@ swiftc -swift-version 5 -default-isolation MainActor -suppress-warnings \
   "$HERE/stubs.swift" \
   "$APP/Services/Protocols.swift" \
   "$APP/Services/SettingsStore.swift" \
+  "$APP/Services/Reminders/DailyQuizReminderTime.swift" \
   "$APP/Services/SelectionCriteria.swift" \
   "$APP/Services/Accuracy.swift" \
   "$APP/Services/SeedLoader.swift" \

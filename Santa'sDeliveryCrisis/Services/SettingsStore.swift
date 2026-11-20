@@ -9,8 +9,10 @@ final class SettingsStore {
         static let passThresholdPercent = "passThresholdPercent"
         static let soundEnabled = "soundEnabled"
         static let hapticsEnabled = "hapticsEnabled"
-        /// 고정 시각 학습 알림 사용 여부.
+        /// 학습 알림 사용 여부.
         static let dailyQuizReminderEnabled = "dailyQuizReminderEnabled"
+        /// 사용자가 선택한 알림 시각을 자정 이후 분 수로 저장한다.
+        static let dailyQuizReminderMinutes = "dailyQuizReminderMinutes"
     }
 
     /// 기본값
@@ -21,6 +23,8 @@ final class SettingsStore {
         static let hapticsEnabled = true
         /// 사용자가 직접 켜기 전에는 알림을 예약하지 않는다.
         static let dailyQuizReminderEnabled = false
+        /// 기존 사용자의 알림 기본값은 오후 8시다.
+        static let dailyQuizReminderTime = DailyQuizReminderTime.defaultTime
     }
 
     /// 정답률 기준으로 허용하는 값 (50~100, 10 단위)
@@ -68,6 +72,18 @@ final class SettingsStore {
     var dailyQuizReminderEnabled: Bool {
         get { bool(Key.dailyQuizReminderEnabled, default: Default.dailyQuizReminderEnabled) }
         set { defaults.set(newValue, forKey: Key.dailyQuizReminderEnabled) }
+    }
+
+    /// 날짜·시간대 없이 보관하는 알림 시각. 저장 값이 없거나 잘못되면 오후 8시를 사용한다.
+    var dailyQuizReminderTime: DailyQuizReminderTime {
+        get {
+            guard let minutes = defaults.object(forKey: Key.dailyQuizReminderMinutes) as? Int,
+                  (0..<24 * 60).contains(minutes) else {
+                return Default.dailyQuizReminderTime
+            }
+            return DailyQuizReminderTime(hour: minutes / 60, minute: minutes % 60)
+        }
+        set { defaults.set(newValue.minutesAfterMidnight, forKey: Key.dailyQuizReminderMinutes) }
     }
 
     private func bool(_ key: String, default fallback: Bool) -> Bool {
