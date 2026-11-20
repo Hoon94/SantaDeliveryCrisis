@@ -28,15 +28,13 @@ struct SettingsView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
-                sectionLabel("보상")
-                thresholdCard
-                sectionLabel("피드백")
-                feedbackCard
-                sectionLabel("알림")
-                DailyQuizReminderSettingsCard(reminders: services.reminders)
-                sectionLabel("화면")
-                systemCard
+            VStack(alignment: .leading, spacing: 28) {
+                settingsSection("보상") { thresholdCard }
+                settingsSection("피드백") { feedbackCard }
+                settingsSection("알림") {
+                    DailyQuizReminderSettingsCard(reminders: services.reminders)
+                }
+                settingsSection("화면") { systemCard }
             }
             .padding()
             .frame(maxWidth: 720)
@@ -105,11 +103,18 @@ struct SettingsView: View {
         .roomCardBackground(padding: EdgeInsets(top: 2, leading: 12, bottom: 2, trailing: 12))
     }
 
-    private func sectionLabel(_ title: String) -> some View {
-        Text(title)
-            .font(.caption)
-            .foregroundStyle(Color.roomSecondaryText)
-            .accessibilityAddTraits(.isHeader)
+    /// 제목과 카드를 묶어 섹션 사이 여백과 제목 아래 여백을 구분한다.
+    private func settingsSection<Content: View>(
+        _ title: String, @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.headline)
+                .foregroundStyle(Color.roomSecondaryText)
+                .padding(.horizontal, 12)
+                .accessibilityAddTraits(.isHeader)
+            content()
+        }
     }
 
     private func toggleRow(_ title: String, isOn: Binding<Bool>) -> some View {
