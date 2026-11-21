@@ -152,6 +152,68 @@ func run() throws {
     let settings = SettingsStore(defaults: defaults)
     let trees2 = TreeManager(context: ctx2, now: { t0 })
     let mgr = SessionManager(context: ctx2, selector: QuestionSelector(now: { t0 }, shuffle: { $0 }), trees: trees2, settings: settings, now: { t0 })
+    // ---- 작업·난이도별 보상 결과 (다른 점검의 트리 상태와 분리)
+    do {
+        let rewardContext = ModelContext()
+        let rewardTrees = TreeManager(context: rewardContext, now: { t0 })
+        let rewardManager = SessionManager(
+            context: rewardContext, selector: sel, trees: rewardTrees, settings: settings, now: { t0 }
+        )
+        for difficulty in Difficulty.allCases { rewardContext.insert(q(.swiftSyntax, difficulty)) }
+
+        /// 작업·난이도를 선택해 한 문제에 답하고 완료 결과를 받는다.
+        func finishReward(task: WorkshopTask, difficulty: Difficulty, correct: Bool) throws -> (session: QuizSession, result: SessionResult) {
+            let session = try rewardManager.startSession(
+                task: task, categories: [.swiftSyntax], difficulty: difficulty, tags: [], count: 1
+            )
+            _ = try rewardManager.submit(answerIndex: correct ? 1 : 0, forQuestionAt: 0, in: session)
+            return (session, try rewardManager.finish(session))
+        }
+
+        let first = try finishReward(task: .giftProduction, difficulty: .easy, correct: true)
+        check(first.result.passedThreshold && first.result.rewardOutcome == .earned
+              && first.result.earnedDecorations == 1 && first.session.rewardOutcome == .earned
+              && rewardTrees.currentTree().decorationCount == 1, "보상 결과: 처음 통과는 earned, 1칸 획득")
+
+        let repeated = try finishReward(task: .giftProduction, difficulty: .easy, correct: true)
+        check(repeated.result.passedThreshold && repeated.result.rewardOutcome == .alreadyEarned
+              && repeated.result.earnedDecorations == 0 && rewardTrees.currentTree().decorationCount == 1,
+              "보상 결과: 같은 칸 재통과는 alreadyEarned, 개수 유지")
+
+        let saves = rewardContext.saves
+        let reopened = try rewardManager.finish(first.session)
+        check(reopened.rewardOutcome == first.result.rewardOutcome
+              && reopened.passedThreshold == first.result.passedThreshold
+              && reopened.earnedDecorations == first.result.earnedDecorations
+              && reopened.treeCompleted == first.result.treeCompleted
+              && rewardContext.saves == saves && rewardTrees.currentTree().decorationCount == 1,
+              "보상 결과: 완료 후 finish 재호출은 확정 결과 유지, 저장·추가 지급 없음")
+
+        let missed = try finishReward(task: .wrapping, difficulty: .normal, correct: false)
+        check(!missed.result.passedThreshold && missed.result.rewardOutcome == .notEarned
+              && missed.result.earnedDecorations == 0 && rewardTrees.currentTree().decorationCount == 1,
+              "보상 결과: 미획득 칸의 기준 미달은 notEarned")
+
+        let missedOwned = try finishReward(task: .giftProduction, difficulty: .easy, correct: false)
+        check(!missedOwned.result.passedThreshold && missedOwned.result.rewardOutcome == .alreadyEarned
+              && missedOwned.result.earnedDecorations == 0 && rewardTrees.currentTree().decorationCount == 1,
+              "보상 결과: 획득한 칸의 기준 미달은 alreadyEarned, 통과는 false")
+
+        let otherTask = try finishReward(task: .wishReception, difficulty: .hard, correct: true)
+        check(otherTask.result.rewardOutcome == .earned && otherTask.result.earnedDecorations == 1
+              && rewardTrees.currentTree().hasReward(task: .giftProduction, difficulty: .easy)
+              && rewardTrees.currentTree().hasReward(task: .wishReception, difficulty: .hard)
+              && rewardTrees.currentTree().decorationCount == 2,
+              "보상 결과: 다른 작업의 어려움 칸은 별개로 획득")
+
+        let bits = WorkshopTask.allCases.flatMap { task in
+            Difficulty.allCases.map { task.rewardBit(for: $0) }
+        }
+        check(bits.count == 12 && Set(bits).count == 12
+              && bits.allSatisfy { $0 > 0 && $0.nonzeroBitCount == 1 }
+              && bits.reduce(0, |) == (1 << TreeRecord.slotCount) - 1,
+              "보상 결과: 12개 작업·난이도의 비트가 서로 독립")
+    }
     do {
         let c3 = ModelContext()
         let m3 = SessionManager(context: c3, selector: QuestionSelector(now: { t0 }, shuffle: { $0 }), trees: TreeManager(context: c3, now: { t0 }), settings: settings, now: { t0 })

@@ -172,13 +172,10 @@ code{font-family:ui-monospace,Menlo,monospace;font-size:.92em;background:color-m
 .vlt circle{fill:#ffe58a;animation:vtw 2.2s infinite}.vlt circle:nth-child(3n){animation-delay:-.7s;fill:#ff9fb4}.vlt circle:nth-child(3n+1){animation-delay:-1.4s;fill:#9fe4ff}
 @keyframes vtw{50%{opacity:.25}}
 .vorn .ob{fill:var(--oc);filter:drop-shadow(0 0 9px var(--oc));opacity:.8}
-.vorn.lit .ob{filter:drop-shadow(0 0 22px var(--oc));opacity:1}
 .vorn .gl{fill:#fff;opacity:.45}
 .vorn text{text-anchor:middle;fill:#fff;font-weight:800}
 .vorn .vn{font-size:15.5px;letter-spacing:-.2px}
 .vorn .cap{fill:#d9b44a}
-.vorn .ck{opacity:0}.vorn.lit .ck{opacity:1}
-.vorn .ck circle{fill:#fff;stroke:var(--oc);stroke-width:2.5}.vorn .ck text{fill:var(--oc);font-size:15px}
 .vorn.off{opacity:.3}
 .vbob{animation:vbob 3.2s ease-in-out infinite}
 .vorn:nth-of-type(2n) .vbob{animation-delay:-1.4s}
@@ -493,9 +490,9 @@ function vTree(sel,done,enabled=true){
  let lights='';
  for(let r=0;r<6;r++){const y=92+r*62,h=(y-36)*.37,n=r+2;for(let k=0;k<n;k++)lights+=`<circle cx="${180-h+k*2*h/(n-1)}" cy="${y}" r="3.6"/>`}
  const snow=Array.from({length:14},(_,i)=>`<circle cx="${(i*47+20)%350}" cy="0" r="${1.6+(i%3)*.7}" style="animation-delay:${-i*.55}s;animation-duration:${6+i%4}s"/>`).join('');
- const orn=OP.map((p,i)=>{const c=CATS[i],d=done[i]||[0,0,0],lit=d.every(Boolean),on=enabled;
+ const orn=OP.map((p,i)=>{const c=CATS[i],d=done[i]||[0,0,0],on=enabled;
   const pips=[0,1,2].map(j=>`<circle class="vpip ${d[j]?'on':''}" style="--pp:${PPC[j]}" cx="${(j-1)*18}" cy="58" r="5.5"/>`).join('');
-  return `<g class="vorn ${lit?'lit':''} ${on?'':'off'}" transform="translate(${p[0]} ${p[1]})" style="--oc:${c.col}"><rect class="cap" x="-7" y="-52" width="14" height="11" rx="3"/><g class="vbob"><circle class="ob" r="42"/><ellipse class="gl" cx="-15" cy="-24" rx="12" ry="7"/><text class="vn" y="6">${c.task}</text><g class="ck"><circle cx="31" cy="-31" r="13"/><text x="31" y="-25.5">✓</text></g></g>${pips}</g>`}).join('');
+  return `<g class="vorn ${on?'':'off'}" transform="translate(${p[0]} ${p[1]})" style="--oc:${c.col}"><rect class="cap" x="-7" y="-52" width="14" height="11" rx="3"/><g class="vbob"><circle class="ob" r="42"/><ellipse class="gl" cx="-15" cy="-24" rx="12" ry="7"/><text class="vn" y="6">${c.task}</text></g>${pips}</g>`}).join('');
  return `<svg viewBox="0 0 360 540" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%;overflow:visible"><g class="vsnow">${snow}</g><path class="t3" d="M180 220 L350 474 L10 474Z"/><path class="t2" d="M180 120 L312 334 L48 334Z"/><path class="t1" d="M180 36 L272 214 L88 214Z"/><g class="vlt">${lights}</g><rect class="trunk" x="160" y="470" width="40" height="36" rx="4"/><text x="180" y="42" font-size="38" text-anchor="middle">⭐</text>${orn}<text x="180" y="530" font-size="22" text-anchor="middle">🎁 🧸 🎁</text></svg>`;
 }
 const S2Bbody=(o={})=>{const m=o.m,sel=o.sel??[0,1,2,3],d=o.diff??1,q=o.q??5,done=o.done||{};
@@ -845,7 +842,7 @@ SC.push({id:'S2-B',name:'장식 선택',kind:'Push 화면 · 출제 탭 루트',
   [3,'장식 진행 카운터','Text (표시 전용)','"N / 12 장식". 현재 트리에 달린 장식 수(S1 트리와 같은 값)입니다. 누를 수 없는 표시이므로 강조색 없이 카드색으로 표시합니다.'],
   [4,'시작 안내','Text','"장식을 눌러 퀴즈를 시작하세요".'],
   [5,'작업 장식 × 4','Button','선택한 작업을 세션에 저장합니다. 문제는 선택 카테고리에서 균등 배분하며 기존 학습 우선순위를 유지합니다. 이미 획득한 작업·난이도는 S2-A3을 거칩니다.'],
-  [6,'난이도 통과 점','Indicator × 3','장식 아래 점 3개(쉬움 · 보통 · 어려움, 초록 · 주황 · 분홍). 채워진 점은 통과한 난이도, 빈 원은 아직 남은 난이도입니다. 흐린 장식의 점도 함께 흐려집니다.'],
+  [6,'난이도 획득 점','Indicator × 3','현재 트리의 작업별 쉬움 · 보통 · 어려움 보상 칸입니다. 채운 원은 획득, 빈 원은 미획득이며 별도 ✓ 배지는 없습니다. 사용자 결정으로 SwiftUI 기본 green/orange/red를 사용합니다. 흐린 장식의 점도 함께 흐려집니다.'],
   [7,'범례','Text','난이도 점 색 안내와 "채워지면 통과".'],
   [8,'하단 안내','Text','"장식 12개를 모두 켜면 작업실 문이 열려요 🔑". v3 문구이며 확정 규칙과 다릅니다(8장).'],
   [9,'탭 바','Tab Bar','출제 탭이 강조됩니다.']]}],
