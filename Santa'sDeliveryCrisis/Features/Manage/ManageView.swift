@@ -20,6 +20,8 @@ struct ManageView: View {
     private enum EditTarget: Hashable {
         case new
         case existing(UUID)
+        /// 읽기 전용 상세 화면. 기본 문제와 내 문제 모두 연다.
+        case detail(UUID)
     }
 
     var body: some View {
@@ -65,6 +67,7 @@ struct ManageView: View {
                 ForEach(filteredQuestions) { question in
                     QuestionRow(
                         question: question,
+                        onOpen: { editTarget = .detail(question.id) },
                         onEdit: { editTarget = .existing(question.id) },
                         onDelete: { pendingDelete = question }
                     )
@@ -161,6 +164,16 @@ struct ManageView: View {
         switch target {
         case .new:
             QuestionEditView(question: nil)
+        case .detail(let id):
+            if let question = questions.first(where: { $0.id == id }) {
+                QuestionDetailView(question: question)
+            } else {
+                ContentUnavailableView(
+                    "문제를 찾을 수 없어요",
+                    systemImage: "exclamationmark.triangle",
+                    description: Text("삭제되었을 수 있어요.")
+                )
+            }
         case .existing(let id):
             if let question = questions.first(where: { $0.id == id }), isEditable(question) {
                 QuestionEditView(question: question)
