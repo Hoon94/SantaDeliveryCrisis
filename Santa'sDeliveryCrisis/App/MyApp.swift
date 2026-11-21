@@ -43,6 +43,7 @@ import SwiftUI
                     .onChange(of: scenePhase, initial: true) { _, phase in
                         if phase == .active {
                             activityPublisher?.refresh(forceReload: true)
+                            Task { await services.reminders.refresh() }
                         }
                     }
             } else {

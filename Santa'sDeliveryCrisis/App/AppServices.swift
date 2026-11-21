@@ -12,6 +12,8 @@ struct AppServices {
     let feedback: QuizFeedbackPlaying
     let media: MediaFileManaging
     let traceScenes: TraceSceneRegistry
+    /// 학습 알림의 권한·예약·설정 상태를 관리한다.
+    let reminders: any DailyQuizReminderManaging
 
     /// 실제 구현(출제, 추천, 세션, 트리, 피드백, 미디어, 설정)과 아직 구현되지 않은 mock(장면)을 조립한다.
     /// 세션과 트리는 같은 `ModelContext`를 써야 세션 완료와 장식 지급이 한 번의 저장으로 묶인다.
@@ -21,6 +23,12 @@ struct AppServices {
         let trees = TreeManager(context: context)
         let media = MediaFileManager(context: context)
         let activityPublisher = QuizActivityPublisher(context: context)
+        let reminders: any DailyQuizReminderManaging
+        if context.container.configurations.contains(where: { !$0.isStoredInMemoryOnly }) {
+            reminders = DailyQuizReminderManager(context: context, settings: settings)
+        } else {
+            reminders = MockDailyQuizReminderManager()
+        }
         return AppServices(
             settings: settings,
             selector: selector,
@@ -31,12 +39,17 @@ struct AppServices {
                 trees: trees,
                 settings: settings,
                 media: media,
-                onSessionCompleted: { activityPublisher.refresh() }
+                onSessionCompleted: {
+                    // 완료 저장 후 위젯을 갱신하고, 알림 정리는 비동기로 요청한다.
+                    activityPublisher.refresh()
+                    Task { await reminders.sessionCompleted() }
+                }
             ),
             trees: trees,
             feedback: FeedbackPlayer(settings: settings),
             media: media,
-            traceScenes: MockTraceSceneRegistry()
+            traceScenes: MockTraceSceneRegistry(),
+            reminders: reminders
         )
     }
 
@@ -51,7 +64,8 @@ struct AppServices {
             trees: trees,
             feedback: MockFeedbackPlayer(),
             media: MockMediaFileManager(),
-            traceScenes: MockTraceSceneRegistry()
+            traceScenes: MockTraceSceneRegistry(),
+            reminders: MockDailyQuizReminderManager()
         )
     }()
 }
