@@ -34,7 +34,7 @@ let session = try services.sessions.startSession(
 
 ### 장식 켜짐과 추천 배지 (C)
 ```swift
-// 고른 카테고리 전체를 한 번에 합산한다. 문제 수 이상이면 네 장식을 모두 켠다(장식은 카테고리와 연동하지 않는다).
+// 고른 카테고리 전체를 한 번에 합산한다. 단계의 난이도별로 요청 수 이상인지 확인하며, 순차 해금은 별도로 검사한다.
 let count = services.selector.availableCount(
     categories: selectedCategories, difficulty: difficulty, tags: [], questions: questions
 )
@@ -148,3 +148,10 @@ services.trees.completedTrees()                 // 완성한 트리, 최근 완�
 - 트리 지급: `grant(task: WorkshopTask, difficulty: Difficulty)`. 같은 트리의 같은 칸이면 `alreadyEarned`이고 개수는 변하지 않습니다.
 - `QuizSession.task`는 이어 풀기에서도 유지되며, `rewardOutcome`은 최초 완료에 확정됩니다. `SessionResult.passedThreshold`는 정확한 정답률 비교 결과입니다.
 - 기존 개발 저장소는 사용자가 초기화하고 확인합니다. 기존 단순 개수에서 획득 칸을 자동 복원하지 않습니다.
+
+## 산타 마을 스테이지 입장 규칙
+
+- `QuizStage`는 기존 작업·난이도 칸을 쉬움 네 단계 → 보통 네 단계 → 어려움 네 단계로 표시합니다. 저장 모델 변경은 없습니다.
+- 신규 세션은 현재 트리의 첫 미획득 단계 또는 이미 획득한 단계만 시작할 수 있습니다. 잠긴 단계는 `SessionError.stageLocked`입니다. `StartSessionCoordinator`도 기존 세션의 포기 전에 이를 확인합니다.
+- 비순차로 얻은 기존 보상은 유지하며, 진행 중 세션 복원·완료는 잠금과 관계없이 허용합니다. 새 트리는 1-1부터 진행합니다.
+- 출제 기본 난이도는 다음 도전 단계이며, 전체 카테고리·5문제가 기본입니다. 탭 이동·취소·이어 풀기·시작 실패의 설정 보존과 신규 생성 성공 후 초기화는 유지합니다.

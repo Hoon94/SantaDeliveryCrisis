@@ -143,7 +143,7 @@ private struct QuizFlowPreviewHost: View {
 
     private func start() {
         session = try? environment.services.sessions.startSession(
-            task: .giftProduction, categories: category.map { Set([$0]) } ?? Set(QuizCategory.allCases),
+            task: .wishReception, categories: category.map { Set([$0]) } ?? Set(QuizCategory.allCases),
             difficulty: .easy, tags: [], count: 5
         )
     }

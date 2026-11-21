@@ -1,7 +1,7 @@
 import SwiftData
 import SwiftUI
 
-/// 출제 조건 편집과 장식 선택, 세션 진입을 연결하는 화면.
+/// 출제 조건 편집과 스테이지 지도, 세션 진입을 연결하는 화면.
 struct SelectView: View {
     /// 퀴즈는 탭 전환에도 유지되는 상위 화면에서 표시한다.
     @Binding var activeQuizSession: QuizSession?
@@ -43,8 +43,25 @@ struct SelectView: View {
     @State private var deferredPresentation: DeferredPresentation?
     @State private var showsStartFailure = false
     @State private var pendingPractice: StartRequest?
+    @State private var focusedStage = QuizStage(task: .wishReception, difficulty: .easy)
+    @State private var focusRequestID = UUID()
+    @State private var lockedStage: QuizStage?
+    @State private var didInitializeProgress = false
+    @State private var startFailureMessage = "문제를 준비하는 중에 문제가 생겼어요.\n잠시 후 다시 시도해 주세요."
 
-    /// 장식 선택 위에 설정 팝업을 표시하고 세션 처리 결과에 따라 화면을 연다.
+    private var rewardMask: Int { activeTrees.first?.rewardMask ?? 0 }
+    private var nextStage: QuizStage {
+        QuizStage.next(in: rewardMask) ?? QuizStage(task: .sleighLoading, difficulty: .hard)
+    }
+    private var availableCounts: [Difficulty: Int] {
+        Dictionary(uniqueKeysWithValues: Difficulty.allCases.map { difficulty in
+            (difficulty, services.selector.availableCount(
+                categories: filterState.applied.categories, difficulty: difficulty, tags: [], questions: questions
+            ))
+        })
+    }
+
+    /// 지도 위에 설정 팝업을 표시하고 세션 처리 결과에 따라 화면을 연다.
     var body: some View {
         ZStack {
             decorationSelection
@@ -54,9 +71,17 @@ struct SelectView: View {
         }
         .background(background)
         .onChange(of: setupRequestID) { _, _ in
-            filterState = SelectFilterState()
+            resetFilter()
             isEditing = true
         }
+        .onAppear {
+            if !didInitializeProgress {
+                resetFilter()
+                didInitializeProgress = true
+            }
+        }
+        .onChange(of: rewardMask) { _, _ in synchronizeProgress() }
+        .onChange(of: activeTrees.first?.id) { _, _ in synchronizeProgress() }
         .navigationTitle("출제")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.hidden, for: .navigationBar)
@@ -85,12 +110,17 @@ struct SelectView: View {
                 performStart(request, allowsPractice: true)
             }
         } message: { request in
-            Text("\(request.task.displayName) · \(request.filter.difficulty.displayName) 장식은 이미 받았어요. 다시 풀어도 장식은 그대로이며 추가 보상은 없어요. 학습 기록은 저장돼요.")
+            Text("\(QuizStage(task: request.task, difficulty: request.filter.difficulty).title) · \(request.filter.difficulty.displayName) 장식은 이미 받았어요. 다시 풀어도 장식은 그대로이며 추가 보상은 없어요. 학습 기록은 저장돼요.")
+        }
+        .alert("아직 잠긴 스테이지예요", isPresented: stageLockPresentation, presenting: lockedStage) { _ in
+            Button("확인") { lockedStage = nil }
+        } message: { stage in
+            Text("\(stage.title)에 도전하려면 앞선 단계의 장식을 먼저 획득해 주세요.")
         }
         .alert("세션을 시작하지 못했어요", isPresented: $showsStartFailure) {
             Button("확인", role: .cancel) {}
         } message: {
-            Text("문제를 준비하는 중에 문제가 생겼어요.\n잠시 후 다시 시도해 주세요.")
+            Text(startFailureMessage)
         }
     }
 
@@ -108,12 +138,9 @@ struct SelectView: View {
 
     private var decorationSelection: some View {
         DecorationSelectView(
-            filter: filterState.applied,
-            availability: DecorationAvailability.calculate(
-                filter: filterState.applied, questions: questions, selector: services.selector
-            ),
-            filledCount: activeTrees.first?.decorationCount ?? 0,
-            rewardMask: activeTrees.first?.rewardMask ?? 0,
+            filter: filterState.applied, availableCounts: availableCounts,
+            rewardMask: rewardMask, focusedStage: focusedStage, focusRequestID: focusRequestID,
+            isCovered: isEditing || activeQuizSession != nil,
             onEdit: beginEditing,
             onResetSettings: resetSettings,
             onSelect: startSession
@@ -129,6 +156,7 @@ struct SelectView: View {
                 SelectSetupPopup(
                     filter: $filterState.editing,
                     recommendedCategory: services.recommender.recommendedCategory(sessions: sessions),
+                    rewardMask: rewardMask,
                     onApply: applyEditing, onCancel: cancelEditing
                 )
                 .padding(.horizontal, 14)
@@ -163,11 +191,21 @@ struct SelectView: View {
         StartSessionCoordinator(sessions: services.sessions, selector: services.selector)
     }
 
-    /// 기존 세션 선택과 재풀이 확인을 거쳐 선택한 작업에 보상을 쌓을 세션을 시작한다.
-    private func startSession(task: WorkshopTask) {
+    /// 단계 해금·기존 세션·재풀이 확인을 거쳐 선택한 보상 칸의 세션을 시작한다.
+    private func startSession(stage: QuizStage) {
         guard activeQuizSession == nil, pendingStart == nil, pendingPractice == nil,
-              deferredPresentation == nil, showsStartFailure == false else { return }
-        performStart(StartRequest(task: task, filter: filterState.applied, existing: nil))
+              deferredPresentation == nil, showsStartFailure == false, lockedStage == nil else { return }
+        guard stage.isUnlocked(in: rewardMask) else {
+            lockedStage = stage
+            return
+        }
+        filterState.selectDifficulty(stage.difficulty)
+        focus(on: stage)
+        performStart(StartRequest(task: stage.task, filter: filterState.applied, existing: nil))
+    }
+
+    private var stageLockPresentation: Binding<Bool> {
+        Binding(get: { lockedStage != nil }, set: { if !$0 { lockedStage = nil } })
     }
 
     private var practiceConfirmation: Binding<Bool> {
@@ -194,10 +232,19 @@ struct SelectView: View {
     private func present(_ result: StartSessionCoordinator.Outcome, resetsFilter: Bool, request: StartRequest) {
         switch result {
         case .started(let session):
-            if resetsFilter { filterState = SelectFilterState() }
+            if resetsFilter { resetFilter() }
             quizPresentation.wrappedValue = session
         case .failed:
+            let count = services.selector.availableCount(
+                categories: request.filter.categories, difficulty: request.filter.difficulty,
+                tags: [], questions: questions
+            )
+            startFailureMessage = count < request.filter.count
+                ? "고른 조건에는 \(count)문제만 있어요. 문제 수나 카테고리를 바꿔 보세요."
+                : "문제를 준비하는 중에 문제가 생겼어요.\n잠시 후 다시 시도해 주세요."
             showsStartFailure = true
+        case .locked(let stage):
+            lockedStage = stage
         case .needsResumeChoice(let existing):
             pendingStart = PendingStart(existing: existing, task: request.task, filter: request.filter)
         case .needsPracticeConfirmation:
@@ -225,7 +272,10 @@ struct SelectView: View {
     }
 
     private func applyEditing() {
+        let destination = QuizStage.destination(for: filterState.editing.difficulty, rewardMask: rewardMask) ?? nextStage
+        filterState.editing = filterState.editing.selecting(destination.difficulty)
         filterState.apply()
+        focus(on: destination)
         isEditing = false
     }
 
@@ -236,8 +286,30 @@ struct SelectView: View {
 
     /// 트리·장식·세션 기록은 유지하고 출제 조건만 기본값으로 되돌려 팝업을 연다.
     private func resetSettings() {
-        filterState = SelectFilterState()
+        resetFilter()
         isEditing = true
+    }
+
+    /// 다음 도전의 난이도, 전체 카테고리, 5문제를 새 출제 기본값으로 사용한다.
+    private func resetFilter() {
+        filterState = SelectFilterState(applied: SelectFilter(difficulty: nextStage.difficulty))
+        focus(on: nextStage)
+    }
+
+    /// 보상 또는 현재 트리가 바뀌면 기존 출제 조건을 보존하며 다음 도전으로 이동한다.
+    private func synchronizeProgress() {
+        if isEditing {
+            filterState.editing = filterState.editing.selecting(nextStage.difficulty)
+        } else {
+            filterState.selectDifficulty(nextStage.difficulty)
+        }
+        focus(on: nextStage)
+    }
+
+    /// 같은 구역을 다시 선택해도 사용자가 움직인 지도 위치를 해당 지점으로 돌린다.
+    private func focus(on stage: QuizStage) {
+        focusedStage = stage
+        focusRequestID = UUID()
     }
 }
 
@@ -271,7 +343,10 @@ private func selectPreview(
     )] : []
 
     let tree = {
-        let tree = TreeRecord(decorationCount: filledCount)
+        let tree = TreeRecord()
+        for stage in QuizStage.all.prefix(TreeSlots.clampedCount(filledCount)) {
+            tree.recordReward(task: stage.task, difficulty: stage.difficulty)
+        }
         if let earnedTask {
             tree.recordReward(task: earnedTask, difficulty: .normal)
         }
