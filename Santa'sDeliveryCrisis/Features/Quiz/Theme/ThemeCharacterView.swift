@@ -9,11 +9,15 @@ struct ThemeCharacterView: View {
 
     var body: some View {
         GeometryReader { proxy in
+            let usesSpeakingPose = isSpeaking && !reduceMotion
             Image(theme.characterImageName)
                 .resizable()
                 .interpolation(.none)
                 .frame(width: proxy.size.width * 2, height: proxy.size.height)
-                .offset(x: isSpeaking && !reduceMotion ? -proxy.size.width : 0)
+                .offset(x: usesSpeakingPose ? -proxy.size.width : 0)
+                .frame(width: proxy.size.width, height: proxy.size.height, alignment: .leading)
+                .clipped()
+                .offset(x: usesSpeakingPose ? proxy.size.width * theme.speakingHorizontalOffset : 0)
         }
         .aspectRatio(3.0 / 4.0, contentMode: .fit)
         .clipped()
@@ -22,7 +26,7 @@ struct ThemeCharacterView: View {
     }
 }
 
-/// 꼬리가 달린 말풍선
+/// 왼쪽 아래의 캐릭터를 향하는 꼬리가 달린 말풍선.
 struct SpeechBubble: View {
     let text: String
     let tint: Color
@@ -32,34 +36,46 @@ struct SpeechBubble: View {
             .font(.caption.weight(.bold))
             .foregroundStyle(Color.nightPrimaryText)
             .multilineTextAlignment(.leading)
-            .padding(.horizontal, 12)
+            .padding(.leading, 22)
+            .padding(.trailing, 12)
             .padding(.vertical, 8)
             .background(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                SpeechBubbleShape()
                     .fill(Color.nightCardBackground)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .strokeBorder(tint.opacity(0.8), lineWidth: 1.5)
+                        SpeechBubbleShape()
+                            .stroke(tint.opacity(0.8), lineWidth: 1.5)
                     )
                     .shadow(color: Color.inkShadow.opacity(0.25), radius: 6, y: 3)
             )
-            .overlay(alignment: .bottomLeading) {
-                BubbleTail()
-                    .fill(Color.nightCardBackground)
-                    .overlay(BubbleTail().stroke(tint.opacity(0.8), lineWidth: 1.5))
-                    .frame(width: 14, height: 9)
-                    .offset(x: 12, y: 8)
-            }
             .fixedSize(horizontal: false, vertical: true)
     }
 }
 
-private struct BubbleTail: Shape {
+/// 말풍선 몸체와 꼬리를 하나로 그려 경계선이 겹치지 않게 한다.
+private struct SpeechBubbleShape: Shape {
     func path(in rect: CGRect) -> Path {
+        let left = rect.minX + 10
+        let right = rect.maxX
+        let top = rect.minY
+        let bottom = rect.maxY
+        let radius = min(14, rect.height / 4)
+        // 여러 줄 대사에서도 꼬리는 아래쪽에 고정해 캐릭터의 머리 방향을 유지한다.
+        let tailY = bottom - radius - 6
         var path = Path()
-        path.move(to: CGPoint(x: rect.minX, y: rect.minY))
-        path.addLine(to: CGPoint(x: rect.midX * 0.5, y: rect.maxY))
-        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
+        path.move(to: CGPoint(x: left + radius, y: top))
+        path.addLine(to: CGPoint(x: right - radius, y: top))
+        path.addQuadCurve(to: CGPoint(x: right, y: top + radius), control: CGPoint(x: right, y: top))
+        path.addLine(to: CGPoint(x: right, y: bottom - radius))
+        path.addQuadCurve(to: CGPoint(x: right - radius, y: bottom), control: CGPoint(x: right, y: bottom))
+        path.addLine(to: CGPoint(x: left + radius, y: bottom))
+        path.addQuadCurve(to: CGPoint(x: left, y: bottom - radius), control: CGPoint(x: left, y: bottom))
+        path.addLine(to: CGPoint(x: left, y: tailY + 5))
+        path.addLine(to: CGPoint(x: rect.minX, y: tailY + 5))
+        path.addLine(to: CGPoint(x: left, y: tailY - 5))
+        path.addLine(to: CGPoint(x: left, y: top + radius))
+        path.addQuadCurve(to: CGPoint(x: left + radius, y: top), control: CGPoint(x: left, y: top))
+        path.closeSubpath()
         return path
     }
 }

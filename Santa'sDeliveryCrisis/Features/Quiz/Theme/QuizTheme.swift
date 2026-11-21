@@ -75,6 +75,17 @@ enum QuizTheme: CaseIterable, Hashable {
         }
     }
 
+    /// 두 자세의 발 중심을 맞추는 가로 보정 비율. 원본 한 칸의 너비는 768픽셀이다.
+    /// 손을 펼친 자세의 전체 외곽 대신 움직이지 않는 발 위치를 기준으로 측정했다.
+    var speakingHorizontalOffset: CGFloat {
+        switch self {
+        case .wish: 80.0 / 768.0
+        case .factory: 80.5 / 768.0
+        case .wrap: 64.0 / 768.0
+        case .sleigh: 8.5 / 768.0
+        }
+    }
+
     /// 접근성 설명에 쓰는 담당 캐릭터 이름.
     var characterName: String {
         switch self {
