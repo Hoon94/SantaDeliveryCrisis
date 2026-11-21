@@ -25,6 +25,9 @@ private struct QuizFlowContent: View {
     private let services: AppServices
     private let onClose: () -> Void
 
+    @Environment(\.colorScheme) private var colorScheme
+    private var palette: QuizPalette { QuizPalette(colorScheme: colorScheme) }
+
     @Environment(\.scenePhase) private var scenePhase
     @State private var isExitAlertShown = false
 
@@ -54,8 +57,8 @@ private struct QuizFlowContent: View {
                 if model.phase == .finishing {
                     ProgressView("결과를 계산하고 있어요")
                         .padding(24)
-                        .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(Color.roomCardBackground))
-                        .foregroundStyle(Color.roomPrimaryText)
+                        .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(palette.cardBackground))
+                        .foregroundStyle(palette.primaryText)
                 }
             }
         }

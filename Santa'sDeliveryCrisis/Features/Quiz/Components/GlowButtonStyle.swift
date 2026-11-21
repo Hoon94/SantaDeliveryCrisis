@@ -3,17 +3,20 @@ import SwiftUI
 /// 화면의 주 버튼 스타일. 테마 색 그라데이션에 빛 번짐이 있고, 누르면 눌리며, 켜지는 순간 톡 튄다.
 struct GlowButtonStyle: ButtonStyle {
     let tint: Color
-    /// 풀이 화면은 작업실의 공통 색상을 사용하고, 결과 연출은 기존 색상을 유지한다.
-    var usesRoomColors = false
+    /// 풀이 화면은 모드별 퀴즈 팔레트를 사용하고, 결과 연출은 기존 색상을 유지한다.
+    var usesQuizColors = false
     @Environment(\.isEnabled) private var isEnabled
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var palette: QuizPalette { QuizPalette(colorScheme: colorScheme) }
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.headline.weight(.heavy))
             .foregroundStyle(isEnabled
-                ? (usesRoomColors ? Color.roomOnAccentText : Color.glowWhite)
-                : (usesRoomColors ? Color.roomSecondaryText : Color.nightSecondaryText))
+                ? (usesQuizColors ? palette.onAccentText : Color.glowWhite)
+                : (usesQuizColors ? palette.secondaryText : Color.nightSecondaryText))
             .frame(maxWidth: .infinity, minHeight: 54)
             .padding(.horizontal, 20)
             .background {
@@ -21,7 +24,7 @@ struct GlowButtonStyle: ButtonStyle {
                     .fill(
                         isEnabled
                             ? AnyShapeStyle(LinearGradient(colors: [tint, tint.opacity(0.78)], startPoint: .top, endPoint: .bottom))
-                            : AnyShapeStyle(usesRoomColors ? Color.roomBorder : Color.nightBorder)
+                            : AnyShapeStyle(usesQuizColors ? palette.border : Color.nightBorder)
                     )
                     .overlay(alignment: .top) {
                         // 윗면 하이라이트
@@ -44,12 +47,15 @@ struct GlowButtonStyle: ButtonStyle {
 /// 둥근 아이콘 버튼(닫기, 힌트 등)
 struct RoundIconButtonStyle: ButtonStyle {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var palette: QuizPalette { QuizPalette(colorScheme: colorScheme) }
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .frame(minWidth: 44, minHeight: 44)
-            .background(Circle().fill(Color.roomCardBackground.opacity(0.85)))
-            .overlay(Circle().strokeBorder(Color.roomBorder, lineWidth: 1))
+            .background(Circle().fill(palette.cardBackground.opacity(0.85)))
+            .overlay(Circle().strokeBorder(palette.border, lineWidth: 1))
             .scaleEffect(configuration.isPressed ? 0.88 : 1)
             .animation(reduceMotion ? nil : .spring(response: 0.2, dampingFraction: 0.6), value: configuration.isPressed)
     }

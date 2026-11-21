@@ -10,6 +10,9 @@ struct QuizFeedbackSheet: View {
     let onNext: () -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var palette: QuizPalette { QuizPalette(colorScheme: colorScheme) }
     @State private var appeared = false
 
     private var tint: Color { isCorrect ? .roomPositive : .roomNegative }
@@ -35,7 +38,7 @@ struct QuizFeedbackSheet: View {
                 Button(action: onNext) {
                     Text(isLast ? "결과 보기" : "다음 문제")
                 }
-                .buttonStyle(GlowButtonStyle(tint: .roomAccent, usesRoomColors: true))
+                .buttonStyle(GlowButtonStyle(tint: palette.accent, usesQuizColors: true))
                 .padding(.top, 4)
             }
             .padding(.horizontal, 20)
@@ -44,8 +47,8 @@ struct QuizFeedbackSheet: View {
             .frame(maxWidth: .infinity)
         }
         .scrollBounceBehavior(.basedOnSize)
-        .background(Color.roomCardBackground)
-        .presentationBackground(Color.roomCardBackground)
+        .background(palette.cardBackground)
+        .presentationBackground(palette.cardBackground)
         .onAppear {
             withAnimation(reduceMotion ? .easeOut(duration: 0.2) : .spring(response: 0.5, dampingFraction: 0.6).delay(0.05)) {
                 appeared = true
@@ -86,7 +89,7 @@ struct QuizFeedbackSheet: View {
                     .foregroundStyle(Color.roomPositive)
                 Text(correctChoiceText)
                     .font(.body.weight(.semibold))
-                    .foregroundStyle(Color.roomPrimaryText)
+                    .foregroundStyle(palette.primaryText)
                     .fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 0)
@@ -108,14 +111,14 @@ struct QuizFeedbackSheet: View {
         VStack(alignment: .leading, spacing: 6) {
             Label("해설", systemImage: "text.book.closed.fill")
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(Color.roomSecondaryText)
+                .foregroundStyle(palette.secondaryText)
             Text(snapshot.explanation)
                 .font(.callout)
-                .foregroundStyle(Color.roomPrimaryText)
+                .foregroundStyle(palette.primaryText)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color.roomSubtleBackground))
+        .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(palette.subtleBackground))
     }
 }

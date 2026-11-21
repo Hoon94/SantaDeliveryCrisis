@@ -23,6 +23,9 @@ struct QuizChoiceButton: View {
     let action: () -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var palette: QuizPalette { QuizPalette(colorScheme: colorScheme) }
     /// 오답 흔들림을 다시 재생하는 신호
     @State private var shakeToken = 0
     @State private var pulseToken = 0
@@ -101,9 +104,9 @@ struct QuizChoiceButton: View {
 
     private var background: some View {
         ZStack {
-            Color.roomCardBackground.opacity(0.88)
+            palette.cardBackground.opacity(0.88)
             switch state {
-            case .selected: Color.roomAccent.opacity(0.16)
+            case .selected: palette.accent.opacity(0.16)
             case .correct: Color.roomPositive.opacity(0.18)
             case .wrong: Color.roomNegative.opacity(0.18)
             default: Color.clear
@@ -119,7 +122,7 @@ struct QuizChoiceButton: View {
     /// 고른 보기는 왼쪽에서 번지는 공통 강조색으로 표시한다.
     @ViewBuilder private var selectionGlow: some View {
         if state == .selected {
-            LinearGradient(colors: [Color.roomAccent.opacity(0.35), .clear], startPoint: .leading, endPoint: .trailing)
+            LinearGradient(colors: [palette.accent.opacity(0.35), .clear], startPoint: .leading, endPoint: .trailing)
                 .frame(width: 90)
                 .transition(.opacity)
         }
@@ -127,31 +130,31 @@ struct QuizChoiceButton: View {
 
     private var borderColor: Color {
         switch state {
-        case .idle, .dimmed: .roomBorder
-        case .selected: Color.roomAccent
+        case .idle, .dimmed: palette.border
+        case .selected: palette.accent
         case .correct: .roomPositive
         case .wrong: .roomNegative
         }
     }
 
     private var textColor: Color {
-        .roomPrimaryText
+        palette.primaryText
     }
 
     private var badgeFill: Color {
         switch state {
-        case .selected: Color.roomAccent
+        case .selected: palette.accent
         case .correct: .roomPositive
         case .wrong: .roomNegative
-        default: .roomSubtleBackground
+        default: palette.subtleBackground
         }
     }
 
     private var badgeText: Color {
         switch state {
-        case .selected: .roomOnAccentText
+        case .selected: palette.onAccentText
         case .correct, .wrong: .glowWhite
-        default: .roomSecondaryText
+        default: palette.secondaryText
         }
     }
 

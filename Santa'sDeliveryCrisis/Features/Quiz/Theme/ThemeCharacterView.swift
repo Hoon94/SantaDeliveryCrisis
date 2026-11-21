@@ -31,17 +31,21 @@ struct SpeechBubble: View {
     let text: String
     let tint: Color
 
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var palette: QuizPalette { QuizPalette(colorScheme: colorScheme) }
+
     var body: some View {
         Text(text)
             .font(.caption.weight(.bold))
-            .foregroundStyle(Color.roomPrimaryText)
+            .foregroundStyle(palette.primaryText)
             .multilineTextAlignment(.leading)
             .padding(.leading, 22)
             .padding(.trailing, 12)
             .padding(.vertical, 8)
             .background(
                 SpeechBubbleShape()
-                    .fill(Color.roomCardBackground)
+                    .fill(palette.cardBackground)
                     .overlay(
                         SpeechBubbleShape()
                             .stroke(tint.opacity(0.8), lineWidth: 1.5)

@@ -8,6 +8,9 @@ struct QuizQuestionView: View {
     let onExit: () -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var palette: QuizPalette { QuizPalette(colorScheme: colorScheme) }
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     /// 코드를 크게 보는 창이 열려 있는 문제의 번호. nil이면 닫힘
     @State private var codePreviewIndex: Int?
@@ -78,7 +81,7 @@ struct QuizQuestionView: View {
                 } label: {
                     Image(systemName: "xmark")
                         .font(.body.weight(.bold))
-                        .foregroundStyle(Color.roomPrimaryText)
+                        .foregroundStyle(palette.primaryText)
                 }
                 .buttonStyle(RoundIconButtonStyle())
                 .accessibilityLabel("퀴즈 나가기")
@@ -87,7 +90,7 @@ struct QuizQuestionView: View {
 
                 Text("\(min(model.index + 1, max(model.totalCount, 1))) / \(model.totalCount)")
                     .font(.headline.monospacedDigit())
-                    .foregroundStyle(Color.roomPrimaryText)
+                    .foregroundStyle(palette.primaryText)
                     .contentTransition(.numericText())
                     .animation(.snappy, value: model.index)
                     .accessibilityLabel("\(model.index + 1)번째 문제, 총 \(model.totalCount)문제")
@@ -96,7 +99,7 @@ struct QuizQuestionView: View {
 
                 hintButton
             }
-            ProgressTrack(progress: model.progress, tint: .roomAccent)
+            ProgressTrack(progress: model.progress, tint: palette.accent, trackColor: palette.subtleBackground)
             processProgress
         }
         .padding(.horizontal, 16)
@@ -122,13 +125,13 @@ struct QuizQuestionView: View {
                         .fixedSize(horizontal: false, vertical: true)
                         .multilineTextAlignment(.center)
                 }
-                .foregroundStyle(offset == current ? Color.roomAccent : Color.roomSecondaryText)
+                .foregroundStyle(offset == current ? palette.accent : palette.secondaryText)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .padding(.vertical, 8)
-                .background(Color.roomCardBackground.opacity(0.9), in: RoundedRectangle(cornerRadius: 10))
+                .background(palette.cardBackground.opacity(0.9), in: RoundedRectangle(cornerRadius: 10))
                 .overlay {
                     if offset == current {
-                        RoundedRectangle(cornerRadius: 10).strokeBorder(Color.roomAccent, lineWidth: 1.5)
+                        RoundedRectangle(cornerRadius: 10).strokeBorder(palette.accent, lineWidth: 1.5)
                     }
                 }
                 .accessibilityElement(children: .ignore)
@@ -145,7 +148,7 @@ struct QuizQuestionView: View {
             } label: {
                 Image(systemName: model.isHintVisible ? "lightbulb.fill" : "lightbulb")
                     .font(.body.weight(.semibold))
-                    .foregroundStyle(model.isHintVisible ? Color.roomWarning : Color.roomPrimaryText)
+                    .foregroundStyle(model.isHintVisible ? palette.warning : palette.primaryText)
                     .symbolEffect(.bounce, value: model.isHintVisible)
             }
             .buttonStyle(RoundIconButtonStyle())
@@ -164,7 +167,7 @@ struct QuizQuestionView: View {
 
             Text(snapshot.text)
                 .font(.title3.weight(.bold))
-                .foregroundStyle(Color.roomPrimaryText)
+                .foregroundStyle(palette.primaryText)
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(18)
@@ -183,7 +186,7 @@ struct QuizQuestionView: View {
                 // 애니메이션 문제는 장면이 아직 없다. 장면이 없으면 판정과 해설만 보여 주는 규칙을 따른다.
                 Label("이 문제의 애니메이션은 준비 중이에요", systemImage: "sparkles")
                     .font(.footnote)
-                    .foregroundStyle(Color.roomSecondaryText)
+                    .foregroundStyle(palette.secondaryText)
             }
 
             VStack(spacing: 10) {
@@ -221,8 +224,8 @@ struct QuizQuestionView: View {
                     tint: model.session.task.themeColor,
                     filled: true
                 )
-                chip(model.session.difficulty.displayName, tint: .roomSecondaryText, filled: false)
-                chip("#\(categoryTag)", tint: .roomSecondaryText, filled: false)
+                chip(model.session.difficulty.displayName, tint: palette.secondaryText, filled: false)
+                chip("#\(categoryTag)", tint: palette.secondaryText, filled: false)
             }
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -236,10 +239,10 @@ struct QuizQuestionView: View {
                 tint: model.session.task.themeColor,
                 filled: true
             )
-            chip(model.session.difficulty.displayName, tint: .roomSecondaryText, filled: false)
-            chip("#\(categoryTag)", tint: .roomSecondaryText, filled: false)
+            chip(model.session.difficulty.displayName, tint: palette.secondaryText, filled: false)
+            chip("#\(categoryTag)", tint: palette.secondaryText, filled: false)
             if let extraTag {
-                chip("#\(extraTag)", tint: .roomSecondaryText, filled: false)
+                chip("#\(extraTag)", tint: palette.secondaryText, filled: false)
             }
         }
         .lineLimit(1)
@@ -253,7 +256,7 @@ struct QuizQuestionView: View {
             .foregroundStyle(filled ? Color.glowWhite : tint)
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
-            .background(Capsule().fill(filled ? tint : Color.roomSubtleBackground.opacity(0.9)))
+            .background(Capsule().fill(filled ? tint : palette.subtleBackground.opacity(0.9)))
     }
 
     /// 짧게 훑어보는 코드 상자. 좌우로 스크롤하거나, 눌러서 전체를 큰 창으로 볼 수 있다.
@@ -261,24 +264,24 @@ struct QuizQuestionView: View {
         ScrollView(.horizontal, showsIndicators: false) {
             Text(code)
                 .font(.system(.callout, design: .monospaced))
-                .foregroundStyle(Color.roomPrimaryText)
+                .foregroundStyle(palette.primaryText)
                 .padding(16)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(Color.roomSubtleBackground.opacity(0.95))
+                .fill(palette.subtleBackground.opacity(0.95))
                 .overlay(
                     RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .strokeBorder(Color.roomBorder, lineWidth: 1)
+                        .strokeBorder(palette.border, lineWidth: 1)
                 )
         )
         .overlay(alignment: .topTrailing) {
             Image(systemName: "arrow.up.left.and.arrow.down.right")
                 .font(.caption.weight(.bold))
-                .foregroundStyle(Color.roomSecondaryText)
+                .foregroundStyle(palette.secondaryText)
                 .padding(6)
-                .background(Circle().fill(Color.roomSubtleBackground))
+                .background(Circle().fill(palette.subtleBackground))
                 .padding(6)
                 .allowsHitTesting(false)
         }
@@ -297,28 +300,28 @@ struct QuizQuestionView: View {
         VStack(alignment: .leading, spacing: 6) {
             Label("힌트", systemImage: "lightbulb.fill")
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(Color.roomWarning)
+                .foregroundStyle(palette.warning)
             Text(hint)
                 .font(.callout)
-                .foregroundStyle(Color.roomPrimaryText)
+                .foregroundStyle(palette.primaryText)
                 .fixedSize(horizontal: false, vertical: true)
             Text("힌트를 봐도 점수와 보상은 달라지지 않아요")
                 .font(.caption)
-                .foregroundStyle(Color.roomSecondaryText)
+                .foregroundStyle(palette.secondaryText)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(Color.roomWarning.opacity(0.14))
-                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(Color.roomWarning.opacity(0.6), lineWidth: 1.2))
+                .fill(palette.warning.opacity(0.14))
+                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(palette.warning.opacity(0.6), lineWidth: 1.2))
         )
     }
 
     private var card: some View {
         RoundedRectangle(cornerRadius: 20, style: .continuous)
-            .fill(Color.roomCardBackground.opacity(0.9))
-            .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).strokeBorder(Color.roomBorder, lineWidth: 1))
+            .fill(palette.cardBackground.opacity(0.9))
+            .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).strokeBorder(palette.border, lineWidth: 1))
             .shadow(color: Color.inkShadow.opacity(0.18), radius: 12, y: 6)
     }
 
@@ -334,7 +337,7 @@ struct QuizQuestionView: View {
             .frame(width: 72, height: 96)
 
             VStack(alignment: .leading, spacing: 12) {
-                SpeechBubble(text: model.bubble ?? model.theme.idleLine, tint: .roomAccent)
+                SpeechBubble(text: model.bubble ?? model.theme.idleLine, tint: palette.accent)
                     .accessibilityLabel("\(model.theme.characterName): \(model.bubble ?? model.theme.idleLine)")
 
                 Button {
@@ -342,7 +345,7 @@ struct QuizQuestionView: View {
                 } label: {
                     Text("확인")
                 }
-                .buttonStyle(GlowButtonStyle(tint: .roomAccent, usesRoomColors: true))
+                .buttonStyle(GlowButtonStyle(tint: palette.accent, usesQuizColors: true))
                 .disabled(!model.canConfirm)
                 .accessibilityHint(model.canConfirm ? "고른 답을 채점해요" : "먼저 보기를 하나 골라 주세요")
             }
@@ -353,7 +356,7 @@ struct QuizQuestionView: View {
         .frame(maxWidth: 640)
         .frame(maxWidth: .infinity)
         .background(
-            Color.roomBackground.opacity(0.8)
+            palette.dockBackground.opacity(0.8)
                 .ignoresSafeArea(edges: .bottom)
         )
     }
@@ -363,12 +366,13 @@ struct QuizQuestionView: View {
 private struct ProgressTrack: View {
     let progress: Double
     let tint: Color
+    let trackColor: Color
 
     var body: some View {
         GeometryReader { proxy in
             let width = proxy.size.width * progress
             ZStack(alignment: .leading) {
-                Capsule().fill(Color.roomSubtleBackground)
+                Capsule().fill(trackColor)
                 Capsule()
                     .fill(LinearGradient(colors: [tint.opacity(0.7), tint], startPoint: .leading, endPoint: .trailing))
                     .frame(width: max(width, progress > 0 ? 8 : 0))
