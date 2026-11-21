@@ -9,8 +9,6 @@ struct QuizQuestionView: View {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @Environment(\.scenePhase) private var scenePhase
-    @State private var bannerTheme: QuizTheme?
     /// 코드를 크게 보는 창이 열려 있는 문제의 번호. nil이면 닫힘
     @State private var codePreviewIndex: Int?
     /// 코드 상자의 화면 좌표. 창이 이 자리에서 펼쳐진다. 스크롤마다 바뀌므로 화면을 다시 그리지 않는 상자에 담아 둔다.
@@ -38,50 +36,17 @@ struct QuizQuestionView: View {
             .animation(.spring(response: 0.5, dampingFraction: 0.86), value: model.index)
             // 스크롤 내용과 그림자가 하단 고정 영역으로 넘어가지 않게 한다.
             .clipped()
-            .overlay(alignment: .top) {
-                if let bannerTheme, model.phase == .answering {
-                    Text("\(bannerTheme.title) 과정을 시작해요")
-                        .font(.subheadline.weight(.bold))
-                        .foregroundStyle(Color.roomPrimaryText)
-                        .padding(12)
-                        .background(Color.roomCardBackground, in: RoundedRectangle(cornerRadius: 12))
-                        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Color.roomAccent, lineWidth: 1.5))
-                        .padding(12)
-                        .allowsHitTesting(false)
-                        .accessibilityHidden(true)
-                }
-            }
 
             // 실제 높이를 차지하게 배치해 긴 대사와 큰 글자에서도 스크롤 영역과 분리한다.
             bottomDock
         }
         .overlay { codePreview }
-        .onChange(of: model.index) { oldIndex, _ in
+        .onChange(of: model.index) { _, _ in
             codePreviewIndex = nil
-            let previousTheme = QuizTheme(questionIndex: oldIndex, totalCount: model.totalCount)
-            bannerTheme = previousTheme == model.theme ? nil : model.theme
-            if bannerTheme != nil {
-                UIAccessibility.post(notification: .announcement, argument: "\(model.theme.title) 과정을 시작해요")
-            }
         }
         .onChange(of: model.bubble) { _, bubble in
             if model.phase == .answering, let bubble {
                 UIAccessibility.post(notification: .announcement, argument: "\(model.theme.characterName): \(bubble)")
-            }
-        }
-        .onChange(of: model.phase) { _, phase in
-            if phase != .answering { bannerTheme = nil }
-        }
-        .onChange(of: scenePhase) { _, phase in
-            if phase != .active { bannerTheme = nil }
-        }
-        .task(id: bannerTheme) {
-            guard bannerTheme != nil else { return }
-            do {
-                try await Task.sleep(for: .milliseconds(1200))
-                bannerTheme = nil
-            } catch {
-                // 과정 변경 또는 화면 종료로 취소된 이전 안내는 현재 안내를 지우지 않는다.
             }
         }
     }
