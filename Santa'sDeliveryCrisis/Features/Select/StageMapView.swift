@@ -34,53 +34,44 @@ struct StageMapView: View {
         GeometryReader { geometry in
             let height = max(geometry.size.height, geometry.size.width / 2)
             let width = height * 2
-            ScrollViewReader { proxy in
-                ScrollView(.horizontal) {
-                    TimelineView(.animation(minimumInterval: 1.0 / 15, paused: !isAnimating || reduceMotion)) { timeline in
-                        let time = isAnimating && !reduceMotion ? timeline.date.timeIntervalSinceReferenceDate : 0
-                        ZStack(alignment: .topLeading) {
-                            Image("SantaVillageMap")
-                                .resizable()
-                                .interpolation(.none)
-                                .frame(width: width, height: height)
-                                .accessibilityHidden(true)
+            StageMapScrollView(
+                contentSize: CGSize(width: width, height: height),
+                focusX: positions[focusedStage.id].x * width,
+                focusedStageID: focusedStage.id, focusRequestID: focusRequestID
+            ) {
+                TimelineView(.animation(minimumInterval: 1.0 / 15, paused: !isAnimating || reduceMotion)) { timeline in
+                    let time = isAnimating && !reduceMotion ? timeline.date.timeIntervalSinceReferenceDate : 0
+                    ZStack(alignment: .topLeading) {
+                        Image("SantaVillageMap")
+                            .resizable()
+                            .interpolation(.none)
+                            .frame(width: width, height: height)
+                            .accessibilityHidden(true)
 
-                            ForEach(Difficulty.allCases, id: \.self) { difficulty in
-                                districtSign(difficulty)
-                                    .position(x: CGFloat(group(difficulty)) / 6 * width, y: 36)
-                            }
-
-                            ForEach(QuizStage.all) { stage in
-                                StageMapNode(
-                                    stage: stage, rewardMask: rewardMask,
-                                    hasCandidates: (availableCounts[stage.difficulty] ?? 0) >= requestedCount,
-                                    time: time
-                                ) { onSelect(stage) }
-                                .id(stage.id)
-                                // 지점은 이름표 아래가 기준이다. 터치 영역은 44pt 높이로 분리해 이웃 단계와 겹치지 않게 한다.
-                                .position(
-                                    x: positions[stage.id].x * width,
-                                    y: positions[stage.id].y * height - 22
-                                )
-                            }
-
-                            StageMapSnow(time: time)
-                                .allowsHitTesting(false)
-                                .accessibilityHidden(true)
+                        ForEach(Difficulty.allCases, id: \.self) { difficulty in
+                            districtSign(difficulty)
+                                .position(x: CGFloat(group(difficulty)) / 6 * width, y: 36)
                         }
-                        .frame(width: width, height: height)
+
+                        ForEach(QuizStage.all) { stage in
+                            StageMapNode(
+                                stage: stage, rewardMask: rewardMask,
+                                hasCandidates: (availableCounts[stage.difficulty] ?? 0) >= requestedCount,
+                                time: time
+                            ) { onSelect(stage) }
+                            .id(stage.id)
+                            // 이름표 아래를 기준으로 구슬과 발판의 두 터치 영역을 함께 배치한다.
+                            .position(
+                                x: positions[stage.id].x * width,
+                                y: positions[stage.id].y * height - 53
+                            )
+                        }
+
+                        StageMapSnow(time: time)
+                            .allowsHitTesting(false)
+                            .accessibilityHidden(true)
                     }
-                }
-                .scrollBounceBehavior(.basedOnSize, axes: .horizontal)
-                .onAppear { proxy.scrollTo(focusedStage.id, anchor: .center) }
-                .onChange(of: focusedStage) { _, stage in
-                    proxy.scrollTo(stage.id, anchor: .center)
-                }
-                .onChange(of: focusRequestID) { _, _ in
-                    proxy.scrollTo(focusedStage.id, anchor: .center)
-                }
-                .onChange(of: geometry.size) { _, _ in
-                    proxy.scrollTo(focusedStage.id, anchor: .center)
+                    .frame(width: width, height: height)
                 }
             }
         }
@@ -121,35 +112,48 @@ private struct StageMapNode: View {
     private var isNext: Bool { QuizStage.next(in: rewardMask) == stage }
 
     var body: some View {
-        Button(action: onSelect) {
-            VStack(spacing: 4) {
-                Ellipse()
-                    .fill(isNext ? Color.glowGold : Color.inkShadow.opacity(0.8))
-                    .overlay { Ellipse().strokeBorder(isUnlocked ? Color.glowGold : Color.plainOrnament, lineWidth: 2) }
-                    .frame(width: 38, height: 14)
-
-                HStack(spacing: 3) {
-                    if !isUnlocked { Image(systemName: "lock.fill") }
-                    Text("\(stage.groupNumber)-\(stage.stepNumber)")
-                }
-                .font(.caption2.weight(.heavy).monospacedDigit())
-                .foregroundStyle(Color.glowWhite)
-                .padding(.horizontal, 7)
-                .padding(.vertical, 3)
-                .background(isNext ? Color.ornamentRed : Color.inkShadow, in: RoundedRectangle(cornerRadius: 3))
-                .overlay { RoundedRectangle(cornerRadius: 3).strokeBorder(Color.glowWhite, lineWidth: 1) }
-                .opacity(isUnlocked && !hasCandidates ? 0.65 : 1)
-            }
-            .frame(width: 44, height: 44, alignment: .bottom)
-            .contentShape(Rectangle())
-            .overlay(alignment: .top) {
+        VStack(spacing: 8) {
+            Button(action: onSelect) {
                 floatingReward
-                    .offset(y: -58)
-                    .allowsHitTesting(false)
+                    .frame(width: 52, height: 54)
+                    .contentShape(Rectangle())
             }
+            .accessibilityHidden(true)
+
+            Button(action: onSelect) {
+                VStack(spacing: 4) {
+                    Ellipse()
+                        .fill(isNext ? Color.glowGold : Color.inkShadow.opacity(0.8))
+                        .overlay { Ellipse().strokeBorder(isUnlocked ? Color.glowGold : Color.plainOrnament, lineWidth: 2) }
+                        .frame(width: 38, height: 14)
+                        .overlay {
+                            if !isUnlocked {
+                                Image(systemName: "lock.fill")
+                                    .font(.system(size: 9, weight: .bold))
+                                    .foregroundStyle(Color.glowWhite)
+                            }
+                        }
+
+                    Text("\(stage.groupNumber)-\(stage.stepNumber)")
+                        .font(.caption2.weight(.heavy).monospacedDigit())
+                        .lineLimit(1)
+                        .fixedSize(horizontal: true, vertical: false)
+                        .foregroundStyle(Color.glowWhite)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3)
+                        .background(isNext ? Color.ornamentRed : Color.inkShadow, in: RoundedRectangle(cornerRadius: 3))
+                        .overlay { RoundedRectangle(cornerRadius: 3).strokeBorder(Color.glowWhite, lineWidth: 1) }
+                        .opacity(isUnlocked && !hasCandidates ? 0.65 : 1)
+                }
+                .frame(minWidth: 52, minHeight: 44, alignment: .bottom)
+                .contentShape(Rectangle())
+            }
+            .accessibilityHidden(true)
         }
         .buttonStyle(.plain)
         .accessibilityElement(children: .ignore)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityAction(.default) { onSelect() }
         .accessibilityLabel("\(stage.title), \(stage.difficulty.displayName), 보상 장식 1개")
         .accessibilityValue(isEarned ? "획득 완료" : isNext ? "다음 도전" : "잠김")
         .accessibilityHint(!isUnlocked ? "앞선 단계의 장식을 먼저 획득해야 해요" : !hasCandidates ? "현재 출제 조건의 문제 수가 부족해요" : "두 번 탭하면 퀴즈를 시작해요")

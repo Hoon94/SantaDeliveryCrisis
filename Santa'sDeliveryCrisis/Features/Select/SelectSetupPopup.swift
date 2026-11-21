@@ -105,18 +105,19 @@ struct SelectSetupPopup: View {
             labelLayout {
                 Text(stars(option))
                     .font(.caption.weight(.bold))
-                    .foregroundStyle(color)
+                    .foregroundStyle(isUnlocked ? color : Color.nightSecondaryText)
                     .accessibilityHidden(true)
-                Text(option.displayName)
-                    .font(.subheadline.weight(.heavy))
-                    .foregroundStyle(Color.nightPrimaryText)
-            }
-            .overlay(alignment: .topTrailing) {
-                if !isUnlocked {
-                    Image(systemName: "lock.fill")
-                        .font(.caption2)
-                        .foregroundStyle(Color.nightSecondaryText)
-                        .padding(5)
+                VStack(spacing: 3) {
+                    Text(option.displayName)
+                        .font(.subheadline.weight(.heavy))
+                        .foregroundStyle(Color.nightPrimaryText)
+                    Label(
+                        !isUnlocked ? "잠김" : isSelected ? "선택됨" : "선택 가능",
+                        systemImage: !isUnlocked ? "lock.fill" : isSelected ? "checkmark" : "lock.open"
+                    )
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(Color.nightSecondaryText)
+                    .fixedSize()
                 }
             }
             .frame(maxWidth: .infinity)
@@ -138,7 +139,6 @@ struct SelectSetupPopup: View {
         }
         .buttonStyle(.plain)
         .disabled(!isUnlocked)
-        .opacity(isUnlocked ? 1 : 0.5)
         .accessibilityLabel(option.displayName)
         .accessibilityValue(!isUnlocked ? "잠김, 앞선 단계의 장식을 먼저 획득해야 해요" : isSelected ? "선택됨" : "선택 안 됨")
         .accessibilityAddTraits(isSelected ? .isSelected : [])
