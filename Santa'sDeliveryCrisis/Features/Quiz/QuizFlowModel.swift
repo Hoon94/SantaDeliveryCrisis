@@ -232,14 +232,17 @@ final class QuizFlowModel {
         syncElapsed()
         do {
             let result = try services.sessions.finish(session)
-            let treeCount = result.treeCompleted ? TreeRecord.slotCount : services.trees.currentTree().decorationCount
+            // 트리 완성 시 서비스가 새 빈 트리를 만들므로, 결과에는 완성한 열두 칸을 보존한다.
+            let treeRewardMask = result.treeCompleted
+                ? (1 << TreeRecord.slotCount) - 1
+                : services.trees.currentTree().rewardMask
             summary = QuizResultSummary(
                 result: result,
                 task: session.task,
                 category: session.category,
                 difficulty: session.difficulty,
                 thresholdPercent: session.passThresholdPercent,
-                treeDecorationCount: treeCount
+                treeRewardMask: treeRewardMask
             )
             phase = .result
         } catch {

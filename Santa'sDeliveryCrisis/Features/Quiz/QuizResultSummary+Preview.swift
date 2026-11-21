@@ -16,7 +16,7 @@ extension QuizResultSummary {
             category: .aiUsage,
             difficulty: .normal,
             thresholdPercent: 80,
-            treeDecorationCount: 5
+            treeRewardMask: previewRewardMask(count: 5)
         )
     }
 
@@ -36,7 +36,7 @@ extension QuizResultSummary {
             category: .swiftSyntax,
             difficulty: .normal,
             thresholdPercent: 80,
-            treeDecorationCount: 4
+            treeRewardMask: previewRewardMask(count: 4)
         )
     }
 
@@ -52,7 +52,7 @@ extension QuizResultSummary {
             category: nil,
             difficulty: .hard,
             thresholdPercent: 80,
-            treeDecorationCount: 12
+            treeRewardMask: previewRewardMask(count: 12)
         )
     }
 
@@ -74,8 +74,15 @@ extension QuizResultSummary {
                 earnedDecorations: 0, treeCompleted: false, wrongAnswers: []
             ),
             task: .giftProduction, category: nil, difficulty: .normal,
-            thresholdPercent: 80, treeDecorationCount: 4
+            thresholdPercent: 80, treeRewardMask: previewRewardMask(count: 6)
         )
+    }
+
+    /// 지도 순서로 획득한 샘플을 만든다. 실제 저장 비트는 작업별 순서라 개수로 추정하지 않는다.
+    private static func previewRewardMask(count: Int) -> Int {
+        QuizStage.all.prefix(count).reduce(0) { mask, stage in
+            mask | stage.task.rewardBit(for: stage.difficulty)
+        }
     }
 }
 #endif
