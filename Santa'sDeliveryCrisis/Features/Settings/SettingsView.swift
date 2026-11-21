@@ -1,7 +1,8 @@
 import SwiftUI
 
-/// 설정 화면(S12). 정답률 기준, 효과음, 진동을 바꾼다.
-/// 값은 `SettingsStore`와 같은 키의 `@AppStorage`로 저장한다. 테마와 글자 크기는 시스템 설정을 따른다.
+/// 설정 화면(S12). 정답률 기준, 효과음, 진동과 학습 알림을 바꾼다.
+/// 알림은 주입된 서비스가 관리하고, 기존 설정은 `SettingsStore`와 같은 키의 `@AppStorage`로 저장한다.
+/// 테마와 글자 크기는 시스템 설정을 따른다.
 struct SettingsView: View {
     @AppStorage(SettingsStore.Key.passThresholdPercent)
     private var passThresholdPercent = SettingsStore.Default.passThresholdPercent
@@ -11,6 +12,8 @@ struct SettingsView: View {
     private var hapticsEnabled = SettingsStore.Default.hapticsEnabled
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.services) private var services
     @State private var isToastVisible = false
     @State private var toastTask: Task<Void, Never>?
 
@@ -25,17 +28,21 @@ struct SettingsView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
-                sectionLabel("보상")
-                thresholdCard
-                sectionLabel("피드백")
-                feedbackCard
-                sectionLabel("화면")
-                systemCard
+            VStack(alignment: .leading, spacing: 28) {
+                settingsSection("보상") { thresholdCard }
+                settingsSection("피드백") { feedbackCard }
+                settingsSection("알림") {
+                    DailyQuizReminderSettingsCard(reminders: services.reminders)
+                }
+                settingsSection("화면") { systemCard }
             }
             .padding()
             .frame(maxWidth: 720)
             .frame(maxWidth: .infinity)
+            .animation(
+                reduceMotion ? nil : .easeInOut(duration: 0.25),
+                value: services.reminders.isEnabled && services.reminders.authorization == .allowed
+            )
         }
         .foregroundStyle(Color.roomPrimaryText)
         .background(Color.roomBackground)
@@ -82,19 +89,32 @@ struct SettingsView: View {
     }
 
     private var systemCard: some View {
-        VStack(spacing: 0) {
-            infoRow("테마", detail: "시스템 설정을 따라요")
+        VStack(alignment: .leading, spacing: 0) {
+            infoRow("화면 모드", detail: "기기 설정에 따라 자동 적용")
             Divider().overlay(Color.roomBorder)
-            infoRow("글자 크기", detail: "시스템 설정을 따라요")
+            infoRow("글자 크기", detail: "기기 설정에 따라 자동 적용")
+            Divider().overlay(Color.roomBorder)
+            Text("화면 모드와 글자 크기는 기기의 설정 앱에서 변경할 수 있어요.")
+                .font(.caption)
+                .foregroundStyle(Color.roomSecondaryText)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.vertical, 10)
         }
         .roomCardBackground(padding: EdgeInsets(top: 2, leading: 12, bottom: 2, trailing: 12))
     }
 
-    private func sectionLabel(_ title: String) -> some View {
-        Text(title)
-            .font(.caption)
-            .foregroundStyle(Color.roomSecondaryText)
-            .accessibilityAddTraits(.isHeader)
+    /// 제목과 카드를 묶어 섹션 사이 여백과 제목 아래 여백을 구분한다.
+    private func settingsSection<Content: View>(
+        _ title: String, @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.headline)
+                .foregroundStyle(Color.roomSecondaryText)
+                .padding(.horizontal, 12)
+                .accessibilityAddTraits(.isHeader)
+            content()
+        }
     }
 
     private func toggleRow(_ title: String, isOn: Binding<Bool>) -> some View {

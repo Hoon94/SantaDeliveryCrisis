@@ -3,13 +3,12 @@ import SwiftUI
 /// 출제 화면에서 작업 이름과 선택 가능 상태를 보여 주는 정적 장식.
 /// 글로우는 뷰 영역 밖으로 번지므로, 부모가 이 뷰를 `clipped()` 등으로 자르거나 `ScrollView`로 감쌀 때는 글로우가 잘릴 수 있다(스크롤 영역에서는 `scrollClipDisabled()`를 쓴다).
 // FIXME: [자산 교체] 임시 도형으로 그린 구슬을 실제 장식 이미지로 교체
-// FIXME: [가정 8] 시안 v3의 통과 점 3개, 체크 배지, 작업실 문 열림은 1차에서 제외. 팀이 확정하면 여기에 추가
 struct DecorationView: View {
     /// 금색 캡을 포함한 장식의 기준 크기.
     static let designSize = CGSize(width: 84, height: 94)
 
     /// 장식이 나타내는 작업.
-    let category: QuizCategory
+    let task: WorkshopTask
     /// 눌러서 시작할 수 있는 상태. 카테고리를 선택했어도 후보가 부족하면 false다.
     let isLit: Bool
 
@@ -33,9 +32,9 @@ struct DecorationView: View {
                     .position(x: center.x, y: center.y - 46.5 * scale)
 
                 Circle()
-                    .fill(category.themeColor)
+                    .fill(task.themeColor)
                     .frame(width: 84 * scale, height: 84 * scale)
-                    .shadow(color: category.themeColor, radius: (isLit ? 22 : 9) * scale)
+                    .shadow(color: task.themeColor, radius: (isLit ? 22 : 9) * scale)
                     .position(center)
 
                 Ellipse()
@@ -43,7 +42,7 @@ struct DecorationView: View {
                     .frame(width: 24 * scale, height: 14 * scale)
                     .position(x: center.x - 15 * scale, y: center.y - 24 * scale)
 
-                Text(category.taskName)
+                Text(task.displayName)
                     .font(.subheadline.weight(.heavy))
                     .foregroundStyle(Color.white)
                     .lineLimit(1)
@@ -58,15 +57,15 @@ struct DecorationView: View {
         }
         .aspectRatio(Self.designSize.width / Self.designSize.height, contentMode: .fit)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(category.taskName), \(isLit ? "켜짐" : "꺼짐")")
+        .accessibilityLabel("\(task.displayName), \(isLit ? "켜짐" : "꺼짐")")
     }
 }
 
 #if DEBUG
 #Preview("네 작업 · 켜짐") {
     VStack(spacing: 44) {
-        ForEach(QuizCategory.allCases, id: \.self) { category in
-            DecorationView(category: category, isLit: true)
+        ForEach(WorkshopTask.allCases, id: \.self) { task in
+            DecorationView(task: task, isLit: true)
         }
     }
     .padding(30)
@@ -75,8 +74,8 @@ struct DecorationView: View {
 
 #Preview("네 작업 · 꺼짐") {
     VStack(spacing: 44) {
-        ForEach(QuizCategory.allCases, id: \.self) { category in
-            DecorationView(category: category, isLit: false)
+        ForEach(WorkshopTask.allCases, id: \.self) { task in
+            DecorationView(task: task, isLit: false)
         }
     }
     .padding(30)
@@ -85,10 +84,10 @@ struct DecorationView: View {
 
 #Preview("켜짐과 꺼짐 · 한 줄") {
     HStack(spacing: 44) {
-        ForEach(QuizCategory.allCases, id: \.self) { category in
+        ForEach(WorkshopTask.allCases, id: \.self) { task in
             DecorationView(
-                category: category,
-                isLit: category == .aiUsage || category == .hig
+                task: task,
+                isLit: task == .wishReception || task == .wrapping
             )
             .frame(maxWidth: .infinity)
         }
@@ -99,8 +98,8 @@ struct DecorationView: View {
 
 #Preview("나이트 · 다크") {
     HStack(spacing: 44) {
-        DecorationView(category: .aiUsage, isLit: true)
-        DecorationView(category: .swiftSyntax, isLit: false)
+        DecorationView(task: .wishReception, isLit: true)
+        DecorationView(task: .giftProduction, isLit: false)
     }
     .padding(30)
     .background(Color.nightBackgroundTop)
@@ -108,7 +107,7 @@ struct DecorationView: View {
 }
 
 #Preview("큰 글자 · 썰매 적재") {
-    DecorationView(category: .swiftUIPractice, isLit: true)
+    DecorationView(task: .sleighLoading, isLit: true)
         .dynamicTypeSize(.accessibility3)
         .padding(30)
         .background(Color.nightBackgroundTop)

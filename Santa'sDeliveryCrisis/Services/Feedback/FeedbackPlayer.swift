@@ -12,6 +12,12 @@ final class FeedbackPlayer: QuizFeedbackPlaying {
         self.settings = settings
     }
 
+    /// 효과음 15종 합성과 오디오, 햅틱 엔진 시작을 앞당긴다. 설정에서 꺼져 있어도 준비는 해 둔다.
+    func prepare() {
+        sound.prepare()
+        haptics.prepare()
+    }
+
     func playCorrect() { play(.correct) }
     func playWrong() { play(.wrong) }
     func playTreeComplete() { play(.treeComplete) }

@@ -1,0 +1,190 @@
+import SwiftUI
+import UIKit
+
+/// 주입된 서비스의 상태를 표시하고 사용자 조작을 전달하는 학습 알림 설정 카드.
+struct DailyQuizReminderSettingsCard: View {
+    /// 부모 설정 화면이 Environment에서 받은 실제 또는 프리뷰용 알림 서비스.
+    let reminders: any DailyQuizReminderManaging
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var isHandlingAction = false
+    @State private var isTimePickerPresented = false
+
+    private var isBusy: Bool { isHandlingAction || reminders.isUpdating }
+    private var canChangeTime: Bool { reminders.isEnabled && reminders.authorization == .allowed }
+
+    private var formattedTime: String {
+        let time = reminders.reminderTime
+        let date = Calendar.current.date(from: DateComponents(hour: time.hour, minute: time.minute)) ?? .now
+        return date.formatted(date: .omitted, time: .shortened)
+    }
+
+    /// 사용 의사와 시스템 권한이 모두 켜져 있을 때만 토글을 켜짐으로 표시한다.
+    /// 기기에서 잠시 차단해도 사용 의사는 유지해 권한을 다시 허용하면 복구한다.
+    private var selection: Binding<Bool> {
+        Binding(
+            get: { canChangeTime },
+            set: { enabled in
+                performAction { await reminders.setEnabled(enabled) }
+            }
+        )
+    }
+
+    /// 알림 사용 여부와 권한·처리·오류 안내를 기존 설정 카드 스타일로 표시한다.
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Toggle("학습 알림", isOn: selection)
+                .tint(Color.roomAccent)
+                .accessibilityHint("오늘 완료한 퀴즈가 없는 경우 학습 알림을 받아요.")
+                .disabled(isBusy)
+
+            if canChangeTime {
+                Button {
+                    isTimePickerPresented = true
+                } label: {
+                    HStack {
+                        Text("알림 시간")
+                        Spacer()
+                        Text(formattedTime)
+                        Image(systemName: "chevron.right")
+                            .font(.caption.bold())
+                    }
+                    .font(.subheadline)
+                    .padding(.vertical, 8)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityHint("매일 학습 알림을 받을 시간을 변경해요.")
+                .disabled(isBusy)
+                .transition(.opacity)
+            }
+
+            Text(canChangeTime
+                 ? "오늘 완료한 퀴즈가 없으면 \(formattedTime)에 알려드려요."
+                 : "알림을 켜면 오늘 완료한 퀴즈가 없을 때 알려드려요.")
+                .font(.caption)
+                .foregroundStyle(Color.roomSecondaryText)
+                .contentTransition(.identity)
+                .fixedSize(horizontal: false, vertical: true)
+
+            #if DEBUG
+            if DailyQuizReminderConfiguration.debugOneMinuteEnabled {
+                Text("개발용: 알림을 켜거나 앱을 새로 실행한 뒤 1분 후에 테스트해요. 오늘 완료 기록이 있으면 알림이 오지 않아요.")
+                    .font(.caption)
+                    .foregroundStyle(Color.roomSecondaryText)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            #endif
+
+            if reminders.authorization == .denied {
+                Label("기기 설정에서 이 앱의 알림이 차단되어 있어요.", systemImage: "bell.slash")
+                    .font(.caption)
+                    .foregroundStyle(Color.roomSecondaryText)
+                    .fixedSize(horizontal: false, vertical: true)
+                if let url = URL(string: UIApplication.openNotificationSettingsURLString) {
+                    Link("알림 설정 열기", destination: url)
+                        .font(.subheadline.bold())
+                        .foregroundStyle(Color.roomAccent)
+                        .accessibilityHint("설정 앱에서 이 앱의 알림 권한을 변경해요.")
+                        .disabled(isBusy)
+                }
+            } else if let message = reminders.errorMessage {
+                Label(message, systemImage: "exclamationmark.circle")
+                    .font(.caption)
+                    .foregroundStyle(Color.roomNegative)
+                    .fixedSize(horizontal: false, vertical: true)
+                Button("다시 시도") {
+                    performAction {
+                        if reminders.isEnabled {
+                            await reminders.refresh()
+                        } else {
+                            await reminders.setEnabled(true)
+                        }
+                    }
+                }
+                .font(.subheadline.bold())
+                .foregroundStyle(Color.roomAccent)
+                .disabled(isBusy)
+            }
+        }
+        .foregroundStyle(Color.roomPrimaryText)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .roomCardBackground()
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: canChangeTime)
+        .task { await reminders.refresh() }
+        .sheet(isPresented: $isTimePickerPresented) {
+            DailyQuizReminderTimeSheet(reminders: reminders)
+        }
+    }
+
+    private func performAction(_ action: @escaping @MainActor () async -> Void) {
+        guard !isBusy else { return }
+        isHandlingAction = true
+        Task {
+            await action()
+            isHandlingAction = false
+        }
+    }
+}
+
+#if DEBUG
+/// 프리뷰에서는 시스템 설정 링크도 외부 앱을 열지 않게 처리한다.
+private func reminderCardPreview(_ reminders: MockDailyQuizReminderManager) -> some View {
+    DailyQuizReminderSettingsCard(reminders: reminders)
+        .padding()
+        .background(Color.roomBackground)
+        .environment(\.openURL, OpenURLAction { _ in .handled })
+}
+
+#Preview("학습 알림 · 꺼짐") {
+    reminderCardPreview(MockDailyQuizReminderManager())
+}
+
+#Preview("학습 알림 · 켜짐") {
+    reminderCardPreview(MockDailyQuizReminderManager(isEnabled: true, authorization: .allowed))
+}
+
+#Preview("학습 알림 · 사용자 시간") {
+    reminderCardPreview(MockDailyQuizReminderManager(
+        isEnabled: true, reminderTime: DailyQuizReminderTime(hour: 21, minute: 30), authorization: .allowed
+    ))
+}
+
+#Preview("학습 알림 · 기기에서 차단 · 토글 꺼짐") {
+    reminderCardPreview(MockDailyQuizReminderManager(isEnabled: true, authorization: .denied))
+}
+
+#Preview("학습 알림 · 권한 허용 · 앱에서 꺼짐") {
+    reminderCardPreview(MockDailyQuizReminderManager(authorization: .allowed))
+}
+
+#Preview("학습 알림 · 권한 거절 후 꺼짐") {
+    reminderCardPreview(MockDailyQuizReminderManager(authorization: .denied))
+}
+
+#Preview("학습 알림 · 처리 중") {
+    reminderCardPreview(MockDailyQuizReminderManager(
+        isEnabled: true, authorization: .allowed, isUpdating: true
+    ))
+}
+
+#Preview("학습 알림 · 예약 오류") {
+    reminderCardPreview(MockDailyQuizReminderManager(
+        isEnabled: true, authorization: .allowed,
+        errorMessage: "학습 알림을 설정하지 못했어요. 잠시 후 다시 시도해 주세요."
+    ))
+}
+
+#Preview("학습 알림 · 다크") {
+    reminderCardPreview(MockDailyQuizReminderManager(isEnabled: true, authorization: .allowed))
+        .preferredColorScheme(.dark)
+}
+
+#Preview("학습 알림 · 큰 글자") {
+    ScrollView {
+        reminderCardPreview(MockDailyQuizReminderManager(isEnabled: true, authorization: .denied))
+    }
+    .background(Color.roomBackground)
+    .dynamicTypeSize(.accessibility3)
+}
+#endif

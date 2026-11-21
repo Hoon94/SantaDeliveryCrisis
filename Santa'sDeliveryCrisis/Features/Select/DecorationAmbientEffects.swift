@@ -73,11 +73,11 @@ struct DecorationAmbientEffects: View {
 /// 시안의 장식 흔들림 주기와 위상 차이를 계산한다.
 enum DecorationAmbientMotion {
     /// 3.2초마다 원위치와 위쪽 4pt 사이를 왕복한다. 두 번째와 네 번째는 1.4초 앞선다.
-    static func bobOffset(time: TimeInterval, category: QuizCategory) -> CGFloat {
+    static func bobOffset(time: TimeInterval, task: WorkshopTask) -> CGFloat {
         let shift: Double
-        switch category {
-        case .aiUsage, .hig: shift = 0
-        case .swiftSyntax, .swiftUIPractice: shift = 1.4
+        switch task {
+        case .wishReception, .wrapping: shift = 0
+        case .giftProduction, .sleighLoading: shift = 1.4
         }
         return -2 * (1 - cos(2 * .pi * (time + shift) / 3.2))
     }
