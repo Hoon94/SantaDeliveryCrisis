@@ -4,6 +4,7 @@ import SwiftUI
 struct QuizProcessBackground: View {
     let theme: QuizTheme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         GeometryReader { proxy in
@@ -17,7 +18,8 @@ struct QuizProcessBackground: View {
                     .id(theme)
                     .transition(.opacity)
             }
-            .overlay(Color.nightBackgroundTop.opacity(0.5))
+            // 라이트 모드의 밝은 색상막이 픽셀 배경을 뿌옇게 덮지 않도록 농도를 낮춘다.
+            .overlay(Color.roomBackground.opacity(colorScheme == .light ? 0.15 : 0.5))
             .animation(reduceMotion ? nil : .easeInOut(duration: 0.55), value: theme)
         }
         .ignoresSafeArea()

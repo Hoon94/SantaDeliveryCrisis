@@ -52,8 +52,8 @@ private struct QuizFlowContent: View {
                 if model.phase == .finishing {
                     ProgressView("결과를 계산하고 있어요")
                         .padding(24)
-                        .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(Color.nightCardBackground))
-                        .foregroundStyle(Color.nightPrimaryText)
+                        .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(Color.roomCardBackground))
+                        .foregroundStyle(Color.roomPrimaryText)
                 }
             }
         }
@@ -167,5 +167,11 @@ private struct QuizFlowPreviewHost: View {
 #Preview("퀴즈 5문제 · 오늘의 출제") { QuizFlowPreviewHost(category: nil) }
 #Preview("퀴즈 · 큰 글자") {
     QuizFlowPreviewHost(category: .swiftSyntax).dynamicTypeSize(.accessibility3)
+}
+#Preview("퀴즈 · 라이트 색상") {
+    QuizFlowPreviewHost(category: nil).preferredColorScheme(.light)
+}
+#Preview("퀴즈 · 다크 색상") {
+    QuizFlowPreviewHost(category: nil).preferredColorScheme(.dark)
 }
 #endif

@@ -101,9 +101,9 @@ struct QuizChoiceButton: View {
 
     private var background: some View {
         ZStack {
-            Color.nightCardBackground.opacity(0.88)
+            Color.roomCardBackground.opacity(0.88)
             switch state {
-            case .selected: theme.accent.opacity(0.16)
+            case .selected: Color.roomAccent.opacity(0.16)
             case .correct: Color.roomPositive.opacity(0.18)
             case .wrong: Color.roomNegative.opacity(0.18)
             default: Color.clear
@@ -116,10 +116,10 @@ struct QuizChoiceButton: View {
             .strokeBorder(borderColor, lineWidth: state == .idle || state == .dimmed ? 1 : 2.2)
     }
 
-    /// 고른 보기는 왼쪽에서 번지는 테마 색 빛
+    /// 고른 보기는 왼쪽에서 번지는 공통 강조색으로 표시한다.
     @ViewBuilder private var selectionGlow: some View {
         if state == .selected {
-            LinearGradient(colors: [theme.accent.opacity(0.35), .clear], startPoint: .leading, endPoint: .trailing)
+            LinearGradient(colors: [Color.roomAccent.opacity(0.35), .clear], startPoint: .leading, endPoint: .trailing)
                 .frame(width: 90)
                 .transition(.opacity)
         }
@@ -127,30 +127,31 @@ struct QuizChoiceButton: View {
 
     private var borderColor: Color {
         switch state {
-        case .idle, .dimmed: .nightBorder
-        case .selected: theme.accent
+        case .idle, .dimmed: .roomBorder
+        case .selected: Color.roomAccent
         case .correct: .roomPositive
         case .wrong: .roomNegative
         }
     }
 
     private var textColor: Color {
-        .nightPrimaryText
+        .roomPrimaryText
     }
 
     private var badgeFill: Color {
         switch state {
-        case .selected: theme.accent
+        case .selected: Color.roomAccent
         case .correct: .roomPositive
         case .wrong: .roomNegative
-        default: .nightSubtleBackground
+        default: .roomSubtleBackground
         }
     }
 
     private var badgeText: Color {
         switch state {
-        case .selected, .correct, .wrong: .glowWhite
-        default: .nightSecondaryText
+        case .selected: .roomOnAccentText
+        case .correct, .wrong: .glowWhite
+        default: .roomSecondaryText
         }
     }
 

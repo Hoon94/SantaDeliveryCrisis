@@ -35,7 +35,7 @@ struct QuizFeedbackSheet: View {
                 Button(action: onNext) {
                     Text(isLast ? "결과 보기" : "다음 문제")
                 }
-                .buttonStyle(GlowButtonStyle(tint: theme.accent))
+                .buttonStyle(GlowButtonStyle(tint: .roomAccent, usesRoomColors: true))
                 .padding(.top, 4)
             }
             .padding(.horizontal, 20)
@@ -44,8 +44,8 @@ struct QuizFeedbackSheet: View {
             .frame(maxWidth: .infinity)
         }
         .scrollBounceBehavior(.basedOnSize)
-        .background(Color.nightCardBackground)
-        .presentationBackground(Color.nightCardBackground)
+        .background(Color.roomCardBackground)
+        .presentationBackground(Color.roomCardBackground)
         .onAppear {
             withAnimation(reduceMotion ? .easeOut(duration: 0.2) : .spring(response: 0.5, dampingFraction: 0.6).delay(0.05)) {
                 appeared = true
@@ -86,7 +86,7 @@ struct QuizFeedbackSheet: View {
                     .foregroundStyle(Color.roomPositive)
                 Text(correctChoiceText)
                     .font(.body.weight(.semibold))
-                    .foregroundStyle(Color.nightPrimaryText)
+                    .foregroundStyle(Color.roomPrimaryText)
                     .fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 0)
@@ -108,14 +108,14 @@ struct QuizFeedbackSheet: View {
         VStack(alignment: .leading, spacing: 6) {
             Label("해설", systemImage: "text.book.closed.fill")
                 .font(.subheadline.weight(.bold))
-                .foregroundStyle(Color.nightSecondaryText)
+                .foregroundStyle(Color.roomSecondaryText)
             Text(snapshot.explanation)
                 .font(.callout)
-                .foregroundStyle(Color.nightPrimaryText)
+                .foregroundStyle(Color.roomPrimaryText)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color.nightSubtleBackground))
+        .background(RoundedRectangle(cornerRadius: 16, style: .continuous).fill(Color.roomSubtleBackground))
     }
 }

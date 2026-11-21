@@ -34,14 +34,14 @@ struct SpeechBubble: View {
     var body: some View {
         Text(text)
             .font(.caption.weight(.bold))
-            .foregroundStyle(Color.nightPrimaryText)
+            .foregroundStyle(Color.roomPrimaryText)
             .multilineTextAlignment(.leading)
             .padding(.leading, 22)
             .padding(.trailing, 12)
             .padding(.vertical, 8)
             .background(
                 SpeechBubbleShape()
-                    .fill(Color.nightCardBackground)
+                    .fill(Color.roomCardBackground)
                     .overlay(
                         SpeechBubbleShape()
                             .stroke(tint.opacity(0.8), lineWidth: 1.5)
@@ -91,5 +91,5 @@ private struct SpeechBubbleShape: Shape {
         }
     }
     .padding()
-    .background(Color.nightBackgroundBottom)
+    .background(Color.roomBackground)
 }
