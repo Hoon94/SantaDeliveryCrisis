@@ -36,6 +36,8 @@ struct QuizQuestionView: View {
             .scrollIndicators(.hidden)
             .scrollBounceBehavior(.basedOnSize)
             .animation(.spring(response: 0.5, dampingFraction: 0.86), value: model.index)
+            // 스크롤 내용과 그림자가 하단 고정 영역으로 넘어가지 않게 한다.
+            .clipped()
             .overlay(alignment: .top) {
                 if let bannerTheme, model.phase == .answering {
                     Text("\(bannerTheme.title) 과정을 시작해요")
@@ -49,8 +51,10 @@ struct QuizQuestionView: View {
                         .accessibilityHidden(true)
                 }
             }
+
+            // 실제 높이를 차지하게 배치해 긴 대사와 큰 글자에서도 스크롤 영역과 분리한다.
+            bottomDock
         }
-        .safeAreaInset(edge: .bottom, spacing: 0) { bottomDock }
         .overlay { codePreview }
         .onChange(of: model.index) { oldIndex, _ in
             codePreviewIndex = nil
@@ -384,7 +388,7 @@ struct QuizQuestionView: View {
         .frame(maxWidth: 640)
         .frame(maxWidth: .infinity)
         .background(
-            LinearGradient(colors: [.clear, Color.nightBackgroundBottom.opacity(0.9)], startPoint: .top, endPoint: .bottom)
+            Color.nightBackgroundBottom.opacity(0.8)
                 .ignoresSafeArea(edges: .bottom)
         )
     }
