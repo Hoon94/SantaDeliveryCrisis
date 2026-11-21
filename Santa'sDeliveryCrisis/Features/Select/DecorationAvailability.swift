@@ -4,7 +4,7 @@
 /// 켜짐 여부는 "고른 카테고리 전체의 후보 수가 문제 수 이상인가" 하나로 정해지고 네 장식이 모두 같은 상태를 가진다.
 struct DecorationAvailability {
     /// 표시할 장식. 어떤 장식인지 구별하는 용도이며 출제 카테고리와는 무관하다.
-    let category: QuizCategory
+    let task: WorkshopTask
 
     /// 선택한 카테고리 전체에서 선택한 난이도로 준비할 수 있는 후보 수.
     let availableCount: Int
@@ -40,9 +40,9 @@ struct DecorationAvailability {
             tags: [],
             questions: questions
         ))
-        return QuizCategory.allCases.map { category in
+        return WorkshopTask.allCases.map { task in
             DecorationAvailability(
-                category: category,
+                task: task,
                 availableCount: availableCount,
                 requestedCount: filter.count
             )

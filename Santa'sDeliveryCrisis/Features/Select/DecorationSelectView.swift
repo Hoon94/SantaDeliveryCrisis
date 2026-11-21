@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// 트리 이미지 위에 네 장식과 적용된 출제 조건을 표시하는 화면.
-/// 장식은 문제 카테고리와 연동하지 않는다. 네 장식은 같은 켜짐 상태를 갖고, 어느 장식을 눌러도 같은 세션이 시작된다.
+/// 네 작업의 시작 가능 여부는 같으며, 누른 작업은 세션의 보상 대상만 결정한다.
 struct DecorationSelectView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
@@ -15,6 +15,9 @@ struct DecorationSelectView: View {
     /// 현재 트리에서 획득한 장식 수. 표시만 하며 트리 기록은 변경하지 않는다.
     let filledCount: Int
 
+    /// 현재 트리의 작업·난이도별 획득 상태.
+    var rewardMask: Int = 0
+
     /// 적용한 조건으로 설정 팝업을 다시 여는 동작.
     let onEdit: () -> Void
 
@@ -22,7 +25,7 @@ struct DecorationSelectView: View {
     let onResetSettings: () -> Void
 
     /// 켜진 장식을 눌러 세션 시작을 요청하는 동작. 누른 장식은 알려 주지만 출제 카테고리에는 쓰지 않는다.
-    let onSelect: (QuizCategory) -> Void
+    let onSelect: (WorkshopTask) -> Void
 
     /// 프리뷰에서 정적 연출을 강제한다. 시스템의 모션 줄이기는 항상 우선한다.
     var forceReduceMotion = false
@@ -52,7 +55,7 @@ struct DecorationSelectView: View {
                 } else {
                     DecorationSelectTree(
                         availability: availability, onSelect: onSelect,
-                        time: time, reduceMotion: reduceMotion
+                        time: time, reduceMotion: reduceMotion, rewardMask: rewardMask
                     )
                 }
                 if let count = availability.first?.shortageCount {
@@ -68,7 +71,7 @@ struct DecorationSelectView: View {
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
 
-                // FIXME: [가정 8] 범례·통과 점·체크 배지는 별도 작업에서 반영
+                // 세 난이도의 획득 상태는 각 장식 아래 인디케이터로 표시한다.
             }
             .padding(14)
         }
@@ -145,12 +148,12 @@ struct DecorationSelectView: View {
 
     private func accessibleDecorations(time: TimeInterval) -> some View {
         VStack(spacing: 32) {
-            ForEach(availability, id: \.category) { result in
-                SelectableDecoration(availability: result) {
-                    onSelect(result.category)
+            ForEach(availability, id: \.task) { result in
+                SelectableDecoration(availability: result, rewardMask: rewardMask) {
+                    onSelect(result.task)
                 }
                 .offset(y: reduceMotion ? 0 : DecorationAmbientMotion.bobOffset(
-                    time: time, category: result.category
+                    time: time, task: result.task
                 ))
                 .containerRelativeFrame(.horizontal) { width, _ in width * 0.6 }
                 .frame(maxWidth: .infinity)
@@ -170,9 +173,10 @@ struct DecorationSelectView: View {
 
 private struct DecorationSelectTree: View {
     let availability: [DecorationAvailability]
-    let onSelect: (QuizCategory) -> Void
+    let onSelect: (WorkshopTask) -> Void
     let time: TimeInterval
     let reduceMotion: Bool
+    let rewardMask: Int
 
     var body: some View {
         GeometryReader { geometry in
@@ -180,7 +184,7 @@ private struct DecorationSelectTree: View {
             let treeHeight = TreeSlots.designSize.height * scale
             let top = (geometry.size.height - treeHeight) / 2
             let ornamentWidth = 44 * scale
-            let ornamentHeight = ornamentWidth * DecorationView.designSize.height / DecorationView.designSize.width
+            let ornamentHeight = ornamentWidth * DecorationView.designSize.height / DecorationView.designSize.width + 24
 
             ZStack(alignment: .topLeading) {
                 ChristmasTreeImage(imageScale: 1.8)
@@ -191,13 +195,13 @@ private struct DecorationSelectTree: View {
                 
                 DecorationAmbientEffects(time: time, isAnimated: reduceMotion == false)
 
-                ForEach(availability, id: \.category) { result in
-                    let point = position(result.category)
-                    SelectableDecoration(availability: result) {
-                        onSelect(result.category)
+                ForEach(availability, id: \.task) { result in
+                    let point = position(result.task)
+                    SelectableDecoration(availability: result, rewardMask: rewardMask) {
+                        onSelect(result.task)
                     }
                     .offset(y: reduceMotion ? 0 : DecorationAmbientMotion.bobOffset(
-                        time: time, category: result.category
+                        time: time, task: result.task
                     ))
                     .frame(width: ornamentWidth)
                     .offset(
@@ -211,13 +215,13 @@ private struct DecorationSelectTree: View {
         .aspectRatio(TreeSlots.designSize.width / 380, contentMode: .fit)
     }
 
-    private func position(_ category: QuizCategory) -> CGPoint {
+    private func position(_ task: WorkshopTask) -> CGPoint {
         // 트리 이미지를 맞춘 220×214 좌표계에 카테고리 장식을 배치한다.
-        switch category {
-        case .aiUsage: CGPoint(x: 110, y: 70)
-        case .swiftSyntax: CGPoint(x: 65, y: 128)
-        case .hig: CGPoint(x: 155, y: 128)
-        case .swiftUIPractice: CGPoint(x: 110, y: 174)
+        switch task {
+        case .wishReception: CGPoint(x: 110, y: 70)
+        case .giftProduction: CGPoint(x: 65, y: 128)
+        case .wrapping: CGPoint(x: 155, y: 128)
+        case .sleighLoading: CGPoint(x: 110, y: 174)
         }
     }
 }
@@ -242,6 +246,7 @@ private struct DecorationSelectPreview: View {
         )
         DecorationSelectView(
             filter: filter, availability: results, filledCount: filledCount,
+            rewardMask: (1 << TreeSlots.clampedCount(filledCount)) - 1,
             onEdit: {}, onResetSettings: {}, onSelect: { _ in },
             forceReduceMotion: forceReduceMotion
         )

@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// 세션 결과(S6). 정답률이 기준 이상이면 장식 획득 연출과 결과 카드, 미만이면 조용한 결과 카드를 보여 준다.
+/// 세션 결과(S6). 새 보상이 있으면 획득 연출을, 재풀이·기준 미달이면 결과 카드만 보여 준다.
 struct QuizResultView: View {
     let summary: QuizResultSummary
     let services: AppServices
@@ -10,7 +10,7 @@ struct QuizResultView: View {
         if summary.isSuccess {
             DecorationRevealView(
                 summary: summary,
-                style: summary.ornamentStyle,
+                style: OrnamentStyle(task: summary.task),
                 feedback: services.feedback,
                 onClose: onClose
             )
@@ -20,7 +20,7 @@ struct QuizResultView: View {
     }
 }
 
-/// 기준에 못 미쳐 장식을 받지 못했을 때의 결과. 벌칙은 없으니 차분하게 알려 준다.
+/// 새 보상이 없는 결과. 재풀이의 기준 통과 여부와 기존 장식 유지 사실을 별도로 표시한다.
 private struct MissedDecorationView: View {
     let summary: QuizResultSummary
     let feedback: QuizFeedbackPlaying
@@ -42,14 +42,14 @@ private struct MissedDecorationView: View {
                     Color.revealScrim.opacity(0.82 * appear)
 
                     VStack(spacing: 10) {
-                        OrnamentView(style: summary.ornamentStyle, radiance: 0, size: min(proxy.size.width * 0.28, 120))
+                        OrnamentView(style: OrnamentStyle(task: summary.task), radiance: 0, size: min(proxy.size.width * 0.28, 120))
                             .rotationEffect(.degrees(sway), anchor: .top)
                             .saturation(0.6)
-                        Text("이번에는 장식을 못 받았어요")
+                        Text(summary.passedThreshold ? "기준을 통과했어요" : "이번에는 기준에 못 미쳤어요")
                             .font(.title3.weight(.heavy))
                             .foregroundStyle(Color.glowCore)
                             .multilineTextAlignment(.center)
-                        Text("기준은 \(summary.thresholdPercent)%예요. 벌칙은 없으니 다시 도전해 보세요")
+                        Text(summary.rewardMessage)
                             .font(.subheadline)
                             .foregroundStyle(Color.glowCore.opacity(0.8))
                             .multilineTextAlignment(.center)
@@ -90,5 +90,15 @@ private struct MissedDecorationView: View {
         ThemeBackground(theme: .factory)
         QuizResultView(summary: .previewFailure, services: .preview) {}
     }
+}
+#endif
+
+#if DEBUG
+#Preview("결과 · 재풀이 통과 · 추가 보상 없음") {
+    QuizResultView(summary: .previewPracticePassed, services: .preview) {}
+}
+
+#Preview("결과 · 재풀이 미달 · 획득 장식 유지") {
+    QuizResultView(summary: .previewPracticeFailed, services: .preview) {}
 }
 #endif

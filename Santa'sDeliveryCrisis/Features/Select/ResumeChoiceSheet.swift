@@ -61,7 +61,7 @@ struct ResumeChoiceSheet: View {
 
     private var sessionSummary: some View {
         HStack(spacing: 10) {
-            Text(session.category?.taskEmoji ?? "🎁")
+            Text(session.task.emoji)
                 .font(.title3)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
@@ -102,7 +102,7 @@ struct ResumeChoiceSheet: View {
         }
     }
 
-    private var taskName: String { session.category?.taskName ?? "여러 카테고리 섞음" }
+    private var taskName: String { session.task.displayName }
 
     private func resolve(_ action: () -> Void) {
         guard isResolving == false else { return }

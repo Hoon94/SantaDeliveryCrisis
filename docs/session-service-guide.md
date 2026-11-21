@@ -27,6 +27,7 @@ if let resumable = services.sessions.resumableSession() {
 // 2) 시작한다. 오류는 S2-E1에 연결한다.
 // 카테고리를 여러 개 고르면 고르게 섞어 출제한다. 하나만 고르면 그 카테고리다.
 let session = try services.sessions.startSession(
+    task: .giftProduction,       // 보상을 쌓을 작업: 문제 카테고리와 독립적
     categories: [.swiftSyntax, .hig], difficulty: .normal, tags: [], count: 5
 )
 ```
@@ -103,11 +104,11 @@ services.trees.completedTrees()                 // 완성한 트리, 최근 완�
 | --- | --- |
 | 약한 문제 | 정답률 60% **미만**, 또는 마지막 풀이가 오답 |
 | 오래 안 푼 문제 | 마지막 풀이가 5일 **이상** 지남(하루 = 24시간). 한 번도 안 푼 문제도 이 범주 |
-| 보상 | 세션 시작 때 저장된 정답률 기준 **이상**이면 장식 1개 |
+| 보상 | 시작 당시 기준 이상이며 현재 트리에서 해당 작업·난이도가 미획득일 때 장식 1개 |
 
 - 출제: 약한 문제와 오래 안 푼 문제를 절반씩 고릅니다. 5문제는 3·2, 10문제는 5·5, 15문제는 8·7입니다. 한 범주가 모자라면 다른 범주에서 채웁니다.
 - 정답률은 **내림**해서 정수 퍼센트로 보여 줍니다(7/9 = 77%). 팀 합의 사항이며 규칙은 `Services/Accuracy.swift`에 있습니다. 기록 화면의 평균 점수와 카테고리별 정답률도 `Accuracy.percent(correct:total:)`를 쓰면 같은 값이 나옵니다.
-- 보상 판정은 정확하게 비교합니다(79.5%는 79%로 보이고 80% 기준 미달). 내림한 값이 기준 이상이면 정확한 값도 기준 이상이라, 기준 이상으로 보이는데 장식을 못 받는 경우는 없습니다.
+- 보상 판정은 정확하게 비교합니다(79.5%는 79%로 보이고 80% 기준 미달). 기준 이상이어도 이미 획득한 작업·난이도이면 추가 보상은 없습니다. 통과 여부와 보상 결과를 별도로 표시합니다.
 - 추천: 답한 기록이 있는 카테고리 중 정답률이 가장 낮은 곳. 동률이면 작업 순서(소원 접수, 선물 생산, 포장, 썰매 적재)가 앞선 곳, 기록이 없으면 `nil`.
 
 ## 5. 시드 문제
@@ -124,7 +125,7 @@ services.trees.completedTrees()                 // 완성한 트리, 최근 완�
   ```swift
   #Preview {
       let preview = PreviewData.make()
-      TaskHomeView()
+      TaskHomeView(onSelectQuestions: {})
           .modelContainer(preview.container)
           .environment(\.services, preview.services)
   }
@@ -140,3 +141,10 @@ services.trees.completedTrees()                 // 완성한 트리, 최근 완�
 | "하루" 계산 기준, "최근 오답"의 범위 | 팀 확인 필요 |
 | 기록 화면의 점수 계산 | 내림으로 합의함. D가 `RecordsStatistics`를 `Accuracy`와 같은 내림으로 맞추는 중 |
 | 단위 테스트 타깃과 프레임워크 | `app-foundation` 결정 대기. 확정되면 `Tools/service-check/main.swift`의 시나리오를 옮김 |
+
+## 작업 보상 계약 변경
+
+- 세션 생성: `startSession(task: WorkshopTask, categories: Set<QuizCategory>, difficulty: Difficulty, tags: Set<String>, count: Int)`.
+- 트리 지급: `grant(task: WorkshopTask, difficulty: Difficulty)`. 같은 트리의 같은 칸이면 `alreadyEarned`이고 개수는 변하지 않습니다.
+- `QuizSession.task`는 이어 풀기에서도 유지되며, `rewardOutcome`은 최초 완료에 확정됩니다. `SessionResult.passedThreshold`는 정확한 정답률 비교 결과입니다.
+- 기존 개발 저장소는 사용자가 초기화하고 확인합니다. 기존 단순 개수에서 획득 칸을 자동 복원하지 않습니다.

@@ -43,6 +43,7 @@ enum RecordsPreviewData {
             )
         }
         let session = QuizSession(
+            task: .giftProduction,
             category: category,
             difficulty: .normal,
             questionSnapshots: questions.map(QuestionSnapshot.init),
@@ -58,6 +59,7 @@ enum RecordsPreviewData {
             )
         }
         session.status = .completed
+        session.rewardOutcome = .notEarned
         session.finishedAt = finishedAt
         session.currentIndex = total
         return session

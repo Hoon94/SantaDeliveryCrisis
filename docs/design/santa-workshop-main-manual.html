@@ -172,13 +172,10 @@ code{font-family:ui-monospace,Menlo,monospace;font-size:.92em;background:color-m
 .vlt circle{fill:#ffe58a;animation:vtw 2.2s infinite}.vlt circle:nth-child(3n){animation-delay:-.7s;fill:#ff9fb4}.vlt circle:nth-child(3n+1){animation-delay:-1.4s;fill:#9fe4ff}
 @keyframes vtw{50%{opacity:.25}}
 .vorn .ob{fill:var(--oc);filter:drop-shadow(0 0 9px var(--oc));opacity:.8}
-.vorn.lit .ob{filter:drop-shadow(0 0 22px var(--oc));opacity:1}
 .vorn .gl{fill:#fff;opacity:.45}
 .vorn text{text-anchor:middle;fill:#fff;font-weight:800}
 .vorn .vn{font-size:15.5px;letter-spacing:-.2px}
 .vorn .cap{fill:#d9b44a}
-.vorn .ck{opacity:0}.vorn.lit .ck{opacity:1}
-.vorn .ck circle{fill:#fff;stroke:var(--oc);stroke-width:2.5}.vorn .ck text{fill:var(--oc);font-size:15px}
 .vorn.off{opacity:.3}
 .vbob{animation:vbob 3.2s ease-in-out infinite}
 .vorn:nth-of-type(2n) .vbob{animation-delay:-1.4s}
@@ -489,13 +486,13 @@ const S1=(o={})=>phone(S1body(o),{tab:0,tm:o.m?7:0,over:o.over,cls:o.cls});
 const OP=[[180,178],[112,292],[248,300],[180,420]];
 const CE=['🤖','🐦','🎨','🧩'];
 const PPC=['#5be3a0','#ffd84a','#ff7a8e'],DCL=['#5be3a0','#ffb020','#ff5d73'];
-function vTree(sel,done){
+function vTree(sel,done,enabled=true){
  let lights='';
  for(let r=0;r<6;r++){const y=92+r*62,h=(y-36)*.37,n=r+2;for(let k=0;k<n;k++)lights+=`<circle cx="${180-h+k*2*h/(n-1)}" cy="${y}" r="3.6"/>`}
  const snow=Array.from({length:14},(_,i)=>`<circle cx="${(i*47+20)%350}" cy="0" r="${1.6+(i%3)*.7}" style="animation-delay:${-i*.55}s;animation-duration:${6+i%4}s"/>`).join('');
- const orn=OP.map((p,i)=>{const c=CATS[i],d=done[i]||[0,0,0],lit=d.every(Boolean),on=sel.includes(i);
+ const orn=OP.map((p,i)=>{const c=CATS[i],d=done[i]||[0,0,0],on=enabled;
   const pips=[0,1,2].map(j=>`<circle class="vpip ${d[j]?'on':''}" style="--pp:${PPC[j]}" cx="${(j-1)*18}" cy="58" r="5.5"/>`).join('');
-  return `<g class="vorn ${lit?'lit':''} ${on?'':'off'}" transform="translate(${p[0]} ${p[1]})" style="--oc:${c.col}"><rect class="cap" x="-7" y="-52" width="14" height="11" rx="3"/><g class="vbob"><circle class="ob" r="42"/><ellipse class="gl" cx="-15" cy="-24" rx="12" ry="7"/><text class="vn" y="6">${c.task}</text><g class="ck"><circle cx="31" cy="-31" r="13"/><text x="31" y="-25.5">✓</text></g></g>${pips}</g>`}).join('');
+  return `<g class="vorn ${on?'':'off'}" transform="translate(${p[0]} ${p[1]})" style="--oc:${c.col}"><rect class="cap" x="-7" y="-52" width="14" height="11" rx="3"/><g class="vbob"><circle class="ob" r="42"/><ellipse class="gl" cx="-15" cy="-24" rx="12" ry="7"/><text class="vn" y="6">${c.task}</text></g>${pips}</g>`}).join('');
  return `<svg viewBox="0 0 360 540" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%;overflow:visible"><g class="vsnow">${snow}</g><path class="t3" d="M180 220 L350 474 L10 474Z"/><path class="t2" d="M180 120 L312 334 L48 334Z"/><path class="t1" d="M180 36 L272 214 L88 214Z"/><g class="vlt">${lights}</g><rect class="trunk" x="160" y="470" width="40" height="36" rx="4"/><text x="180" y="42" font-size="38" text-anchor="middle">⭐</text>${orn}<text x="180" y="530" font-size="22" text-anchor="middle">🎁 🧸 🎁</text></svg>`;
 }
 const S2Bbody=(o={})=>{const m=o.m,sel=o.sel??[0,1,2,3],d=o.diff??1,q=o.q??5,done=o.done||{};
@@ -794,6 +791,7 @@ function buildManual(skin){
 <h1 class="doc">산타의 작업실 탈출 · 디자인 매뉴얼 <small style="font-size:14px;color:var(--pagesub)">v0.4 · 작업실 시안</small></h1>
 <p class="lead">따뜻한 방 배경, 트리, 난이도별 남은 문제가 있는 작업실 화면(<code>santa-workshop-main.html</code>)을 기준으로 합니다. 하단 탭은 <b>작업실 · 출제 · 기록 · 관리</b> 4개입니다. <b>출제 탭만</b> <code>santa-workshop-v3.html</code> 시안 1의 화면과 색(나이트 글로우 팔레트)을 그대로 쓰고, 나머지 탭은 기존 작업실 색을 유지합니다. 출제 탭은 <code>santa-workshop-v3.html</code>의 시안 1(세그먼트형)처럼, 흐려진 트리 위에 "문제 유형 선택" 팝업을 띄워 난이도·카테고리·문제 수를 고르는 화면입니다. 규칙의 기준은 <code>.kiro/steering/project-spec.md</code>입니다. 그림은 이모지와 SVG 임시 그림이며, 제작 단계에서 일러스트로 교체합니다. <b>초록색 "체험" 표시가 있는 화면은 직접 눌러 볼 수 있습니다.</b></p>
 
+<div class="panel"><h3>2026-11-20 작업·난이도 보상 확정</h3><p>작업 장식(소원 접수·선물 생산·포장·썰매 적재)과 문제 카테고리는 독립적입니다. 문제는 선택한 카테고리에 균등 배분하고 카테고리 안에서 학습 우선순위를 적용합니다. 선택한 작업과 난이도의 칸을 처음 통과할 때만 1개를 얻으며 총 12칸입니다. 이미 얻은 칸은 확인 후 재풀이할 수 있고 기록·통계에는 포함합니다. 초기화는 출제 조건만 초기화합니다. 그림과 과거 버전 기록의 표현이 다르면 이 확정 규칙과 화면별 최신 동작을 따릅니다.</p></div>
 <h2 class="sec">0. 이번에 바뀐 점</h2>
 <div class="grid" style="align-items:stretch"><div class="panel" style="flex:1;min-width:380px"><h3>구성 변경</h3><ul>
  <li><b>하단 탭</b>: 작업·기록·관리 → <b>작업실·출제·기록·관리</b> 4개</li><li><b>색</b>: 출제 탭(S2, S2-B와 그 위의 시트·알림)만 v3 색. 하늘색 그라데이션 배경(다크: 남색), 강조 주황(다크: 금색), 청록 트리</li>
@@ -805,7 +803,7 @@ function buildManual(skin){
  <li>화면 구성: 헤더(출제, ⚙ 조건 칩(강조), ↺ 초기화, N / 12 장식), 반짝이는 조명과 눈 내리는 트리, 난이도 점 범례. 눈 내림·조명 깜빡임·장식 흔들림 애니메이션을 넣었습니다.</li><li>난이도: 가로 한 줄 3칸(별 + 이름). 고른 칸이 강조됩니다.</li>
  <li>카테고리: 2×2 카드(카테고리 이름만 표시), 여러 개 선택(체크 원), 최소 1개는 항상 선택됩니다. 팝업을 마치면 트리의 장식에는 소원 접수 · 선물 생산 · 포장 · 썰매 적재 이름이 표시됩니다.</li>
  <li>문제 수: 5 · 10 · 15를 한 줄 세그먼트로 고릅니다. 기본값은 보통 · 5문제.</li>
- <li>흐려진 트리 위에 중앙 팝업("문제 유형 선택")으로 표시합니다. 조건 요약, 정답률 80% 기준 안내, 시작 버튼이 아래에 있습니다.</li><li>v3의 장식 4개 고르기, ↺ 초기화, 설정 칩은 확정 규칙과 달라 넣지 않았습니다.</li></ul></div></div>
+ <li>흐려진 트리 위에 중앙 팝업("문제 유형 선택")으로 표시합니다. 조건 요약, 정답률 80% 기준 안내, 시작 버튼이 아래에 있습니다.</li><li>작업 장식 네 개는 보상 대상입니다. 작업마다 세 난이도를 한 번씩 획득하며, 초기화는 출제 조건만 되돌립니다.</li></ul></div></div>
 
 <div class="panel" style="margin-top:18px"><h3>이전 구성과 달라진 점</h3>
 <table class="t" style="margin-top:6px"><tr><th>이전</th><th>이 시안</th><th>근거</th></tr>
@@ -832,8 +830,8 @@ ${fig('S1','작업실: 첫 실행','장식이 0개인 첫 실행. 트리는 0 / 
 ${fig('S2','출제: 기본','기본값은 보통 · 4개 카테고리 전체 · 5문제. 난이도는 하나만 선택하고, 카테고리는 복수 선택(항상 최소 1개), 문제 수는 5 · 10 · 15입니다. [추천] 배지는 답한 기록이 있는 카테고리 중 정답률이 가장 낮은 곳에 붙고(동률이면 작업 순서가 앞선 쪽), 기록이 없으면 배지가 없습니다. 하단 [장식 선택]을 누르면 팝업이 닫히고 고른 조건을 유지한 채 장식 선택(S2-B)으로 이동합니다.',S2())}
 ${fig('S2','출제: 카테고리 1개 선택','카테고리를 1개만 골라도 문제 수 5 · 10 · 15를 모두 고를 수 있습니다.',S2({sel:[1],diff:2,q:10}))}
 ${fig('S2','출제: 카테고리 2개 선택','고른 카테고리는 문제 출제에만 쓰이고, 장식은 카테고리와 연동하지 않아 다음 화면에서 네 장식이 모두 같은 상태입니다.',S2({sel:[0,2],q:15}))}
-${fig('S2-B','장식 선택','※ 이 화면의 예시 그림(장식 아래 통과 점, ✓)은 오래전에 만든 시안(v3) 기준이라 현재 합의한 규칙(장식은 카테고리와 연동하지 않음, 통과 점은 1차에 없음)과 다릅니다. 예시 그림은 무시하세요. [장식 선택]을 누르면 팝업이 닫히고 트리의 장식 4개(소원 접수 · 선물 생산 · 포장 · 썰매 적재)가 보입니다. 눈이 내리고 조명이 깜빡입니다. 장식은 문제 카테고리와 연동하지 않습니다. 고른 카테고리 전체의 후보 수 합이 문제 수 이상이면 네 장식이 모두 밝고, 켜진 어느 장식을 눌러도 고른 카테고리에서 고르게 섞은 세션을 시작하고 퀴즈 화면(S4)으로 페이드 전환합니다. 진행 중인 세션이 있으면 먼저 이어서 풀기 / 새로 시작을 고르고, 시작에 실패하면 안내 알림이 뜹니다. 장식 아래 점 3개는 쉬움 · 보통 · 어려움이며 채워진 점은 통과한 난이도, 빈 원은 남은 난이도입니다.',S2B())}
-${fig('S2-B','장식 선택: 일부 카테고리만 선택','※ 이 화면의 예시 그림(장식 아래 통과 점, ✓)은 오래전에 만든 시안(v3) 기준이라 현재 합의한 규칙(장식은 카테고리와 연동하지 않음, 통과 점은 1차에 없음)과 다릅니다. 예시 그림은 무시하세요. 카테고리를 2개만 골랐을 때(조건 칩에 '카테고리 2개'). 장식 4개는 이 선택과 상관없이 모두 같은 상태입니다. 세 난이도를 모두 통과한 장식은 ✓와 함께 밝게 빛나고, 통과한 난이도는 장식 아래 점이 채워지고, 빈 원은 아직 남은 난이도입니다.',S2B({sel:[0,2],diff:2,q:10,done:{0:[1,1,1],2:[0,1,0]}}))}
+${fig('S2-B','장식 선택','[장식 선택]을 누르면 팝업이 닫히고 트리의 장식 4개(소원 접수 · 선물 생산 · 포장 · 썰매 적재)가 보입니다. 눈이 내리고 조명이 깜빡입니다. 장식은 문제 카테고리와 연동하지 않습니다. 고른 카테고리 전체의 후보 수 합이 문제 수 이상이면 네 장식이 모두 밝고, 켜진 어느 장식을 눌러도 고른 카테고리에서 고르게 섞은 세션을 시작하고 퀴즈 화면(S4)으로 페이드 전환합니다. 진행 중인 세션이 있으면 먼저 이어서 풀기 / 새로 시작을 고르고, 시작에 실패하면 안내 알림이 뜹니다. 장식 아래 점 3개는 현재 트리의 쉬움 · 보통 · 어려움 보상 칸이며, 채운 원은 획득, 빈 원은 미획득입니다. 활성 상태는 문제 후보 수로만 판단하며 획득 상태와 구분합니다.',S2B())}
+${fig('S2-B','장식 선택: 일부 카테고리만 선택','카테고리를 2개만 골랐을 때(조건 칩에 “카테고리 2개”). 장식 4개는 이 선택과 상관없이 모두 같은 상태입니다. 세 난이도를 모두 획득한 작업도 별도 ✓ 배지 없이 세 점을 채워 표시합니다. 채운 원은 획득한 보상 칸, 빈 원은 미획득 칸입니다.',S2B({sel:[0,2],diff:2,q:10,done:{0:[1,1,1],2:[0,1,0]}}))}
 </div>
 
 <h2 class="sec">3. 기록 · 관리 탭 (S9 · S10)</h2>

@@ -4,6 +4,8 @@ import SwiftData
 /// 한 판(세션)의 진행과 결과
 @Model final class QuizSession {
     @Attribute(.unique) var id: UUID
+    /// 이 세션의 보상을 쌓을 작업. 이어 풀 때도 처음 선택한 작업을 유지한다.
+    var task: WorkshopTask
     /// nil이면 여러 카테고리를 골라 섞어 낸 세션(카테고리가 하나면 그 카테고리)
     var category: QuizCategory?
     var difficulty: Difficulty
@@ -21,12 +23,15 @@ import SwiftData
     var elapsedSeconds: TimeInterval
     /// 완료 시 확정
     var earnedDecorations: Int
+    /// 최초 완료 때 확정한다. 완료 결과를 다시 열어도 현재 트리로 재판정하지 않는다.
+    var rewardOutcome: RewardOutcome = RewardOutcome.pending
     /// 완료 시 확정. 이 세션으로 트리가 완성되었는가
     var treeCompleted: Bool
     @Relationship(deleteRule: .cascade) var answers: [SessionAnswer]
 
     init(
         id: UUID = UUID(),
+        task: WorkshopTask,
         category: QuizCategory?,
         difficulty: Difficulty,
         questionSnapshots: [QuestionSnapshot],
@@ -34,6 +39,7 @@ import SwiftData
         startedAt: Date = Date()
     ) {
         self.id = id
+        self.task = task
         self.category = category
         self.difficulty = difficulty
         self.questionIDs = questionSnapshots.map(\.questionID)

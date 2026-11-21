@@ -12,16 +12,20 @@ struct SelectView: View {
     private struct PendingStart: Identifiable {
         let id = UUID()
         let existing: QuizSession
+        let task: WorkshopTask
         let filter: SelectFilter
-        /// 새로 시작할 때 사용자가 누른 장식
-        let decoration: QuizCategory
+    }
+
+    private struct StartRequest {
+        let task: WorkshopTask
+        let filter: SelectFilter
+        let existing: QuizSession?
     }
 
     private struct DeferredPresentation {
         let result: StartSessionCoordinator.Outcome
         let resetsFilter: Bool
-        /// 새 세션일 때 눌린 장식. 이어 풀기는 nil
-        let decoration: QuizCategory?
+        let request: StartRequest
     }
 
     @Environment(\.colorScheme) private var colorScheme
@@ -38,6 +42,7 @@ struct SelectView: View {
     @State private var pendingStart: PendingStart?
     @State private var deferredPresentation: DeferredPresentation?
     @State private var showsStartFailure = false
+    @State private var pendingPractice: StartRequest?
 
     /// 장식 선택 위에 설정 팝업을 표시하고 세션 처리 결과에 따라 화면을 연다.
     var body: some View {
@@ -59,15 +64,28 @@ struct SelectView: View {
             ResumeChoiceSheet(
                 session: request.existing,
                 onResume: {
-                    completeResumeChoice(coordinator.resume(request.existing), resetsFilter: false, decoration: nil)
+                    completeResumeChoice(
+                        coordinator.resume(request.existing), resetsFilter: false,
+                        request: StartRequest(task: request.task, filter: request.filter, existing: request.existing)
+                    )
                 },
                 onRestart: {
                     completeResumeChoice(coordinator.restart(
-                        replacing: request.existing,
-                        filter: request.filter, questions: questions
-                    ), resetsFilter: true, decoration: request.decoration)
+                        replacing: request.existing, task: request.task,
+                        filter: request.filter, questions: questions, currentTree: activeTrees.first
+                    ), resetsFilter: true,
+                       request: StartRequest(task: request.task, filter: request.filter, existing: request.existing))
                 }
             )
+        }
+        .alert("이미 장식을 받은 난이도예요", isPresented: practiceConfirmation, presenting: pendingPractice) { request in
+            Button("취소", role: .cancel) { pendingPractice = nil }
+            Button("계속 풀기") {
+                pendingPractice = nil
+                performStart(request, allowsPractice: true)
+            }
+        } message: { request in
+            Text("\(request.task.displayName) · \(request.filter.difficulty.displayName) 장식은 이미 받았어요. 다시 풀어도 장식은 그대로이며 추가 보상은 없어요. 학습 기록은 저장돼요.")
         }
         .alert("세션을 시작하지 못했어요", isPresented: $showsStartFailure) {
             Button("확인", role: .cancel) {}
@@ -95,6 +113,7 @@ struct SelectView: View {
                 filter: filterState.applied, questions: questions, selector: services.selector
             ),
             filledCount: activeTrees.first?.decorationCount ?? 0,
+            rewardMask: activeTrees.first?.rewardMask ?? 0,
             onEdit: beginEditing,
             onResetSettings: resetSettings,
             onSelect: startSession
@@ -144,49 +163,60 @@ struct SelectView: View {
         StartSessionCoordinator(sessions: services.sessions, selector: services.selector)
     }
 
-    /// 장식을 눌러 세션을 시작한다. 문제는 눌린 장식이 아니라 적용한 카테고리 전체에서 고르고,
-    /// 눌린 장식은 결과 화면의 장식 획득 색에만 쓴다.
-    private func startSession(decoration: QuizCategory) {
-        guard activeQuizSession == nil, pendingStart == nil,
+    /// 기존 세션 선택과 재풀이 확인을 거쳐 선택한 작업에 보상을 쌓을 세션을 시작한다.
+    private func startSession(task: WorkshopTask) {
+        guard activeQuizSession == nil, pendingStart == nil, pendingPractice == nil,
               deferredPresentation == nil, showsStartFailure == false else { return }
-        let result = coordinator.start(filter: filterState.applied, questions: questions)
-        if case .needsResumeChoice(let existing) = result {
-            pendingStart = PendingStart(existing: existing, filter: filterState.applied, decoration: decoration)
+        performStart(StartRequest(task: task, filter: filterState.applied, existing: nil))
+    }
+
+    private var practiceConfirmation: Binding<Bool> {
+        Binding(get: { pendingPractice != nil }, set: { if !$0 { pendingPractice = nil } })
+    }
+
+    private func performStart(_ request: StartRequest, allowsPractice: Bool = false) {
+        let result: StartSessionCoordinator.Outcome
+        if let existing = request.existing {
+            result = coordinator.restart(
+                replacing: existing, task: request.task, filter: request.filter,
+                questions: questions, currentTree: activeTrees.first, allowsPractice: allowsPractice
+            )
         } else {
-            present(result, resetsFilter: true, decoration: decoration)
+            result = coordinator.start(
+                task: request.task, filter: request.filter, questions: questions,
+                currentTree: activeTrees.first, allowsPractice: allowsPractice
+            )
         }
+        present(result, resetsFilter: true, request: request)
     }
 
     /// 새 세션 생성 성공일 때만 다음 출제 조건을 초기화한다. 복원·실패 시에는 유지한다.
-    private func present(_ result: StartSessionCoordinator.Outcome, resetsFilter: Bool, decoration: QuizCategory?) {
+    private func present(_ result: StartSessionCoordinator.Outcome, resetsFilter: Bool, request: StartRequest) {
         switch result {
         case .started(let session):
-            if let decoration {
-                DecorationChoiceStore.save(decoration, for: session.id)
-            }
-            if resetsFilter {
-                filterState = SelectFilterState()
-            }
+            if resetsFilter { filterState = SelectFilterState() }
             quizPresentation.wrappedValue = session
         case .failed:
             showsStartFailure = true
-        case .needsResumeChoice:
-            break
+        case .needsResumeChoice(let existing):
+            pendingStart = PendingStart(existing: existing, task: request.task, filter: request.filter)
+        case .needsPracticeConfirmation:
+            pendingPractice = request
         }
     }
 
     private func completeResumeChoice(
-        _ result: StartSessionCoordinator.Outcome, resetsFilter: Bool, decoration: QuizCategory?
+        _ result: StartSessionCoordinator.Outcome, resetsFilter: Bool, request: StartRequest
     ) {
-        // 시트가 닫힌 뒤에 다음 화면을 열어 두 표시 요청이 겹치지 않게 한다.
-        deferredPresentation = DeferredPresentation(result: result, resetsFilter: resetsFilter, decoration: decoration)
+        // 시트가 닫힌 뒤에 다음 화면·알림을 열어 표시 요청이 겹치지 않게 한다.
+        deferredPresentation = DeferredPresentation(result: result, resetsFilter: resetsFilter, request: request)
         pendingStart = nil
     }
 
     private func finishResumeChoice() {
         guard let presentation = deferredPresentation else { return }
         deferredPresentation = nil
-        present(presentation.result, resetsFilter: presentation.resetsFilter, decoration: presentation.decoration)
+        present(presentation.result, resetsFilter: presentation.resetsFilter, request: presentation.request)
     }
 
     private func cancelEditing() {
@@ -228,7 +258,7 @@ private struct SelectPreviewContent: View {
 @ViewBuilder
 private func selectPreview(
     recommendedCategory: QuizCategory? = nil, existingSession: Bool = false,
-    failure: FailingPreviewSessionManager.Failure? = nil
+    failure: FailingPreviewSessionManager.Failure? = nil, earnedTask: WorkshopTask? = nil, filledCount: Int = 0
 ) -> some View {
     let questions = QuizCategory.allCases.flatMap { category in
         Difficulty.allCases.flatMap { difficulty in
@@ -240,8 +270,15 @@ private func selectPreview(
         category: .swiftSyntax, difficulty: .normal
     )] : []
 
+    let tree = {
+        let tree = TreeRecord(decorationCount: filledCount)
+        if let earnedTask {
+            tree.recordReward(task: earnedTask, difficulty: .normal)
+        }
+        return tree
+    }()
     if let preview = try? TaskSelectPreviewData.environment(
-        questions: questions, sessions: sessions,
+        questions: questions, sessions: sessions, trees: [tree],
         recommendedCategory: recommendedCategory, failure: failure
     ) {
         SelectPreviewContent()
@@ -295,5 +332,16 @@ private func selectPreview(
 
 #Preview("출제 설정 · 기존 세션 포기 실패") {
     selectPreview(existingSession: true, failure: .abandon)
+}
+#Preview("출제 · 11개 획득 · 썰매 적재 어려움으로 완성") {
+    selectPreview(filledCount: 11)
+}
+
+#Preview("출제 · 이미 보상 획득 · 재풀이 확인") {
+    selectPreview(earnedTask: .giftProduction)
+}
+
+#Preview("출제 · 기존 세션 교체 전 재풀이 확인 취소") {
+    selectPreview(existingSession: true, earnedTask: .giftProduction)
 }
 #endif

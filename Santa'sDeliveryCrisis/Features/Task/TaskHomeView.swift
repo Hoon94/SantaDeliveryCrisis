@@ -98,7 +98,7 @@ struct TaskHomeView: View {
                 Text(session == nil ? "퀴즈 시작하기" : "이어서 풀기")
                     .font(.body.weight(.heavy))
                 if let session {
-                    Text("\(session.category?.taskName ?? "여러 카테고리 섞음") · \(session.difficulty.displayName) · \(session.answers.count) / \(session.questionSnapshots.count) 문제")
+                    Text("\(session.task.displayName) · \(session.difficulty.displayName) · \(session.answers.count) / \(session.questionSnapshots.count) 문제")
                         .font(.caption)
                         .opacity(0.85)
                 }

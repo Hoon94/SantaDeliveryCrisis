@@ -39,16 +39,19 @@ struct AppServices {
     }
 
     /// 미리보기용 전체 mock 묶음
-    static let preview = AppServices(
-        settings: SettingsStore(defaults: UserDefaults(suiteName: "preview") ?? .standard),
-        selector: MockQuestionSelector(),
-        recommender: MockTaskRecommender(),
-        sessions: MockSessionManager(),
-        trees: MockTreeManager(),
-        feedback: MockFeedbackPlayer(),
-        media: MockMediaFileManager(),
-        traceScenes: MockTraceSceneRegistry()
-    )
+    static let preview: AppServices = {
+        let trees = MockTreeManager()
+        return AppServices(
+            settings: SettingsStore(defaults: UserDefaults(suiteName: "preview") ?? .standard),
+            selector: MockQuestionSelector(),
+            recommender: MockTaskRecommender(),
+            sessions: MockSessionManager(trees: trees),
+            trees: trees,
+            feedback: MockFeedbackPlayer(),
+            media: MockMediaFileManager(),
+            traceScenes: MockTraceSceneRegistry()
+        )
+    }()
 }
 
 private struct AppServicesKey: EnvironmentKey {
