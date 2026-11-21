@@ -33,10 +33,9 @@ final class QuizFlowModel {
     private(set) var isLastAnswerCorrect: Bool?
     /// 힌트를 열었는가
     var isHintVisible = false
-    /// 캐릭터의 기분과 반응 신호, 말풍선
-    private(set) var mood: CharacterMood = .idle
-    private(set) var reactionToken = 0
+    /// 선택을 바꿀 때 표시하는 고민 대사. nil이면 과정의 기본 대사를 표시한다.
     private(set) var bubble: String?
+    private var thinkingCursors: [QuizTheme: Int] = [:]
     /// 결과 요약. `phase == .result`일 때만 있다.
     private(set) var summary: QuizResultSummary?
 
@@ -44,7 +43,6 @@ final class QuizFlowModel {
     private let baseElapsed: TimeInterval
     private var accumulated: TimeInterval = 0
     private var activeSince: Date?
-    private var bubbleTask: Task<Void, Never>?
     private var verdictTask: Task<Void, Never>?
 
     /// - Parameters:
@@ -159,14 +157,14 @@ final class QuizFlowModel {
 
     /// 보기를 고른다. 확인 전에는 몇 번이든 바꿀 수 있다.
     func select(_ choice: Int) {
-        guard phase == .answering, let snapshot = currentSnapshot, snapshot.choices.indices.contains(choice) else { return }
-        if selectedIndex != choice {
-            services.feedback.play(.select)
-        }
+        guard phase == .answering, let snapshot = currentSnapshot,
+              snapshot.choices.indices.contains(choice), selectedIndex != choice else { return }
+        services.feedback.play(.select)
         selectedIndex = choice
-        mood = .thinking
-        reactionToken += 1
-        showBubble(theme.thinkingLines.randomElement(), for: 2.2)
+        let lines = theme.thinkingLines
+        let cursor = ((thinkingCursors[theme] ?? -1) + 1) % lines.count
+        thinkingCursors[theme] = cursor
+        bubble = lines[cursor]
     }
 
     /// 힌트를 열고 닫는다. 점수와 보상에는 영향이 없다.
@@ -197,11 +195,6 @@ final class QuizFlowModel {
                 guard !Task.isCancelled, let self else { return }
                 self.services.feedback.play(isCorrect ? .correct : .wrong)
             }
-
-            mood = isCorrect ? .happy : .sad
-            reactionToken += 1
-            let lines = isCorrect ? theme.correctLines : theme.wrongLines
-            showBubble(lines.randomElement(), for: 3)
         } catch {
             phase = .failed("답을 저장하지 못했어요. 잠시 뒤 다시 시도해 주세요.")
         }
@@ -217,7 +210,6 @@ final class QuizFlowModel {
             index += 1
             selectedIndex = nil
             isLastAnswerCorrect = nil
-            mood = .idle
             bubble = nil
             phase = .answering
         }
@@ -252,19 +244,6 @@ final class QuizFlowModel {
             phase = .result
         } catch {
             phase = .failed("결과를 계산하지 못했어요. 풀이는 저장되어 있어요.")
-        }
-    }
-
-    // MARK: - 내부
-
-    private func showBubble(_ text: String?, for seconds: Double) {
-        bubbleTask?.cancel()
-        bubble = text
-        guard text != nil else { return }
-        bubbleTask = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(seconds))
-            guard !Task.isCancelled else { return }
-            self?.bubble = nil
         }
     }
 }

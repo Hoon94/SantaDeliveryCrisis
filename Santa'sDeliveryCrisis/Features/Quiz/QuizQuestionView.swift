@@ -306,20 +306,23 @@ struct QuizQuestionView: View {
         HStack(alignment: .bottom, spacing: 12) {
             ThemeCharacterView(
                 theme: model.theme,
-                mood: model.mood,
-                reactionToken: model.reactionToken,
-                bubble: model.bubble
+                isSpeaking: model.selectedIndex != nil
             )
-            .frame(width: 64, height: 72)
+            .frame(width: 72, height: 96)
 
-            Button {
-                model.confirm()
-            } label: {
-                Text("확인")
+            VStack(alignment: .leading, spacing: 12) {
+                SpeechBubble(text: model.bubble ?? model.theme.idleLine, tint: model.theme.accent)
+                    .accessibilityLabel("\(model.theme.characterName): \(model.bubble ?? model.theme.idleLine)")
+
+                Button {
+                    model.confirm()
+                } label: {
+                    Text("확인")
+                }
+                .buttonStyle(GlowButtonStyle(tint: model.theme.accent))
+                .disabled(!model.canConfirm)
+                .accessibilityHint(model.canConfirm ? "고른 답을 채점해요" : "먼저 보기를 하나 골라 주세요")
             }
-            .buttonStyle(GlowButtonStyle(tint: model.theme.accent))
-            .disabled(!model.canConfirm)
-            .accessibilityHint(model.canConfirm ? "고른 답을 채점해요" : "먼저 보기를 하나 골라 주세요")
         }
         .padding(.horizontal, 16)
         .padding(.top, 10)
