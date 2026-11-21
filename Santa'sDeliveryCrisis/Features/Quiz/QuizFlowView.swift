@@ -14,6 +14,8 @@ struct QuizFlowView: View {
 
     var body: some View {
         QuizFlowContent(session: session, services: services, onClose: onClose)
+            // 진입 화면의 강조색을 상속하지 않아 시스템 알림의 일반 버튼 색을 통일한다.
+            .tint(.primary)
     }
 }
 
@@ -60,8 +62,8 @@ private struct QuizFlowContent: View {
         .animation(.easeInOut(duration: 0.45), value: model.phase == .result)
         .sheet(isPresented: feedbackBinding) { feedbackSheet }
         .alert("퀴즈를 그만할까요?", isPresented: $isExitAlertShown) {
-            Button("나가기") { leave() }
             Button("계속 풀기", role: .cancel) {}
+            Button("나가기", role: .destructive) { leave() }
         } message: {
             Text(exitMessage)
         }
