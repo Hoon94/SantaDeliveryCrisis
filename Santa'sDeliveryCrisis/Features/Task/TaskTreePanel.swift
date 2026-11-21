@@ -12,6 +12,9 @@ struct TaskTreePanel: View {
     /// 표시할 장식 수. 비행 중인 장식의 숨김은 부모 화면에서 반영한다.
     let filledCount: Int
 
+    /// 실제 보상을 받은 작업의 획득 순서. 결과·비행 장식과 같은 작업 색을 사용한다.
+    var ornamentTasks: [WorkshopTask] = []
+
     /// 프리뷰에서 정지 상태를 확인한다. 시스템의 동작 줄이기 설정도 항상 우선한다.
     var forceReduceMotion = false
 
@@ -91,10 +94,6 @@ struct TaskTreePanel: View {
     private var ornaments: some View {
         Canvas { context, size in
             let scale = size.width / TreeSlots.designSize.width
-            let colors: [Color] = [
-                .ornamentRed, .ornamentGold, .ornamentBlue,
-                .ornamentPink, .ornamentGreen, .ornamentOrange
-            ]
             for (index, point) in TreeSlots.positions.enumerated() {
                 let center = CGPoint(x: point.x * size.width, y: point.y * size.height)
                 let isFilled = index < TreeSlots.clampedCount(filledCount)
@@ -102,7 +101,9 @@ struct TaskTreePanel: View {
                 let shape = ornamentPath(center: center, radius: radius)
 
                 if isFilled {
-                    context.fill(shape, with: .color(colors[index % colors.count]))
+                    // 획득 기록이 없는 프리뷰·개발 데이터는 임의의 작업 색을 만들지 않는다.
+                    let color = ornamentTasks.indices.contains(index) ? ornamentTasks[index].themeColor : Color.plainOrnament
+                    context.fill(shape, with: .color(color))
                     context.stroke(shape, with: .color(.glowCore), lineWidth: scale)
                     context.fill(
                         Path(CGRect(x: center.x - 3 * scale, y: center.y - 3 * scale,
@@ -168,18 +169,28 @@ private struct PixelArtisanSanta: View {
 }
 
 #Preview("픽셀 작업실 · 장식 6개") {
-    TaskTreePanel(filledCount: 6)
-        .aspectRatio(1, contentMode: .fit)
+    TaskTreePanel(
+        filledCount: 6,
+        ornamentTasks: [.wishReception, .giftProduction, .wrapping, .sleighLoading, .giftProduction, .wrapping]
+    )
+    .aspectRatio(1, contentMode: .fit)
 }
 
 #Preview("픽셀 작업실 · 완성 · 다크") {
-    TaskTreePanel(filledCount: TreeSlots.count)
-        .aspectRatio(1, contentMode: .fit)
-        .preferredColorScheme(.dark)
+    TaskTreePanel(
+        filledCount: TreeSlots.count,
+        ornamentTasks: WorkshopTask.allCases.flatMap { Array(repeating: $0, count: 3) }
+    )
+    .aspectRatio(1, contentMode: .fit)
+    .preferredColorScheme(.dark)
 }
 
 #Preview("픽셀 작업실 · 동작 줄이기") {
-    TaskTreePanel(filledCount: 6, forceReduceMotion: true)
-        .aspectRatio(1, contentMode: .fit)
+    TaskTreePanel(
+        filledCount: 6,
+        ornamentTasks: [.wishReception, .giftProduction, .wrapping, .sleighLoading, .giftProduction, .wrapping],
+        forceReduceMotion: true
+    )
+    .aspectRatio(1, contentMode: .fit)
 }
 #endif
