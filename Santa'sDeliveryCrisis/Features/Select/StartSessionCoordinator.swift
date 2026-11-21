@@ -4,6 +4,8 @@ struct StartSessionCoordinator {
     enum Outcome {
         /// 진행 중 세션을 이어 풀지 새로 시작할지 선택해야 한다.
         case needsResumeChoice(QuizSession)
+        /// 이미 보상을 보유한 작업·난이도이므로 재풀이 확인이 필요하다.
+        case needsPracticeConfirmation
         /// 생성하거나 이어 풀기로 선택한 세션으로 이동한다.
         case started(QuizSession)
         /// 후보가 부족하거나 세션 생성·포기 호출이 실패했다.
@@ -23,19 +25,25 @@ struct StartSessionCoordinator {
     }
 
     /// 진행 중 세션이 있으면 선택을 요청하고, 없으면 선택한 카테고리들에서 고르게 섞어 시작한다.
-    /// 어느 장식을 눌렀는지는 문제 구성과 무관하므로 받지 않는다(장식과 문제 카테고리는 연동하지 않는다).
+    /// 작업은 보상 대상을 정하며, 문제는 선택한 카테고리 전체에서 고른다.
     /// - Parameters:
     ///   - filter: 마지막으로 적용한 출제 설정.
     ///   - questions: 시작 가능 여부를 확인할 현재 문제 목록.
     /// - Returns: 기존 세션 선택 요청, 새 세션, 또는 오류를 처리한 실패 결과.
-    func start(filter: SelectFilter, questions: [Question]) -> Outcome {
+    func start(
+        task: WorkshopTask, filter: SelectFilter, questions: [Question],
+        currentTree: TreeRecord?, allowsPractice: Bool = false
+    ) -> Outcome {
         if let existing = sessions.resumableSession() {
             return .needsResumeChoice(existing)
         }
         guard canStart(filter: filter, questions: questions) else {
             return .failed
         }
-        return createSession(filter: filter)
+        if currentTree?.hasReward(task: task, difficulty: filter.difficulty) == true, !allowsPractice {
+            return .needsPracticeConfirmation
+        }
+        return createSession(task: task, filter: filter)
     }
 
     /// 기존 세션을 그대로 반환한다. 진행 위치와 팝업 설정은 변경하지 않는다.
@@ -54,18 +62,24 @@ struct StartSessionCoordinator {
     /// - Returns: 새 세션 또는 실패 결과. 포기 성공 후 생성 실패는 되돌리지 않는다.
     func restart(
         replacing existing: QuizSession,
+        task: WorkshopTask,
         filter: SelectFilter,
-        questions: [Question]
+        questions: [Question],
+        currentTree: TreeRecord?, allowsPractice: Bool = false
     ) -> Outcome {
         guard canStart(filter: filter, questions: questions) else {
             return .failed
+        }
+        // 재풀이 확인을 취소했을 때 기존 세션을 잃지 않도록 포기 전에 확인한다.
+        if currentTree?.hasReward(task: task, difficulty: filter.difficulty) == true, !allowsPractice {
+            return .needsPracticeConfirmation
         }
         do {
             try sessions.abandon(existing)
         } catch {
             return .failed
         }
-        return createSession(filter: filter)
+        return createSession(task: task, filter: filter)
     }
 
     private func canStart(filter: SelectFilter, questions: [Question]) -> Bool {
@@ -76,9 +90,10 @@ struct StartSessionCoordinator {
         ) >= filter.count
     }
 
-    private func createSession(filter: SelectFilter) -> Outcome {
+    private func createSession(task: WorkshopTask, filter: SelectFilter) -> Outcome {
         do {
             let session = try sessions.startSession(
+                task: task,
                 categories: filter.categories,
                 difficulty: filter.difficulty,
                 tags: [],

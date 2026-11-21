@@ -32,17 +32,20 @@ enum TaskSelectPreviewData {
     /// 문제 목록과 진행 위치가 일치하는 표시용 세션을 만든다. 서비스나 저장소는 변경하지 않는다.
     /// - Parameters:
     ///   - questions: 스냅샷으로 복사할 문제. 원본 문제와 풀이 기록의 ID를 일치시킨다.
-    ///   - category: 세션의 작업. nil이면 작업 정보가 없는 상태를 표시한다.
+    ///   - category: 단일 학습 카테고리. 혼합 출제는 nil이다.
     ///   - difficulty: 세션 표시에 사용할 난이도.
+    ///   - task: 카테고리와 독립적인 보상 작업.
     ///   - answered: 답한 문제 수. 실제 문제 수 범위로 보정한다.
     ///   - status: 표시할 세션 상태.
     /// - Returns: 앞에서부터 답이 채워진 독립된 샘플 세션.
     static func session(
         questions: [Question], category: QuizCategory?, difficulty: Difficulty,
+        task: WorkshopTask = .giftProduction,
         answered: Int = 0, status: SessionStatus = .inProgress
     ) -> QuizSession {
         let snapshots = questions.map { QuestionSnapshot($0) }
         let session = QuizSession(
+            task: task,
             category: category, difficulty: difficulty, questionSnapshots: snapshots,
             passThresholdPercent: 80
         )
@@ -51,6 +54,7 @@ enum TaskSelectPreviewData {
         }
         session.currentIndex = session.answers.count
         session.status = status
+        if status == .completed { session.rewardOutcome = .notEarned }
         session.finishedAt = status == .completed ? Date() : nil
         return session
     }

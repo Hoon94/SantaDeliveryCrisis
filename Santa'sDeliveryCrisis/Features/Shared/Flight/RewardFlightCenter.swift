@@ -4,13 +4,16 @@ import SwiftUI
 /// 결과 화면의 장식이 작업실 트리로 날아가는 연출의 상태를 한곳에 모은다.
 ///
 /// 퀴즈 화면(전체 화면 덮개), 앱의 탭 구성, 작업실 트리가 서로 다른 화면 계층에 있어서
-/// 셋이 이 객체 하나를 환경으로 공유한다.
+/// 셋 모두 환경의 기본값인 `RewardFlightCenter.shared` 하나를 사용한다.
 /// - 퀴즈 결과: [돌아가기]를 누르면 `start(_:)`로 출발 위치와 받을 칸을 알린다.
 /// - 앱의 탭 구성: 출발 신호를 보고 작업실 탭으로 옮기고, 가장 위에 비행 연출을 그린다.
 /// - 작업실 트리: 칸 위치를 `treeSceneFrame`으로 알리고, 아직 도착하지 않은 장식은 `pendingCount`만큼 숨긴다.
 @MainActor
 @Observable
 final class RewardFlightCenter {
+    /// 앱 전체가 함께 쓰는 하나의 상태 객체.
+    static let shared = RewardFlightCenter()
+
     /// 날아갈 장식 한 묶음의 정보.
     struct Flight: Identifiable {
         let id = UUID()
@@ -81,11 +84,13 @@ final class RewardFlightCenter {
 }
 
 private struct RewardFlightCenterKey: EnvironmentKey {
-    @MainActor static let defaultValue = RewardFlightCenter()
+    @MainActor static let defaultValue = RewardFlightCenter.shared
 }
 
 extension EnvironmentValues {
-    /// 장식 비행 연출 상태. 앱의 탭 구성이 주입하고, 주입이 없는 미리보기에서는 아무 화면에도 연결되지 않은 객체를 쓴다.
+    /// 장식 비행 연출 상태. 앱 전체가 `RewardFlightCenter.shared` 하나를 함께 쓴다.
+    /// 퀴즈 덮개, 탭 안의 작업실 트리, 가장 위 연출 층은 서로 다른 화면 계층에 있어서
+    /// 환경 주입에 기대면 일부가 다른 객체를 받을 수 있다. 그래서 기본값을 공유 객체로 두고 따로 주입하지 않는다.
     var rewardFlight: RewardFlightCenter {
         get { self[RewardFlightCenterKey.self] }
         set { self[RewardFlightCenterKey.self] = newValue }

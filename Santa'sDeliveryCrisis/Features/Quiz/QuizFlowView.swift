@@ -67,7 +67,11 @@ private struct QuizFlowContent: View {
         } message: {
             if case .failed(let message) = model.phase { Text(message) }
         }
-        .onAppear { model.start() }
+        .onAppear {
+            model.start()
+            // 문제를 푸는 동안 효과음 합성이 끝나도록 미리 준비한다. 결과 연출의 첫 소리에서 멈추지 않게 한다.
+            services.feedback.prepare()
+        }
         .onDisappear { model.setActive(false) }
         .onChange(of: scenePhase) { _, newPhase in
             model.setActive(newPhase == .active)
@@ -139,7 +143,8 @@ private struct QuizFlowPreviewHost: View {
 
     private func start() {
         session = try? environment.services.sessions.startSession(
-            category: category, difficulty: .easy, tags: [], count: 5
+            task: .giftProduction, categories: category.map { Set([$0]) } ?? Set(QuizCategory.allCases),
+            difficulty: .easy, tags: [], count: 5
         )
     }
 

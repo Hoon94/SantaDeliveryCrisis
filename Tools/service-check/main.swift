@@ -9,7 +9,7 @@ func q(_ cat: QuizCategory = .swiftSyntax, _ d: Difficulty = .easy, tags: [Strin
     Question(text: "t", choices: ["a","b","c","d"], correctIndex: 1, explanation: "e", category: cat, difficulty: d, tags: tags)
 }
 func session(for qs: [Question], answers: [(Int, Bool, Date)]) -> QuizSession {
-    let s = QuizSession(category: nil, difficulty: .easy, questionSnapshots: qs.map { QuestionSnapshot($0) }, passThresholdPercent: 80)
+    let s = QuizSession(task: .giftProduction, category: nil, difficulty: .easy, questionSnapshots: qs.map { QuestionSnapshot($0) }, passThresholdPercent: 80)
     for (i, ok, at) in answers { s.answers.append(SessionAnswer(questionID: qs[i].id, selectedIndex: ok ? 1 : 0, isCorrect: ok, answeredAt: at)) }
     return s
 }
@@ -104,17 +104,20 @@ func run() throws {
     let cur = trees.currentTree()
     check(cur.decorationCount == 0 && cur.completedAt == nil, "트리: 첫 호출 시 빈 트리 생성")
     check(trees.currentTree() === cur, "트리: 두 번째 호출은 같은 트리")
-    var res = try trees.grant(decorations: 0)
-    check(res.completedTree == nil && res.currentDecorationCount == 0, "트리: 0개 지급은 변화 없음")
-    for _ in 0..<11 { res = try trees.grant(decorations: 1) }
+    var res = try trees.grant(task: .wishReception, difficulty: .easy)
+    res = try trees.grant(task: .wishReception, difficulty: .easy)
+    check(res.completedTree == nil && res.currentDecorationCount == 1, "트리: 같은 칸 지급은 변화 없음")
+    let rewardSlots = WorkshopTask.allCases.flatMap { task in Difficulty.allCases.map { (task, $0) } }
+    for (task, difficulty) in rewardSlots.prefix(11) { res = try trees.grant(task: task, difficulty: difficulty) }
     check(res.completedTree == nil && res.currentDecorationCount == 11, "트리: 11칸")
     clock = t0 + day
-    res = try trees.grant(decorations: 1)
+    res = try trees.grant(task: .sleighLoading, difficulty: .hard)
     check(res.completedTree === cur && res.currentDecorationCount == 0, "트리: 12칸에서 완성 + 빈 트리 시작")
     check(cur.decorationCount == 12 && cur.completedAt == clock, "트리: 완성 값 12칸, 완성 시각")
     check(trees.currentTree() !== cur && trees.currentTree().decorationCount == 0, "트리: 새 트리가 현재 트리")
     check(trees.completedTrees().count == 1, "트리: 완성 목록 1개")
-    do { _ = try trees.grant(decorations: -1); check(false, "트리: 음수 오류") } catch { check(true, "트리: 음수 오류") }
+    res = try trees.grant(task: .wishReception, difficulty: .easy)
+    check(res.rewardOutcome == .earned && res.currentDecorationCount == 1, "트리: 다음 트리에서 같은 칸 재획득")
     check(ctx.saves == 0, "트리: save를 호출하지 않음")
     // ---- 복수 카테고리 고르게 출제
     do {
@@ -149,23 +152,85 @@ func run() throws {
     let settings = SettingsStore(defaults: defaults)
     let trees2 = TreeManager(context: ctx2, now: { t0 })
     let mgr = SessionManager(context: ctx2, selector: QuestionSelector(now: { t0 }, shuffle: { $0 }), trees: trees2, settings: settings, now: { t0 })
+    // ---- 작업·난이도별 보상 결과 (다른 점검의 트리 상태와 분리)
+    do {
+        let rewardContext = ModelContext()
+        let rewardTrees = TreeManager(context: rewardContext, now: { t0 })
+        let rewardManager = SessionManager(
+            context: rewardContext, selector: sel, trees: rewardTrees, settings: settings, now: { t0 }
+        )
+        for difficulty in Difficulty.allCases { rewardContext.insert(q(.swiftSyntax, difficulty)) }
+
+        /// 작업·난이도를 선택해 한 문제에 답하고 완료 결과를 받는다.
+        func finishReward(task: WorkshopTask, difficulty: Difficulty, correct: Bool) throws -> (session: QuizSession, result: SessionResult) {
+            let session = try rewardManager.startSession(
+                task: task, categories: [.swiftSyntax], difficulty: difficulty, tags: [], count: 1
+            )
+            _ = try rewardManager.submit(answerIndex: correct ? 1 : 0, forQuestionAt: 0, in: session)
+            return (session, try rewardManager.finish(session))
+        }
+
+        let first = try finishReward(task: .giftProduction, difficulty: .easy, correct: true)
+        check(first.result.passedThreshold && first.result.rewardOutcome == .earned
+              && first.result.earnedDecorations == 1 && first.session.rewardOutcome == .earned
+              && rewardTrees.currentTree().decorationCount == 1, "보상 결과: 처음 통과는 earned, 1칸 획득")
+
+        let repeated = try finishReward(task: .giftProduction, difficulty: .easy, correct: true)
+        check(repeated.result.passedThreshold && repeated.result.rewardOutcome == .alreadyEarned
+              && repeated.result.earnedDecorations == 0 && rewardTrees.currentTree().decorationCount == 1,
+              "보상 결과: 같은 칸 재통과는 alreadyEarned, 개수 유지")
+
+        let saves = rewardContext.saves
+        let reopened = try rewardManager.finish(first.session)
+        check(reopened.rewardOutcome == first.result.rewardOutcome
+              && reopened.passedThreshold == first.result.passedThreshold
+              && reopened.earnedDecorations == first.result.earnedDecorations
+              && reopened.treeCompleted == first.result.treeCompleted
+              && rewardContext.saves == saves && rewardTrees.currentTree().decorationCount == 1,
+              "보상 결과: 완료 후 finish 재호출은 확정 결과 유지, 저장·추가 지급 없음")
+
+        let missed = try finishReward(task: .wrapping, difficulty: .normal, correct: false)
+        check(!missed.result.passedThreshold && missed.result.rewardOutcome == .notEarned
+              && missed.result.earnedDecorations == 0 && rewardTrees.currentTree().decorationCount == 1,
+              "보상 결과: 미획득 칸의 기준 미달은 notEarned")
+
+        let missedOwned = try finishReward(task: .giftProduction, difficulty: .easy, correct: false)
+        check(!missedOwned.result.passedThreshold && missedOwned.result.rewardOutcome == .alreadyEarned
+              && missedOwned.result.earnedDecorations == 0 && rewardTrees.currentTree().decorationCount == 1,
+              "보상 결과: 획득한 칸의 기준 미달은 alreadyEarned, 통과는 false")
+
+        let otherTask = try finishReward(task: .wishReception, difficulty: .hard, correct: true)
+        check(otherTask.result.rewardOutcome == .earned && otherTask.result.earnedDecorations == 1
+              && rewardTrees.currentTree().hasReward(task: .giftProduction, difficulty: .easy)
+              && rewardTrees.currentTree().hasReward(task: .wishReception, difficulty: .hard)
+              && rewardTrees.currentTree().decorationCount == 2,
+              "보상 결과: 다른 작업의 어려움 칸은 별개로 획득")
+
+        let bits = WorkshopTask.allCases.flatMap { task in
+            Difficulty.allCases.map { task.rewardBit(for: $0) }
+        }
+        check(bits.count == 12 && Set(bits).count == 12
+              && bits.allSatisfy { $0 > 0 && $0.nonzeroBitCount == 1 }
+              && bits.reduce(0, |) == (1 << TreeRecord.slotCount) - 1,
+              "보상 결과: 12개 작업·난이도의 비트가 서로 독립")
+    }
     do {
         let c3 = ModelContext()
         let m3 = SessionManager(context: c3, selector: QuestionSelector(now: { t0 }, shuffle: { $0 }), trees: TreeManager(context: c3, now: { t0 }), settings: settings, now: { t0 })
         QuizCategory.allCases.forEach { c in (0..<6).forEach { _ in c3.insert(q(c, .easy)) } }
-        let ms = try m3.startSession(categories: Set(QuizCategory.allCases), difficulty: .easy, tags: [], count: 5)
+        let ms = try m3.startSession(task: .giftProduction, categories: Set(QuizCategory.allCases), difficulty: .easy, tags: [], count: 5)
         check(ms.category == nil && ms.questionSnapshots.count == 5 && Set(ms.questionSnapshots.map { $0.category }).count == 4, "세션: 4카테고리 5문제가 4개 카테고리를 모두 포함, category nil")
         try m3.abandon(ms)
-        let one = try m3.startSession(categories: [.hig], difficulty: .easy, tags: [], count: 5)
+        let one = try m3.startSession(task: .giftProduction, categories: [.hig], difficulty: .easy, tags: [], count: 5)
         check(one.category == .hig && one.questionSnapshots.allSatisfy { $0.category == .hig }, "세션: 카테고리 하나면 그 카테고리")
     }
     let pool = (0..<6).map { _ in q() }
     pool.forEach { ctx2.insert($0) }
-    do { _ = try mgr.startSession(category: .hig, difficulty: .easy, tags: [], count: 5); check(false, "후보 0개 오류") } catch { check((error as? SessionError) == .noCandidates, "start: 후보 0개 오류") }
-    let s = try mgr.startSession(category: .swiftSyntax, difficulty: .easy, tags: [], count: 5)
+    do { _ = try mgr.startSession(task: .giftProduction, categories: [.hig], difficulty: .easy, tags: [], count: 5); check(false, "후보 0개 오류") } catch { check((error as? SessionError) == .noCandidates, "start: 후보 0개 오류") }
+    let s = try mgr.startSession(task: .giftProduction, categories: [.swiftSyntax], difficulty: .easy, tags: [], count: 5)
     check(s.questionSnapshots.count == 5 && s.passThresholdPercent == 80 && s.status == .inProgress, "start: 5문제, 기준 80 저장")
     check(mgr.resumableSession() === s, "resumable: 진행 중 세션")
-    do { _ = try mgr.startSession(category: .swiftSyntax, difficulty: .easy, tags: [], count: 5); check(false, "중복 시작 오류") } catch { check((error as? SessionError) == .sessionAlreadyInProgress, "start: 진행 중이면 오류") }
+    do { _ = try mgr.startSession(task: .giftProduction, categories: [.swiftSyntax], difficulty: .easy, tags: [], count: 5); check(false, "중복 시작 오류") } catch { check((error as? SessionError) == .sessionAlreadyInProgress, "start: 진행 중이면 오류") }
     do { _ = try mgr.submit(answerIndex: 1, forQuestionAt: 2, in: s); check(false, "순서 오류") } catch { check((error as? SessionError) == .previousQuestionUnanswered, "submit: 앞선 문제 미답 오류") }
     do { _ = try mgr.submit(answerIndex: 9, forQuestionAt: 0, in: s); check(false, "범위 오류") } catch { check((error as? SessionError) == .invalidAnswerIndex(9), "submit: 보기 번호 범위 오류") }
     do { _ = try mgr.submit(answerIndex: 1, forQuestionAt: 7, in: s); check(false, "문제 범위") } catch { check((error as? SessionError) == .invalidQuestionIndex(7), "submit: 문제 번호 범위 오류") }
@@ -181,7 +246,7 @@ func run() throws {
     ctx2.failNextSave = true
     do { _ = try mgr.finish(s); check(false, "저장 실패") } catch { check(s.status == .completed || ctx2.rollbacks > 0, "finish: 저장 실패 시 rollback 호출됨") }
     // (스텁 rollback은 값을 되돌리지 못하므로 상태를 직접 되돌려 재시도 시나리오 확인)
-    s.status = .inProgress; s.earnedDecorations = 0; s.treeCompleted = false; s.finishedAt = nil; trees2.currentTree().decorationCount = 0
+    s.status = .inProgress; s.earnedDecorations = 0; s.treeCompleted = false; s.finishedAt = nil; ctx2.objects.removeAll { $0 is TreeRecord }; s.rewardOutcome = .pending
     let result = try mgr.finish(s)
     check(result.correctCount == 4 && result.totalCount == 5 && result.accuracyPercent == 80 && result.earnedDecorations == 1, "finish: 80% 기준 충족 → 장식 1")
     check(result.wrongAnswers.count == 1 && s.status == .completed && s.finishedAt == t0, "finish: 오답 1개, completed")
@@ -191,27 +256,31 @@ func run() throws {
     check(trees2.currentTree().decorationCount == 1, "finish: 트리에 장식 1개만")
     check(mgr.resumableSession() == nil, "완료 후 resumable nil")
     // 79% 미만: 4/5=80 통과, 3/5=60 실패
-    let s2m = try mgr.startSession(category: .swiftSyntax, difficulty: .easy, tags: [], count: 5)
+    let s2m = try mgr.startSession(task: .giftProduction, categories: [.swiftSyntax], difficulty: .easy, tags: [], count: 5)
     for i in 0..<3 { _ = try mgr.submit(answerIndex: 1, forQuestionAt: i, in: s2m) }
     for i in 3..<5 { _ = try mgr.submit(answerIndex: 0, forQuestionAt: i, in: s2m) }
     let r60 = try mgr.finish(s2m)
     check(r60.earnedDecorations == 0 && r60.accuracyPercent == 60 && trees2.currentTree().decorationCount == 1, "finish: 60%는 기준 미달, 장식 없음")
     // abandon
-    let s3m = try mgr.startSession(category: .swiftSyntax, difficulty: .easy, tags: [], count: 3)
+    let s3m = try mgr.startSession(task: .giftProduction, categories: [.swiftSyntax], difficulty: .easy, tags: [], count: 3)
     try mgr.abandon(s3m)
     check(s3m.status == .abandoned && mgr.resumableSession() == nil, "abandon: 포기 처리")
     try mgr.abandon(s3m)
     do { try mgr.abandon(s2m); check(false, "완료 세션 포기") } catch { check((error as? SessionError) == .sessionNotInProgress, "abandon: 완료 세션은 오류") }
     // 12칸 완성: 트리를 11칸으로 만든 뒤 한 번 더 완료
-    _ = try trees2.grant(decorations: 10)
+    for task in WorkshopTask.allCases {
+        for difficulty in Difficulty.allCases where !(task == .sleighLoading && difficulty == .easy) {
+            _ = try trees2.grant(task: task, difficulty: difficulty)
+        }
+    }
     check(trees2.currentTree().decorationCount == 11, "준비: 11칸")
-    let s4m = try mgr.startSession(category: .swiftSyntax, difficulty: .easy, tags: [], count: 5)
+    let s4m = try mgr.startSession(task: .sleighLoading, categories: [.swiftSyntax], difficulty: .easy, tags: [], count: 5)
     for i in 0..<5 { _ = try mgr.submit(answerIndex: 1, forQuestionAt: i, in: s4m) }
     let rFull = try mgr.finish(s4m)
     check(rFull.treeCompleted && s4m.treeCompleted && trees2.completedTrees().count == 1 && trees2.currentTree().decorationCount == 0, "finish: 12칸 완성, 빈 트리 시작")
     check(try mgr.finish(s4m).treeCompleted && trees2.completedTrees().count == 1, "finish 재호출: 완성 중복 없음")
     // ---- updateElapsed (누적 총합 저장)
-    let se = try mgr.startSession(category: .swiftSyntax, difficulty: .easy, tags: [], count: 5)
+    let se = try mgr.startSession(task: .giftProduction, categories: [.swiftSyntax], difficulty: .easy, tags: [], count: 5)
     check(se.elapsedSeconds == 0, "elapsed: 시작 시 0")
     try mgr.updateElapsed(12.5, in: se)
     check(se.elapsedSeconds == 12.5, "elapsed: 누적 총합 12.5 저장")
@@ -235,7 +304,7 @@ func run() throws {
     try mgr.updateElapsed(99, in: se)
     check(se.elapsedSeconds == 45 && ctx2.saves == savesAfterFinish, "elapsed: 완료 세션은 오류 없이 무시하고 값을 바꾸지 않음")
     check(try mgr.finish(se).elapsed == 45, "elapsed: 완료 후 재호출해도 결과 유지")
-    let sa = try mgr.startSession(category: .swiftSyntax, difficulty: .easy, tags: [], count: 5)
+    let sa = try mgr.startSession(task: .giftProduction, categories: [.swiftSyntax], difficulty: .easy, tags: [], count: 5)
     try mgr.abandon(sa)
     try mgr.updateElapsed(10, in: sa)
     check(sa.elapsedSeconds == 0, "elapsed: 포기한 세션도 무시")

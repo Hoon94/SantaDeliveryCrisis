@@ -22,7 +22,7 @@ final class SessionManager: SessionManaging {
     ///   - settings: 정답률 기준을 읽는 설정
     ///   - media: 세션 종료 뒤 쓰지 않는 미디어 파일을 정리할 때 부른다. nil이면 정리하지 않는다.
     ///   - now: 현재 시각. 테스트에서 고정 값을 넘긴다.
-    ///   - onSessionCompleted: 최초 완료 저장 성공 후 호출할 작업. 실패·완료 재조회 시 호출하지 않는다.
+    ///   - onSessionCompleted: 최초 완료 저장이 성공한 뒤 호출할 작업. 실패·완료 재조회 시 호출하지 않는다.
     init(
         context: ModelContext,
         selector: QuestionSelecting,
@@ -45,32 +45,22 @@ final class SessionManager: SessionManaging {
 
     /// 세션을 시작한다. 진행 중 세션이 이미 있으면 `sessionAlreadyInProgress`를 던진다.
     /// 화면은 먼저 `resumableSession()`으로 확인하고, 사용자가 "새로 시작"을 고르면 `abandon`을 부른 뒤 시작한다.
-    func startSession(
-        category: QuizCategory?,
-        difficulty: Difficulty,
-        tags: Set<String>,
-        count: Int
-    ) throws -> QuizSession {
-        try start(sessionCategory: category, difficulty: difficulty) { questions, history in
-            selector.select(category: category, difficulty: difficulty, tags: tags, count: count,
-                            questions: questions, history: history)
-        }
-    }
-
     /// 선택한 카테고리들에서 고르게 섞어 세션을 시작한다. 카테고리가 둘 이상이면 `session.category`는 nil이다.
     func startSession(
+        task: WorkshopTask,
         categories: Set<QuizCategory>,
         difficulty: Difficulty,
         tags: Set<String>,
         count: Int
     ) throws -> QuizSession {
-        try start(sessionCategory: categories.count == 1 ? categories.first : nil, difficulty: difficulty) { questions, history in
+        try start(task: task, sessionCategory: categories.count == 1 ? categories.first : nil, difficulty: difficulty) { questions, history in
             selector.select(categories: categories, difficulty: difficulty, tags: tags, count: count,
                             questions: questions, history: history)
         }
     }
 
     private func start(
+        task: WorkshopTask,
         sessionCategory: QuizCategory?,
         difficulty: Difficulty,
         pick: ([Question], [QuizSession]) -> [Question]
@@ -87,6 +77,7 @@ final class SessionManager: SessionManaging {
         guard !picked.isEmpty else { throw SessionError.noCandidates }
 
         let session = QuizSession(
+            task: task,
             category: sessionCategory,
             difficulty: difficulty,
             questionSnapshots: picked.map { QuestionSnapshot($0, titleLabel: titleLabels[$0.id]) },
@@ -141,7 +132,7 @@ final class SessionManager: SessionManaging {
     /// 세션을 끝내고 결과를 돌려준다.
     /// - 이미 `completed`이면 저장된 결과만 돌려주고 장식을 다시 지급하지 않는다.
     /// - 모든 문제에 답이 저장되어 있어야 한다. 아니면 `notAllAnswered`를 던진다.
-    /// - 정답률이 세션에 저장된 기준 이상이면 장식 1개를 지급한다. 비교는 정확하게 한다(79.5%는 80% 기준 미달). 규칙은 `Accuracy`에 있다.
+    /// - 정답률이 세션에 저장된 기준 이상이고 아직 획득하지 않은 작업·난이도이면 장식 1개를 지급한다. 비교는 정확하게 한다(79.5%는 80% 기준 미달). 규칙은 `Accuracy`에 있다.
     /// - 세션 완료, 장식 지급, 트리 갱신은 한 번의 저장으로 처리한다. 실패하면 전부 되돌리고 세션은 `inProgress`로 남는다.
     func finish(_ session: QuizSession) throws -> SessionResult {
         switch session.status {
@@ -163,13 +154,22 @@ final class SessionManager: SessionManaging {
         let passed = Accuracy.meetsThreshold(
             correct: correct, total: total, thresholdPercent: session.passThresholdPercent
         )
-        let earned = passed ? 1 : 0
 
         do {
-            let grant = try trees.grant(decorations: earned)
+            let grant: TreeGrantResult
+            if passed {
+                grant = try trees.grant(task: session.task, difficulty: session.difficulty)
+            } else {
+                let tree = trees.currentTree()
+                grant = TreeGrantResult(
+                    completedTree: nil, currentDecorationCount: tree.decorationCount,
+                    rewardOutcome: tree.hasReward(task: session.task, difficulty: session.difficulty) ? .alreadyEarned : .notEarned
+                )
+            }
             session.status = .completed
             session.finishedAt = now()
-            session.earnedDecorations = earned
+            session.earnedDecorations = grant.rewardOutcome == .earned ? 1 : 0
+            session.rewardOutcome = grant.rewardOutcome
             session.treeCompleted = grant.completedTree != nil
             try commit()
         } catch {
@@ -244,6 +244,8 @@ final class SessionManager: SessionManaging {
             totalCount: total,
             accuracyPercent: Accuracy.percent(correct: correct, total: total),
             elapsed: session.elapsedSeconds,
+            passedThreshold: Accuracy.meetsThreshold(correct: correct, total: total, thresholdPercent: session.passThresholdPercent),
+            rewardOutcome: session.rewardOutcome,
             earnedDecorations: session.earnedDecorations,
             treeCompleted: session.treeCompleted,
             wrongAnswers: answersInOrder.filter { !$0.isCorrect }

@@ -53,34 +53,29 @@ iOS 개발 학습용 퀴즈 앱입니다. 산타의 빈 크리스마스 트리�
 
 | 용어 | 뜻 |
 | --- | --- |
-| 작업 | 문제 카테고리를 산타 테마로 부르는 이름 (아래 표). 기획서의 "방"을 대체 |
+| 작업 | 보상을 쌓을 산타 테마 장식. 문제 카테고리와 독립적 |
 | 작업실 | 첫 번째 탭의 이름. 트리와 진행 상황을 보는 메인 화면 |
 | 세션 | 문제 5/10/15개를 한 번에 푸는 한 판 |
 | 장식 | 세션 보상. 트리에 쌓임 |
 | 트리 | 장식 12칸짜리 한 그루. 완성하면 완성 기록을 남기고 새 트리를 시작 |
 | 난이도 | 쉬움, 보통, 어려움 (이 세 단어로 통일) |
 
-### 작업과 카테고리 대응
+### 보상 작업과 학습 카테고리
 
-| 작업 (UI 표시 이름) | 카테고리 (코드 이름) |
-| --- | --- |
-| 소원 접수 | AI 활용 (`aiUsage`) |
-| 선물 생산 | Swift 문법 (`swiftSyntax`) |
-| 포장 | HIG (`hig`) |
-| 썰매 적재 | SwiftUI 실전 (`swiftUIPractice`) |
+보상 작업은 `WorkshopTask`의 소원 접수·선물 생산·포장·썰매 적재입니다. 학습 카테고리는 `QuizCategory`의 AI 활용·Swift 문법·HIG·SwiftUI 실전입니다. 둘 사이의 1:1 대응은 없으며, 어떤 작업을 눌러도 선택한 카테고리 전체에서 출제합니다.
 
 기획서의 "KxCoding"은 강의 이름이라 "SwiftUI 실전"으로 바꿨습니다.
 
 ## 5. 게임 규칙
 
-1. 세션은 출제 탭에서 시작합니다. 팝업에서 난이도, 카테고리(여러 개), 문제 수를 고르고 [장식 선택]을 누르면 트리에 장식 4개가 나타납니다. 장식은 문제 카테고리와 연동하지 않습니다(팀 결정). 고른 카테고리 전체의 후보 수 합이 문제 수 이상이면 네 장식이 모두 켜지고, 켜진 어느 장식을 눌러도 고른 카테고리에서 고르게 섞어 낸 세션이 시작됩니다. 해금 조건은 없습니다. 작업실의 "오늘의 출제" 버튼은 출제 탭으로 이동합니다 `[가정]`.
+1. 세션은 출제 탭에서 시작합니다. 팝업에서 난이도, 카테고리(여러 개), 문제 수를 고르고 [장식 선택]을 누르면 트리에 장식 4개가 나타납니다. 장식은 문제 카테고리와 연동하지 않습니다. 누른 작업은 세션에 저장해 보상 대상을 정합니다. 고른 카테고리 전체의 후보 수 합이 문제 수 이상이면 네 장식이 모두 켜지고, 켜진 어느 장식을 눌러도 고른 카테고리에서 고르게 섞어 낸 세션이 시작됩니다. 해금 조건은 없습니다. 작업실의 "오늘의 출제" 버튼은 출제 탭으로 이동합니다 `[가정]`.
 2. 세션이 끝나면 정답률을 계산합니다.
-   - 정답률이 **기준 이상**이면 장식 **1개**를 받습니다. 기본 기준은 80%이고, 설정에서 50~100%(10% 단위)로 바꿀 수 있습니다.
-   - 난이도와 문제 수는 보상에 영향이 없습니다.
+   - 정답률이 **기준 이상**이고 현재 트리에서 선택한 작업·난이도가 미획득이면 장식 **1개**를 받습니다. 기본 기준은 80%이고, 설정에서 50~100%(10% 단위)로 바꿀 수 있습니다.
+   - 작업 4개 × 난이도 3개의 12칸을 각각 한 번 획득합니다. 문제 카테고리와 문항 수는 보상 칸을 구분하지 않습니다.
    - 기준 미만이면 장식을 받지 못하지만 벌칙은 없습니다.
 3. 트리는 한 그루이고 4개 작업의 장식이 같은 트리에 쌓입니다. 장식은 12칸입니다.
 4. 12칸이 모두 차면 트리가 완성됩니다. 산타가 출발하는 연출을 보여 주고, 완성한 트리는 완성 기록으로 저장하며(기록 화면에 완성한 트리 수 표시), 빈 트리를 새로 시작합니다. 퀴즈 기록, 통계, 설정은 유지됩니다.
-5. 쉬운 세션을 반복해서 빨리 완성하는 것은 막지 않습니다.
+5. 이미 획득한 작업·난이도는 확인 후 다시 풀 수 있지만 추가 보상은 없습니다. 기존 장식은 잃지 않으며 완료 기록·통계에는 포함합니다.
 6. 세션 중 앱을 종료하면 진행 상황이 저장되고, 다시 켜면 "이어서 풀기"로 계속합니다. 진행 중 세션은 동시에 1개만 허용합니다.
 
 ## 6. 화면 구조
@@ -195,6 +190,7 @@ struct QuestionSnapshot: Codable {
 
 @Model final class QuizSession {
     @Attribute(.unique) var id: UUID
+    var task: WorkshopTask            // 카테고리와 독립적인 보상 작업
     var category: QuizCategory?       // 카테고리를 하나만 고르면 그 카테고리, 둘 이상 골라 섞어 낸 세션이면 nil
     var difficulty: Difficulty
     var questionIDs: [UUID]           // 출제 순서 고정
@@ -205,7 +201,8 @@ struct QuestionSnapshot: Codable {
     var startedAt: Date
     var finishedAt: Date?
     var elapsedSeconds: TimeInterval  // 퀴즈 화면이 떠 있던 시간의 누적 (앱이 꺼져 있던 시간 제외)
-    var earnedDecorations: Int        // 완료 시 확정
+    var earnedDecorations: Int        // 새 칸 획득 시 1, 아니면 0
+    var rewardOutcome: RewardOutcome // 완료 전 pending, 완료 시 earned/alreadyEarned/notEarned
     var treeCompleted: Bool           // 완료 시 확정. 이 세션으로 트리가 완성되었는가
     @Relationship(deleteRule: .cascade) var answers: [SessionAnswer]
 }
@@ -221,7 +218,8 @@ struct QuestionSnapshot: Codable {
     @Attribute(.unique) var id: UUID
     var startedAt: Date
     var completedAt: Date?            // nil이면 현재 꾸미는 중인 트리
-    var decorationCount: Int          // 0...12
+    private(set) var rewardMask: Int  // 작업별 쉬움·보통·어려움 순서의 12칸
+    var decorationCount: Int { rewardMask.nonzeroBitCount }
 }
 ```
 
@@ -269,7 +267,7 @@ protocol QuestionSelecting {
 
 /// 세션 생성·진행·종료. SwiftData 저장을 담당
 protocol SessionManaging {
-    func startSession(category: QuizCategory?, difficulty: Difficulty, tags: Set<String>, count: Int) throws -> QuizSession   // 카테고리 하나만 넘기는 기존 호출. 여러 카테고리는 확장의 `startSession(categories:...)`
+    func startSession(task: WorkshopTask, categories: Set<QuizCategory>, difficulty: Difficulty, tags: Set<String>, count: Int) throws -> QuizSession
     /// `questionIndex`번째 문제(0부터)에 답을 저장한다. 문제는 순서대로만 제출할 수 있다.
     /// 이미 답이 있는 문제에 다시 호출하면 처음 저장된 답을 돌려주고 새로 저장하지 않는다(값이 달라도 유지).
     /// 아직 답하지 않은 앞선 문제가 있는 순서로 호출하면 오류를 던진다.
@@ -288,7 +286,9 @@ struct SessionResult {
     let totalCount: Int
     let accuracyPercent: Int
     let elapsed: TimeInterval
-    let earnedDecorations: Int         // 기준 미만이면 0, 아니면 1
+    let passedThreshold: Bool          // 통과 여부
+    let rewardOutcome: RewardOutcome    // 최초 완료 때 확정한 보상 결과
+    let earnedDecorations: Int          // 새 칸이면 1, 아니면 0
     let treeCompleted: Bool            // 이번 세션으로 트리가 완성되었는가
     let wrongAnswers: [SessionAnswer]
 }
@@ -296,9 +296,9 @@ struct SessionResult {
 /// 장식 지급과 트리 완성 처리
 protocol TreeManaging {
     func currentTree() -> TreeRecord
-    /// 장식을 지급한다. 12칸이 차면 완성 처리 후 빈 트리를 새로 시작한다. 보상이 항상 1개라 이월은 없다.
+    /// 미획득 작업·난이도 칸을 지급한다. 12칸이 차면 완성 후 빈 트리를 시작한다. 보상이 항상 1개라 이월은 없다.
     /// 같은 ModelContext에서 값만 바꾸고, 저장(save)은 `SessionManaging.finish`가 한 번만 호출한다
-    func grant(decorations: Int) throws -> TreeGrantResult
+    func grant(task: WorkshopTask, difficulty: Difficulty) throws -> TreeGrantResult
     func completedTrees() -> [TreeRecord]
 }
 
@@ -321,6 +321,7 @@ protocol MediaFileManaging {
 struct TreeGrantResult {
     let completedTree: TreeRecord?     // 이번 지급으로 완성된 트리 (없으면 nil)
     let currentDecorationCount: Int    // 지급 후 현재 트리의 장식 수
+    let rewardOutcome: RewardOutcome
 }
 
 /// 애니메이션 문제 한 단계
@@ -456,7 +457,11 @@ Santa'sDeliveryCrisis/
 5. 단일 카테고리 선택 출제의 문제 선택 비율 50% 약한 문제 / 50% 오래 안 푼 문제 ([02-session-engine](../../docs/specs/02-session-engine.md))
 6. 장식을 누르면 퀴즈 화면이 커지며 열리는 연출. 1차는 페이드, iOS 17에서 확대 연출은 직접 구현 필요 ([04-task-and-select](../../docs/specs/04-task-and-select.md))
 7. 출제 탭만 나이트 글로우 팔레트를 쓰고 나머지는 작업실 색을 씀. 최종 색을 하나로 할지 미정 ([04-task-and-select](../../docs/specs/04-task-and-select.md), [08-assets](../../docs/specs/08-assets.md))
-8. 시안 v3의 장식별 난이도 통과 점, 문 열림, 초기화 버튼은 1차에서 제외 ([04-task-and-select](../../docs/specs/04-task-and-select.md))
+8. 작업별 난이도 인디케이터는 12개 보상 칸을 표시합니다. 초기화는 출제 설정만 되돌리며, 재풀이 확인은 선택한 작업·난이도 기준입니다. 필터 단계의 모든 카테고리 통과 알림은 제외합니다.
 9. 태그 선택, 보관함 화면, 문제 수 잠금을 뺌(디자인 시안 기준). 되돌리기 쉬운 항목이며 [future-work](../../docs/future-work.md)에 있음
 10. 보상을 난이도와 상관없이 항상 1개로 통일하면서 이월 규칙과 관련 필드를 삭제함. 팀 확인이 필요합니다 (5장, 8장)
-11. **미정**: 장식은 문제 카테고리와 연동하지 않음. 어떤 장식을 눌렀는지가 보상으로 받는 장식(12칸의 모양)에 영향을 주는지는 정해지지 않았고, 지금은 영향이 없음 ([04-task-and-select](../../docs/specs/04-task-and-select.md))
+11. **확정**: 누른 작업은 `QuizSession.task`로 저장하며 현재 트리의 작업·난이도 보상 칸과 결과 장식의 이름·색을 정합니다. 문제 구성과 퀴즈 테마는 문제 카테고리를 따릅니다. 작업실 트리의 표시 위치는 조합별 고정 위치가 아니라 획득 총개수 순서입니다 ([04-task-and-select](../../docs/specs/04-task-and-select.md)).
+
+### 작업 보상 데이터 초기화 전제
+
+이 변경은 배포 전 개발 데이터 초기화를 전제로 합니다. 이전 장식 개수를 새 작업·난이도 획득 기록으로 추정하지 않습니다. `WorkshopTask`의 네 값과 보상 비트 순서는 `Models/WorkshopTask.swift`를 기준으로 하며, 학습 카테고리의 선택·균등 출제 규칙은 유지합니다.

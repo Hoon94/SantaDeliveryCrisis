@@ -11,12 +11,51 @@
     ],
   },
   "files": [
-    { "kind": "folder", "path": "Santa'sDeliveryCrisis", "target-membership": [ "Santa'sDeliveryCrisis" ] },
+    { "path": "QuizActivityWidgetExtension.entitlements" },
     {
+      "kind": "folder",
+      "path": "Santa'sDeliveryCrisis",
+      "target-membership": [
+        "Santa'sDeliveryCrisis",
+      ],
+      "membership-exceptions": [
+        {
+          "target": "QuizActivityWidgetExtension",
+          "inclusions": [
+            "Assets.xcassets",
+            "Shared/QuizActivity/MonthlyQuizActivity.swift",
+            "Shared/QuizActivity/QuizActivityCalculator.swift",
+            "Shared/QuizActivity/QuizActivityStore.swift",
+          ],
+        },
+      ],
+    }, {
+      "kind": "folder",
+      "path": "QuizActivityWidget",
+      "target-membership": [
+        "QuizActivityWidgetExtension",
+      ],
+      "membership-exceptions": [
+        {
+          "target": "QuizActivityWidgetExtension",
+          "exclusions": [
+            "Info.plist",
+          ],
+        },
+      ],
+    }, {
+      "kind": "group",
+      "name": "Frameworks",
+      "children": [
+        { "path": "/System/Library/Frameworks/WidgetKit.framework", "target-membership": [ "QuizActivityWidgetExtension/frameworks" ] },
+        { "path": "/System/Library/Frameworks/SwiftUI.framework", "target-membership": [ "QuizActivityWidgetExtension/frameworks" ] },
+      ],
+    }, {
       "kind": "group",
       "name": "Products",
       "children": [
         { "path": "<PRODUCTS>/Santa'sDeliveryCrisis.app", "id": "000000000000000000000120", "type": "wrapper.application", "index": false },
+        { "path": "<PRODUCTS>/QuizActivityWidgetExtension.appex", "id": "78866E5230B07DFD00C4CB2C", "type": "wrapper.app-extension", "index": false, "target-membership": [ { "build-phase": "Santa'sDeliveryCrisis/copy/Embed Foundation Extensions", "header-preservation": "remove-on-copy" } ] },
       ],
     },
   ],
@@ -26,12 +65,21 @@
       "id": "000000000000000100000000",
       "product": "Products/Santa'sDeliveryCrisis.app",
       "product-type": "application",
+      "dependencies": [
+        "QuizActivityWidgetExtension",
+      ],
       "build-phases": [
         "compile-sources",
         "frameworks",
         "resources",
+        {
+          "kind": "copy",
+          "name": "Embed Foundation Extensions",
+          "bundle-base-path": "plugins-directory",
+        },
       ],
       "build-settings": {
+        "CODE_SIGN_ENTITLEMENTS": "Santa'sDeliveryCrisis/Santa'sDeliveryCrisis.entitlements",
         "CODE_SIGN_STYLE": "Automatic",
         "CURRENT_PROJECT_VERSION": "1",
         "DEVELOPMENT_TEAM": "",
@@ -66,6 +114,57 @@
         "SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY": "YES",
         "SWIFT_VERSION": "5.0",
         "TARGETED_DEVICE_FAMILY": "1,2",
+      },
+    }, {
+      "name": "QuizActivityWidgetExtension",
+      "id": "78866E5130B07DFD00C4CB2C",
+      "product": "Products/QuizActivityWidgetExtension.appex",
+      "product-type": "app-extension",
+      "build-phases": [
+        "compile-sources",
+        "frameworks",
+        "resources",
+      ],
+      "build-settings": {
+        "ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME": "AccentColor",
+        "ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME": "RoomBackground",
+        "CODE_SIGN_ENTITLEMENTS": "QuizActivityWidgetExtension.entitlements",
+        "CODE_SIGN_STYLE": "Automatic",
+        "CURRENT_PROJECT_VERSION": "1",
+        "DEVELOPMENT_TEAM": "",
+        "ENABLE_APP_SANDBOX": "YES",
+        "ENABLE_HARDENED_RUNTIME": "YES",
+        "GENERATE_INFOPLIST_FILE": "YES",
+        "INFOPLIST_FILE": "QuizActivityWidget/Info.plist",
+        "INFOPLIST_KEY_CFBundleDisplayName": "QuizActivityWidget",
+        "INFOPLIST_KEY_NSHumanReadableCopyright": "",
+        "IPHONEOS_DEPLOYMENT_TARGET": "27.2",
+        "LD_RUNPATH_SEARCH_PATHS": [
+          "$(inherited)",
+          "@executable_path/Frameworks",
+          "@executable_path/../../Frameworks",
+        ],
+        "LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]": [
+          "$(inherited)",
+          "@executable_path/../Frameworks",
+          "@executable_path/../../../../Frameworks",
+        ],
+        "MACOSX_DEPLOYMENT_TARGET": "27.2",
+        "MARKETING_VERSION": "1.0",
+        "PRODUCT_BUNDLE_IDENTIFIER": "com.KDT8.SantasDeliveryCrisis.QuizActivityWidget",
+        "PRODUCT_NAME": "$(TARGET_NAME)",
+        "REGISTER_APP_GROUPS": "YES",
+        "SDKROOT": "auto",
+        "SKIP_INSTALL": "YES",
+        "STRING_CATALOG_GENERATE_SYMBOLS": "YES",
+        "SUPPORTED_PLATFORMS": "iphoneos iphonesimulator",
+        "SUPPORTS_MACCATALYST": "NO",
+        "SWIFT_APPROACHABLE_CONCURRENCY": "YES",
+        "SWIFT_EMIT_LOC_STRINGS": "YES",
+        "SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY": "YES",
+        "SWIFT_VERSION": "5.0",
+        "TARGETED_DEVICE_FAMILY": "1,2",
+        "XROS_DEPLOYMENT_TARGET": "27.2",
       },
     },
   ],
@@ -140,5 +239,5 @@
     "XROS_DEPLOYMENT_TARGET": "27.2",
   },
   "last-upgrade": "27.0",
-  "last-swift-update": "27.0",
+  "last-swift-update": "27.2",
 }

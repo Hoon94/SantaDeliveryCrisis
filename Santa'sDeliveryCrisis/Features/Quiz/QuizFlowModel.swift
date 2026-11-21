@@ -65,7 +65,7 @@ final class QuizFlowModel {
     /// 지금 문제의 복사본. 범위를 벗어나면 nil
     var currentSnapshot: QuestionSnapshot? { session.questionSnapshots[safe: index] }
 
-    /// 지금 문제의 테마
+    /// 문제 카테고리에 따른 테마. 보상 작업과는 독립적이며 혼합 세션에서는 현재 문제를 따른다.
     var theme: QuizTheme {
         QuizTheme(category: session.category ?? currentSnapshot?.category ?? .aiUsage)
     }
@@ -243,6 +243,7 @@ final class QuizFlowModel {
             let treeCount = result.treeCompleted ? TreeRecord.slotCount : services.trees.currentTree().decorationCount
             summary = QuizResultSummary(
                 result: result,
+                task: session.task,
                 category: session.category,
                 difficulty: session.difficulty,
                 thresholdPercent: session.passThresholdPercent,
