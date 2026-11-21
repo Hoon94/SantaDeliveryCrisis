@@ -261,30 +261,7 @@ struct QuizQuestionView: View {
 
     /// 짧게 훑어보는 코드 상자. 좌우로 스크롤하거나, 눌러서 전체를 큰 창으로 볼 수 있다.
     private func codeBlock(_ code: String) -> some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            Text(code)
-                .font(.system(.callout, design: .monospaced))
-                .foregroundStyle(palette.primaryText)
-                .padding(16)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(palette.subtleBackground.opacity(0.95))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .strokeBorder(palette.border, lineWidth: 1)
-                )
-        )
-        .overlay(alignment: .topTrailing) {
-            Image(systemName: "arrow.up.left.and.arrow.down.right")
-                .font(.caption.weight(.bold))
-                .foregroundStyle(palette.secondaryText)
-                .padding(6)
-                .background(Circle().fill(palette.subtleBackground))
-                .padding(6)
-                .allowsHitTesting(false)
-        }
+        QuizCodeView(code: code)
         .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { codeFrame.rect = $0 }
         .onTapGesture { openCodePreview() }
