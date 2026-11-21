@@ -65,9 +65,9 @@ final class QuizFlowModel {
     /// 지금 문제의 복사본. 범위를 벗어나면 nil
     var currentSnapshot: QuestionSnapshot? { session.questionSnapshots[safe: index] }
 
-    /// 문제 카테고리에 따른 테마. 보상 작업과는 독립적이며 혼합 세션에서는 현재 문제를 따른다.
+    /// 문항 진행에 따른 작업 과정. 카테고리, 보상 작업, 정답 여부와는 독립적이다.
     var theme: QuizTheme {
-        QuizTheme(category: session.category ?? currentSnapshot?.category ?? .aiUsage)
+        QuizTheme(questionIndex: index, totalCount: totalCount)
     }
 
     /// 진행률 0...1. 채점을 마친 문제까지 채운다.

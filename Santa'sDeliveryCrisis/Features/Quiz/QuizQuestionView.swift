@@ -162,7 +162,7 @@ struct QuizQuestionView: View {
         .frame(maxWidth: .infinity)
     }
 
-    /// 작업, 난이도, 태그 칩. 태그에는 그 문제의 카테고리 이름이 맨 앞에 들어간다.
+    /// 스테이지, 난이도, 태그 칩. 태그에는 그 문제의 카테고리 이름이 맨 앞에 들어간다.
     /// 칩이 한 줄에 다 들어가지 않으면(큰 글자 등) 카테고리 태그만 남기고 나머지 태그를 줄인다.
     private func chips(_ snapshot: QuestionSnapshot) -> some View {
         let categoryTag = snapshot.category.categoryName
@@ -175,7 +175,11 @@ struct QuizQuestionView: View {
 
     private func chipRow(categoryTag: String, extraTag: String?) -> some View {
         HStack(spacing: 8) {
-            chip(model.session.task.displayName, tint: model.session.task.themeColor, filled: true)
+            chip(
+                QuizStage(task: model.session.task, difficulty: model.session.difficulty).title,
+                tint: model.session.task.themeColor,
+                filled: true
+            )
             chip(model.session.difficulty.displayName, tint: .nightSecondaryText, filled: false)
             chip("#\(categoryTag)", tint: .nightSecondaryText, filled: false)
             if let extraTag {

@@ -1,13 +1,10 @@
 import SwiftUI
 
-/// 퀴즈 화면의 테마. 배경과 문제에 반응하는 캐릭터를 정한다.
-///
-/// 지금은 작업(카테고리)과 일대일로 연결한다. 테마를 카테고리와 따로 고르게 되면 `init(category:)`만 바꾸면 된다.
-// FIXME: [자산 교체] 배경은 흐릿한 글자와 색으로 대신하고, 캐릭터는 이모지로 대신한다. 실제 일러스트가 오면 교체
+/// 문항 진행에 따른 작업 과정. 배경과 캐릭터는 문제 카테고리와 독립적으로 정한다.
 enum QuizTheme: CaseIterable, Hashable {
     case wish, factory, wrap, sleigh
 
-    /// 카테고리에 해당하는 테마
+    /// 기존 결과 화면의 배경을 보존하기 위한 카테고리 연결. 풀이 과정 계산에는 사용하지 않는다.
     init(category: QuizCategory) {
         switch category {
         case .aiUsage: self = .wish
@@ -17,7 +14,32 @@ enum QuizTheme: CaseIterable, Hashable {
         }
     }
 
-    /// 테마의 카테고리
+    /// 실제 세션 문항 수를 네 과정에 균등하게 나누고, 남는 문항은 뒤쪽 과정부터 배정한다.
+    /// 문항 번호는 0부터 시작한다. 빈 세션은 기본 과정, 범위 밖 번호는 처음 또는 마지막 문항을 따른다.
+    init(questionIndex: Int, totalCount: Int) {
+        guard totalCount > 0 else {
+            self = .wish
+            return
+        }
+
+        let themes = Self.allCases
+        let baseCount = totalCount / themes.count
+        let remainder = totalCount % themes.count
+        let index = min(max(questionIndex, 0), totalCount - 1)
+        var endIndex = 0
+
+        for (offset, theme) in themes.enumerated() {
+            endIndex += baseCount + (offset >= themes.count - remainder ? 1 : 0)
+            if index < endIndex {
+                self = theme
+                return
+            }
+        }
+
+        self = .sleigh
+    }
+
+    /// 기존 과정별 이름과 색을 가져오는 표시용 연결. 현재 문제의 카테고리를 뜻하지 않는다.
     var category: QuizCategory {
         switch self {
         case .wish: .aiUsage
