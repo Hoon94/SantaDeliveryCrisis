@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>산타의 작업실 · 픽셀 앱 디자인</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="studio-header"><div><p class="eyebrow">SANTA'S DELIVERY CRISIS / PIXEL APP STUDY</p><h1>배우고, 모으고, 트리를 완성하는 작은 게임.</h1><p>공방 장인 산타를 중심으로 연결한 앱 전체 디자인 시안</p></div><a href="../index.html">← 시안 모음</a></header>
+<div class="studio-toolbar"><div class="view-switch"><button data-view="experience" class="active">앱 체험</button><button data-view="overview">전체 화면 한눈에</button></div><div class="studio-options"><label><input type="checkbox" id="night-mode">다크 모드</label><label><input type="checkbox" id="motion-mode" checked>움직임</label><button data-action="reset-demo">시안 처음부터</button></div></div>
+<main class="studio" id="experience">
+<nav class="screen-rail" aria-label="시안 화면 바로가기"><p class="rail-label">SCREEN LIBRARY</p><div id="screen-library"></div></nav>
+<section class="device-area" aria-label="앱 체험"><div class="phone" id="phone"><div class="status-bar"><strong>12:41</strong><span>▮▮▮ &nbsp; ▰</span></div><div id="app" class="app"></div><div class="home-indicator"></div><div id="flight-layer"></div></div><p class="device-caption">버튼을 눌러 화면을 이동해 보세요.</p></section>
+<aside class="inspector"><p class="rail-label">CURRENT SCENE</p><h2 id="scene-title"></h2><p id="scene-description"></p><div class="flow-map"><span>작업실</span><i>↓</i><span>조건 선택 · 장식 선택</span><i>↓</i><span>문제 · 정답 확인</span><i>↓</i><span>결과 · 장식 획득</span><i>↓</i><span>작업실로 돌아오기</span></div><div class="inspector-note"><h3>이 시안의 방향</h3><p>풍성한 픽셀 일러스트<br>손으로 만든 나무 테두리<br>따뜻한 양피지 대화 패널<br>명확하고 읽기 쉬운 문제</p></div><details><summary>보조 상태도 살펴보기</summary><div class="state-buttons"><button data-demo="resume">진행 중 세션</button><button data-demo="shortage">문제 후보 부족</button><button data-demo="already">이미 받은 장식</button><button data-demo="failed">기준 미달 결과</button><button data-demo="empty-records">기록 없음</button><button data-demo="denied">알림 권한 차단</button><button data-demo="save-error">결과 저장 실패</button></div></details><p class="prototype-note">디자인 체험용 임시 데이터입니다. 실제 앱이나 기기 설정에는 반영하지 않습니다.</p></aside>
+</main>
+<section id="overview" class="overview" hidden><div class="overview-header"><h2>연결되는 화면들</h2><p>각 카드를 누르면 해당 화면부터 체험할 수 있습니다.</p></div><div id="overview-grid" class="overview-grid"></div></section>
+<footer class="studio-footer">큰 트리가 주인공인 픽셀 작업실. 보상 장식은 별도 레이어로 관리하고, 게임의 분위기는 배경·아이콘·짧은 움직임에 담았습니다.</footer>
+<script src="app.js"></script>
+</body>
+</html>
