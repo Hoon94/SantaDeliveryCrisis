@@ -24,10 +24,10 @@ struct FailingPreviewSessionManager: SessionManaging {
 
     /// 지정한 경우 생성 전에 오류를 던져 새 세션을 만들지 않는다.
     func startSession(
-        category: QuizCategory?, difficulty: Difficulty, tags: Set<String>, count: Int
+        task: WorkshopTask, categories: Set<QuizCategory>, difficulty: Difficulty, tags: Set<String>, count: Int
     ) throws -> QuizSession {
         if failure == .start { throw PreviewError.simulated }
-        return try base.startSession(category: category, difficulty: difficulty, tags: tags, count: count)
+        return try base.startSession(task: task, categories: categories, difficulty: difficulty, tags: tags, count: count)
     }
 
     /// 답 제출은 주입된 서비스에 위임하며 오류를 그대로 전달한다.

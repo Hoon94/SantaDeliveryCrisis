@@ -175,7 +175,7 @@ struct QuizQuestionView: View {
 
     private func chipRow(categoryTag: String, extraTag: String?) -> some View {
         HStack(spacing: 8) {
-            chip(model.theme.title, tint: model.theme.accent, filled: true)
+            chip(model.session.task.displayName, tint: model.session.task.themeColor, filled: true)
             chip(model.session.difficulty.displayName, tint: .nightSecondaryText, filled: false)
             chip("#\(categoryTag)", tint: .nightSecondaryText, filled: false)
             if let extraTag {

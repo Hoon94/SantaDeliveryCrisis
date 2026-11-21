@@ -30,12 +30,9 @@ protocol QuestionSelecting {
 
 /// 세션 생성·진행·종료. SwiftData 저장을 담당한다.
 protocol SessionManaging {
-    /// 세션을 시작한다. category가 nil이면 4개 작업 전체에서 고른다.
-    func startSession(category: QuizCategory?, difficulty: Difficulty, tags: Set<String>, count: Int) throws -> QuizSession
-
     /// 선택한 카테고리들에서 문제를 고르게 섞어 세션을 시작한다(`select(categories:...)` 규칙).
     /// 카테고리가 하나면 그 카테고리, 둘 이상이면 `QuizSession.category`는 nil이다.
-    func startSession(categories: Set<QuizCategory>, difficulty: Difficulty, tags: Set<String>, count: Int) throws -> QuizSession
+    func startSession(task: WorkshopTask, categories: Set<QuizCategory>, difficulty: Difficulty, tags: Set<String>, count: Int) throws -> QuizSession
 
     /// `questionIndex`번째 문제(0부터)에 답을 저장한다. 문제는 순서대로만 제출할 수 있다.
     /// 이미 답이 있는 문제에 다시 호출하면 처음 저장된 답을 돌려주고 새로 저장하지 않는다.
@@ -77,7 +74,10 @@ struct SessionResult {
     let totalCount: Int
     let accuracyPercent: Int
     let elapsed: TimeInterval
-    /// 기준 미만이면 0, 아니면 1
+    /// 시작 당시 기준값으로 판정한 통과 여부. 보상 중복 여부와 독립적이다.
+    let passedThreshold: Bool
+    let rewardOutcome: RewardOutcome
+    /// 새로운 작업·난이도 칸을 획득했으면 1, 아니면 0
     let earnedDecorations: Int
     /// 이번 세션으로 트리가 완성되었는가
     let treeCompleted: Bool
@@ -89,9 +89,9 @@ protocol TreeManaging {
     /// 현재 꾸미는 트리. 없으면 새로 만든다.
     func currentTree() -> TreeRecord
 
-    /// 장식을 지급한다. 12칸이 차면 완성 처리 후 빈 트리를 새로 시작한다. 보상이 항상 1개라 이월은 없다.
+    /// 작업·난이도 칸을 처음 획득할 때만 지급한다. 12칸이 차면 완성 후 빈 트리를 만든다.
     /// 같은 ModelContext에서 값만 바꾸고, 저장(save)은 `SessionManaging.finish`가 한 번만 호출한다.
-    func grant(decorations: Int) throws -> TreeGrantResult
+    func grant(task: WorkshopTask, difficulty: Difficulty) throws -> TreeGrantResult
 
     /// 완성된 트리 목록
     func completedTrees() -> [TreeRecord]
@@ -103,6 +103,7 @@ struct TreeGrantResult {
     let completedTree: TreeRecord?
     /// 지급 후 현재 트리의 장식 수
     let currentDecorationCount: Int
+    let rewardOutcome: RewardOutcome
 }
 
 /// 효과음과 햅틱
@@ -141,13 +142,4 @@ enum TraceSceneAction { case none }
 protocol TraceSceneRegistry {
     /// 장면을 찾지 못하면 nil
     func scene(for animationID: String) -> (steps: [TraceStep], view: AnyView)?
-}
-
-extension SessionManaging {
-    /// 기본 구현: 카테고리가 하나면 그 카테고리로, 아니면 전체 혼합(nil)으로 시작한다.
-    /// 실제 서비스(`SessionManager`)는 선택한 카테고리만 고르게 섞는 구현으로 대체한다.
-    func startSession(categories: Set<QuizCategory>, difficulty: Difficulty, tags: Set<String>, count: Int) throws -> QuizSession {
-        try startSession(category: categories.count == 1 ? categories.first : nil,
-                         difficulty: difficulty, tags: tags, count: count)
-    }
 }

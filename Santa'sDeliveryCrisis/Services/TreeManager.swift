@@ -27,28 +27,22 @@ final class TreeManager: TreeManaging {
         return tree
     }
 
-    /// 장식을 지급한다. 12칸이 차면 완성 처리하고 빈 트리를 새로 시작한다.
-    /// - Parameter decorations: 지급할 장식 수. 0이면 아무것도 바꾸지 않는다. 음수는 오류
-    func grant(decorations: Int) throws -> TreeGrantResult {
-        guard decorations >= 0 else { throw TreeError.negativeDecorations }
-
-        var tree = currentTree()
-        var completedTree: TreeRecord?
-
-        // 한 개씩 쌓는다. 보상은 항상 1개라 이월은 생기지 않지만, 여러 개가 와도 안전하게 처리한다.
-        for _ in 0..<decorations {
-            tree.decorationCount += 1
-            if tree.decorationCount >= TreeRecord.slotCount {
-                tree.decorationCount = TreeRecord.slotCount
-                tree.completedAt = now()
-                completedTree = tree
-
-                let next = TreeRecord(startedAt: now())
-                context.insert(next)
-                tree = next
-            }
+    /// 아직 획득하지 않은 작업·난이도 칸을 채우고, 12칸을 모두 채우면 다음 트리를 만든다.
+    func grant(task: WorkshopTask, difficulty: Difficulty) throws -> TreeGrantResult {
+        let tree = currentTree()
+        guard tree.recordReward(task: task, difficulty: difficulty) else {
+            return TreeGrantResult(
+                completedTree: nil, currentDecorationCount: tree.decorationCount, rewardOutcome: .alreadyEarned
+            )
         }
-        return TreeGrantResult(completedTree: completedTree, currentDecorationCount: tree.decorationCount)
+        guard tree.decorationCount == TreeRecord.slotCount else {
+            return TreeGrantResult(
+                completedTree: nil, currentDecorationCount: tree.decorationCount, rewardOutcome: .earned
+            )
+        }
+        tree.completedAt = now()
+        context.insert(TreeRecord(startedAt: now()))
+        return TreeGrantResult(completedTree: tree, currentDecorationCount: 0, rewardOutcome: .earned)
     }
 
     /// 완성된 트리 목록. 최근에 완성한 순서
@@ -67,16 +61,5 @@ final class TreeManager: TreeManaging {
         return all
             .filter { $0.completedAt == nil }
             .sorted { $0.startedAt < $1.startedAt }
-    }
-}
-
-/// 트리 처리 중 생기는 오류
-enum TreeError: Error, LocalizedError {
-    case negativeDecorations
-
-    var errorDescription: String? {
-        switch self {
-        case .negativeDecorations: "장식 수는 0 이상이어야 합니다."
-        }
     }
 }

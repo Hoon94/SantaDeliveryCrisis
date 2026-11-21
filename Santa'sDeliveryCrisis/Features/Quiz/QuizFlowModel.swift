@@ -243,6 +243,7 @@ final class QuizFlowModel {
             let treeCount = result.treeCompleted ? TreeRecord.slotCount : services.trees.currentTree().decorationCount
             summary = QuizResultSummary(
                 result: result,
+                task: session.task,
                 category: session.category,
                 difficulty: session.difficulty,
                 thresholdPercent: session.passThresholdPercent,

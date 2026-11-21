@@ -17,7 +17,7 @@ for f in Question QuizSession TreeRecord; do
   sed -E 's/^import SwiftData$//; s/@Model //; s/@Attribute\(\.unique\) //; s/@Relationship\(deleteRule: \.cascade\) //' \
     "$APP/Models/$f.swift" > "$WORK/models/$f.swift"
 done
-cp "$APP/Models/Enums.swift" "$APP/Models/QuestionSnapshot.swift" "$WORK/models/"
+cp "$APP/Models/Enums.swift" "$APP/Models/WorkshopTask.swift" "$APP/Models/QuestionSnapshot.swift" "$WORK/models/"
 
 swiftc -swift-version 5 -default-isolation MainActor -suppress-warnings \
   "$WORK"/models/*.swift \

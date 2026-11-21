@@ -5,6 +5,9 @@ struct SelectableDecoration: View {
     /// 선택한 카테고리 전체의 후보 수에서 계산한 활성 상태.
     let availability: DecorationAvailability
 
+    /// 현재 트리의 획득 칸. 시작 가능 여부와 별도로 표시한다.
+    var rewardMask: Int = 0
+
     /// 활성 장식을 눌렀을 때만 호출하는 세션 진입 동작.
     let onSelect: () -> Void
 
@@ -15,12 +18,31 @@ struct SelectableDecoration: View {
                 guard availability.isEnabled else { return }
                 onSelect()
             } label: {
-                DecorationView(category: availability.category, isLit: availability.isEnabled)
+                DecorationView(task: availability.task, isLit: availability.isEnabled)
                     .contentShape(Circle())
             }
             .buttonStyle(.plain)
             .disabled(availability.isEnabled == false)
-            .accessibilityLabel("\(availability.category.taskName), \(availability.isEnabled ? "켜짐" : "꺼짐")")
+            .accessibilityLabel("\(availability.task.displayName), \(availability.isEnabled ? "켜짐" : "꺼짐")")
+
+            HStack(spacing: 8) {
+                ForEach(Difficulty.allCases, id: \.self) { difficulty in
+                    let earned = rewardMask & availability.task.rewardBit(for: difficulty) != 0
+                    Circle()
+                        .fill(earned ? indicatorColor(difficulty) : .clear)
+                        .overlay { Circle().strokeBorder(indicatorColor(difficulty), lineWidth: 1.5) }
+                        .frame(width: 10, height: 10)
+                        .accessibilityLabel("\(availability.task.displayName), \(difficulty.displayName), \(earned ? "장식 획득" : "미획득")")
+                }
+            }
+            .opacity(availability.isEnabled ? 1 : 0.5)
+        }
+    }
+    private func indicatorColor(_ difficulty: Difficulty) -> Color {
+        switch difficulty {
+        case .easy: .green
+        case .normal: .orange
+        case .hard: .red
         }
     }
 }
@@ -68,7 +90,7 @@ private struct DecorationAvailabilityPreview: View {
         )
         ScrollView {
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 30) {
-                ForEach(results, id: \.category) { result in
+                ForEach(results, id: \.task) { result in
                     SelectableDecoration(availability: result, onSelect: {})
                 }
             }
