@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>산타의 작업실 · 일러스트 조합 실험</title>
+<style>
+  :root { color-scheme:light; --ink:#203b32; --muted:#778076; --paper:#f8f5ec; --line:#deded0; --red:#a33336; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font:15px/1.6 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif; }
+  button,input { font:inherit; } button { cursor:pointer; color:inherit; }
+  button:focus-visible,input:focus-visible { outline:3px solid #c99e49; outline-offset:4px; }
+  header { max-width:1300px; margin:auto; padding:38px 32px 24px; display:flex; justify-content:space-between; align-items:center; gap:20px; }
+  .eyebrow { margin:0 0 10px; font-size:11px; font-weight:700; letter-spacing:.18em; color:var(--red); }
+  h1 { margin:0; font-family:Georgia,"Apple SD Gothic Neo",serif; font-size:clamp(28px,4vw,46px); letter-spacing:-.05em; line-height:1.2; }
+  .intro { color:var(--muted); margin:12px 0 0; max-width:660px; }
+  .edition { flex:none; border:1px solid var(--line); border-radius:50%; width:86px; height:86px; display:grid; place-content:center; text-align:center; font-size:11px; line-height:1.4; }
+  .edition strong { font-family:Georgia,serif; font-size:30px; line-height:1.1; }
+  main { max-width:1300px; padding:0 32px 64px; margin:auto; }
+  .workbench { display:grid; grid-template-columns:minmax(0,1.4fr) minmax(310px,1fr); border-top:1px solid var(--line); padding-top:26px; gap:36px; align-items:start; }
+  .hero-wrap { position:sticky; top:24px; }
+  .scene { position:relative; aspect-ratio:220/214; overflow:hidden; isolation:isolate; background:#23392e; border-radius:18px; }
+  .hero-scene { box-shadow:0 16px 40px #30452d20; }
+  .room-art { width:100%; height:100%; display:block; object-fit:fill; }
+  .scene .santa { position:absolute; z-index:3; width:calc(34.5% * var(--scale,1)); height:calc(46% * var(--scale,1)); bottom:2%; left:0; }
+  .santa-crop { width:100%; height:100%; overflow:hidden; }
+  .santa img { display:block; width:100%; height:100%; object-fit:contain; }
+  .santa.sprite img { width:400%; max-width:none; object-fit:fill; }
+  .scene.live .santa.sprite img { animation:poses 7s step-end infinite; }
+  .scene.live .santa:not(.sprite) .santa-crop { animation:reach 5s ease-in-out infinite; transform-origin:50% 96%; }
+  @keyframes poses { 0%,22%{transform:translateX(0)} 23%,33%{transform:translateX(-25%)} 34%,53%{transform:translateX(-50%)} 54%,65%{transform:translateX(-25%)} 66%,100%{transform:translateX(-75%)} }
+  @keyframes reach { 0%,100%{transform:rotate(-1deg) translateY(0)} 40%,65%{transform:rotate(2deg) translateY(-2%)} }
+  .warmth { position:absolute; inset:0; pointer-events:none; z-index:1; background:radial-gradient(ellipse at 50% 13%,#ffd27a44,transparent 18%),radial-gradient(ellipse at 87% 60%,#ffb04128,transparent 25%); mix-blend-mode:screen; }
+  .scene.live .warmth { animation:glow 4s ease-in-out infinite alternate; }
+  @keyframes glow { from{opacity:.5} to{opacity:1} }
+  .lights { position:absolute; inset:0; z-index:2; width:100%; height:100%; pointer-events:none; }
+  .lights path { fill:none; stroke:#e6c272; stroke-width:.35; opacity:.65; }
+  .lights circle { fill:#fff1ad; filter:drop-shadow(0 0 2px #ffd34f); }
+  .live .lights circle { animation:glow 3s ease-in-out infinite alternate; }
+  .lights circle:nth-child(3n) { animation-delay:-1.4s; }
+  .slots { position:absolute; inset:0; z-index:4; pointer-events:none; }
+  .slot { position:absolute; width:5.5%; aspect-ratio:1; border:1px dashed #fff7dc9c; border-radius:50%; transform:translate(-50%,-50%); background:#18362912; }
+  .slot.earned { width:6.36%; border:1px solid #fff3c9; background:radial-gradient(circle at 32% 25%,#fffded 0 6%,var(--bauble) 17% 58%,#352a2b 100%); box-shadow:0 0 12px color-mix(in srgb,var(--bauble) 55%,transparent); }
+  .slot.earned:before { content:""; position:absolute; top:-17%; left:37%; width:26%; height:22%; border-radius:2px; background:#e4b965; }
+  .count { position:absolute; top:12px; right:12px; background:#fff9eced; border:1px solid #e6dac3; color:#374034; padding:4px 10px; border-radius:20px; font-size:12px; font-weight:700; z-index:5; }
+  .caption { margin-top:16px; display:flex; justify-content:space-between; gap:16px; align-items:start; }
+  .caption strong { font-size:18px; } .caption p { color:var(--muted); font-size:13px; margin:3px 0; }
+  .tag { background:#e7ebdf; font-size:11px; padding:5px 9px; border-radius:20px; white-space:nowrap; }
+  .group { padding-bottom:23px; margin-bottom:22px; border-bottom:1px solid var(--line); }
+  h2 { font-size:16px; margin:0 0 13px; letter-spacing:-.02em; }
+  h2 span { font:12px Georgia,serif; color:var(--red); margin-right:9px; }
+  .room-options { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .room-option { display:flex; align-items:center; text-align:left; gap:9px; padding:6px; border:1px solid var(--line); border-radius:11px; background:transparent; }
+  .room-option img { width:55px; height:55px; border-radius:7px; object-fit:cover; }
+  .room-option b { display:block; font-size:12px; }.room-option small { font-size:10px; color:var(--muted); }
+  button[aria-pressed="true"] { border-color:var(--ink); background:#e7ebdf; box-shadow:inset 0 0 0 1px var(--ink); }
+  .santa-options { display:grid; grid-template-columns:repeat(4,1fr); gap:9px; }
+  .santa-option { background:#f0eee3; border:1px solid var(--line); border-radius:12px; padding:8px 4px; min-width:0; }
+  .portrait { height:83px; overflow:hidden; width:62px; max-width:100%; margin:0 auto 5px; }
+  .portrait img { height:100%; width:100%; object-fit:contain; }
+  .portrait.sprite img { width:400%; max-width:none; object-fit:fill; }
+  .santa-option b { display:block; font-size:11px; } .santa-option small { font-size:10px; color:var(--muted); }
+  .range-row { display:flex; justify-content:space-between; align-items:center; margin:11px 0 3px; font-size:13px; }
+  output { font-variant-numeric:tabular-nums; font-weight:700; }
+  input[type="range"] { width:100%; accent-color:var(--ink); }
+  .checks { display:flex; flex-wrap:wrap; gap:9px 18px; margin-top:17px; font-size:12px; }
+  .checks label { display:flex; gap:5px; align-items:center; } input[type="checkbox"] { accent-color:var(--ink); }
+  .note { font-size:11px; color:var(--muted); margin:13px 0 0; }
+  .actions { display:flex; gap:9px; flex-wrap:wrap; }
+  .actions button { border:1px solid var(--ink); padding:10px 16px; border-radius:9px; background:var(--ink); color:white; font-size:12px; font-weight:600; }
+  .actions button.secondary { background:transparent; color:var(--ink); }
+  #status { min-height:22px; margin-top:9px; font-size:12px; color:var(--red); }
+  .matrix-section { margin-top:56px; border-top:1px solid var(--line); padding-top:25px; }
+  .matrix-head { display:flex; align-items:center; justify-content:space-between; gap:20px; margin-bottom:22px; }
+  .matrix-head h2 { font-size:24px; margin:0; }.matrix-head p { color:var(--muted); font-size:12px; margin:5px 0 0; }
+  .matrix { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:25px 16px; }
+  .combination { appearance:none; border:0; padding:0; text-align:left; background:none; }
+  .combination .scene { border-radius:12px; transition:transform .2s; }
+  .combination:hover .scene { transform:translateY(-4px); }
+  .combination strong { display:block; font-size:12px; margin-top:9px; }.combination small { font-size:11px; color:var(--muted); }
+  .combination .count { font-size:9px; top:7px; right:7px; padding:2px 7px; }
+  .favorites { margin-top:26px; font-size:12px; } .favorites button { margin:4px; padding:6px 10px; border:1px solid var(--line); background:transparent; border-radius:20px; }
+  footer { margin-top:40px; padding-top:18px; border-top:1px solid var(--line); color:var(--muted); font-size:11px; }
+  @media(max-width:900px) { header,main{padding-left:20px;padding-right:20px}.workbench{grid-template-columns:1fr 1fr;gap:20px}.room-options{grid-template-columns:1fr}.hero-wrap{top:14px}.santa-options{grid-template-columns:repeat(2,1fr)}.matrix{grid-template-columns:repeat(3,1fr)} }
+  @media(max-width:600px) { header{padding-top:24px}.edition{display:none}.workbench{grid-template-columns:1fr}.hero-wrap{position:static}.room-options{grid-template-columns:1fr 1fr}.santa-options{grid-template-columns:repeat(4,1fr)}.matrix{grid-template-columns:repeat(2,1fr)}.caption strong{font-size:16px} }
+  @media(prefers-reduced-motion:reduce) { *,*:before,*:after { animation:none!important; transition:none!important; } }
+</style>
+</head>
+<body>
+<header>
+  <div><p class="eyebrow">SANTA'S WORKSHOP / ART DIRECTION STUDY</p><h1>산타의 방을 골라주세요.</h1><p class="intro">큰 트리가 주인공인 네 개의 작업실, 네 명의 산타.<br>그림의 분위기와 캐릭터를 자유롭게 섞어 다음 방향을 골라보세요.</p></div>
+  <div class="edition"><strong>16</strong>조합 실험</div>
+</header>
+<main>
+  <section class="workbench" aria-label="작업실 조합 편집">
+    <div class="hero-wrap">
+      <div id="hero"></div>
+      <div class="caption"><div><strong id="selection-title"></strong><p id="selection-description"></p></div><span class="tag" id="selection-code"></span></div>
+    </div>
+    <aside>
+      <div class="group"><h2><span>01</span>작업실의 분위기</h2><div class="room-options" id="room-options"></div></div>
+      <div class="group"><h2><span>02</span>곁에서 꾸미는 산타</h2><div class="santa-options" id="santa-options"></div></div>
+      <div class="group">
+        <h2><span>03</span>실제 화면처럼 살펴보기</h2>
+        <label class="range-row" for="santa-scale">산타 크기 <output id="scale-label">100%</output></label><input id="santa-scale" type="range" min="75" max="140" value="100" step="5">
+        <label class="range-row" for="reward-count">획득한 장식 <output id="reward-label">2 / 12</output></label><input id="reward-count" type="range" min="0" max="12" value="2" step="1">
+        <div class="checks"><label><input id="motion" type="checkbox" checked>움직임</label><label><input id="lighting" type="checkbox" checked>전구와 조명</label><label><input id="slots" type="checkbox" checked>장식 칸</label></div>
+        <p class="note">배경에는 보상 장식을 그려 넣지 않았습니다. 원형 장식은 실제 앱과 같은 12칸에만 표시합니다. 움직임은 방향을 고르기 위한 시안이며, 캐릭터별 최종 동작은 선택 후 다듬습니다.</p>
+      </div>
+      <div class="actions"><button id="save">이 조합 후보로 저장</button><button id="copy" class="secondary">선택 내용 복사</button></div><div id="status" role="status" aria-live="polite"></div>
+    </aside>
+  </section>
+  <section class="matrix-section" aria-label="전체 조합 비교">
+    <div class="matrix-head"><div><h2>16개의 작은 작업실</h2><p>마음에 드는 조합을 누르면 위에서 크게 볼 수 있어요. 아래 비교판에는 움직임을 멈춰두었습니다.</p></div><span class="tag">4 ROOMS × 4 SANTAS</span></div>
+    <div class="matrix" id="matrix"></div>
+    <div class="favorites" id="favorites"></div>
+  </section>
+  <footer>앱에 적용하기 전 비교용 HTML 시안입니다. 배경·캐릭터는 개별 이미지 레이어이며 장식과 조명은 분리되어 있습니다. 외부 라이브러리나 네트워크 연결 없이 열 수 있습니다.</footer>
+</main>
+<script>
+const rooms = [
+  {id:'classic-room', code:'A',name:'따뜻한 동화 공방',short:'호박빛 · 목재 · 벽난로',description:'풍성한 솔잎과 나무 질감. 지금 시안의 따뜻함을 이어가는 방향.'},
+  {id:'nordic-room', code:'B',name:'북유럽 겨울밤',short:'남색 · 달빛 · 호롱불',description:'차가운 창밖과 따뜻한 실내의 대비. 조용하고 신비로운 겨울밤.'},
+  {id:'paper-room', code:'C',name:'종이 그림책',short:'아이보리 · 크랜베리 · 종이결',description:'겹겹이 오린 종이와 부드러운 그림자. 손으로 만든 그림책 같은 방.'},
+  {id:'glass-room', code:'D',name:'산타의 유리 온실',short:'청록 · 황동 · 푸른 전나무',description:'눈 덮인 정원과 빈티지 온실. 나무를 정성껏 가꾸는 특별한 작업실.'}
+];
+const santas = [
+  {id:'classic-santa',code:'1',name:'동화 산타',short:'붉은 코트',sprite:true},
+  {id:'woodland-santa',code:'2',name:'숲의 산타',short:'초록 롱코트'},
+  {id:'felt-santa',code:'3',name:'둥근 산타',short:'폭신한 모직'},
+  {id:'artisan-santa',code:'4',name:'장인 산타',short:'안경과 앞치마'}
+];
+const points=[[110,62],[98,92],[122,92],[88,120],[110,120],[132,120],[80,148],[110,148],[140,148],[70,176],[110,176],[150,176]];
+const colors=['#e64a59','#f4c84b','#4d9ed3','#e584a5','#56b67c','#e5a35f'];
+const state={room:0,santa:0,scale:1,count:2,motion:!matchMedia('(prefers-reduced-motion: reduce)').matches,lighting:true,slots:true};
+let favorites=[]; try {favorites=JSON.parse(localStorage.getItem('workshop-art-favorites')||'[]'); if(!Array.isArray(favorites)) favorites=[];} catch {}
+const el=id=>document.getElementById(id);
+const asset=id=>'assets/'+id+'.png';
+function lights(){
+ let paths='',bulbs='';
+ for(let row=0;row<3;row++){
+  let reach=29+row*20,base=88+row*39,points=[];
+  for(let x=-reach;x<=reach;x+=1)points.push([110+x,base+7*Math.cos(x/reach*2.2)]);
+  paths+='<path d="M'+points.map(p=>p.join(',')).join(' L')+'"/>';
+  for(let x=-Math.floor(reach/9)*9;x<=reach;x+=9)bulbs+='<circle cx="'+(110+x)+'" cy="'+(base+7*Math.cos(x/reach*2.2))+'" r=".85"/>';
+ }
+ return '<svg class="lights" viewBox="0 0 220 214" aria-hidden="true">'+paths+bulbs+'</svg><div class="warmth"></div>';
+}
+function scene(roomIndex,santaIndex,live=false){
+ const room=rooms[roomIndex],santa=santas[santaIndex];
+ let slots=state.slots?'<div class="slots">'+points.map(([x,y],i)=>'<span class="slot '+(i<state.count?'earned':'')+'" style="left:'+x/220*100+'%;top:'+y/214*100+'%;--bauble:'+colors[i%6]+'"></span>').join('')+'</div>':'';
+ return '<div class="scene '+(live&&state.motion?'live':'')+'" style="--scale:'+state.scale+'"><img class="room-art" src="'+asset(room.id)+'" alt="'+room.name+'의 큰 트리와 방 일러스트"><div class="santa '+(santa.sprite?'sprite':'')+'"><div class="santa-crop"><img src="'+asset(santa.id)+'" alt="'+santa.name+'"></div></div>'+(state.lighting?lights():'')+slots+'<div class="count">'+state.count+' / 12</div></div>';
+}
+function renderHero(){
+ el('hero').innerHTML=scene(state.room,state.santa,true);
+ el('selection-title').textContent=rooms[state.room].name+' × '+santas[state.santa].name;
+ el('selection-description').textContent=rooms[state.room].description;
+ el('selection-code').textContent='조합 '+rooms[state.room].code+santas[state.santa].code;
+ document.querySelectorAll('[data-room]').forEach(b=>b.setAttribute('aria-pressed',Number(b.dataset.room)===state.room));
+ document.querySelectorAll('[data-santa]').forEach(b=>b.setAttribute('aria-pressed',Number(b.dataset.santa)===state.santa));
+ el('scale-label').textContent=Math.round(state.scale*100)+'%'; el('reward-label').textContent=state.count+' / 12';
+}
+function renderMatrix(){el('matrix').innerHTML=rooms.map((r,ri)=>santas.map((s,si)=>'<button class="combination" data-combination="'+ri+','+si+'" aria-label="조합 '+r.code+s.code+' 크게 보기">'+scene(ri,si)+'<strong>'+r.code+s.code+' · '+r.name+'</strong><small>'+s.name+'</small></button>').join('')).join('');}
+function renderFavorites(){
+ const valid=favorites.filter(f=>rooms[f.room]&&santas[f.santa]);
+ el('favorites').innerHTML=valid.length?'저장한 후보 '+valid.map((f,i)=>'<button data-favorite="'+favorites.indexOf(f)+'">'+rooms[f.room].code+santas[f.santa].code+' · '+rooms[f.room].name+' × '+santas[f.santa].name+'</button>').join(''):'';
+}
+function select(room,santa){state.room=room;state.santa=santa;renderHero();el('status').textContent='';}
+el('room-options').innerHTML=rooms.map((r,i)=>'<button class="room-option" data-room="'+i+'" aria-pressed="false"><img src="'+asset(r.id)+'" alt=""><span><b>'+r.code+' · '+r.name+'</b><small>'+r.short+'</small></span></button>').join('');
+el('santa-options').innerHTML=santas.map((s,i)=>'<button class="santa-option" data-santa="'+i+'" aria-pressed="false"><div class="portrait '+(s.sprite?'sprite':'')+'"><img src="'+asset(s.id)+'" alt=""></div><b>'+s.code+' · '+s.name+'</b><small>'+s.short+'</small></button>').join('');
+document.addEventListener('click',event=>{
+ const room=event.target.closest('[data-room]'),santa=event.target.closest('[data-santa]'),combination=event.target.closest('[data-combination]'),favorite=event.target.closest('[data-favorite]');
+ if(room)select(Number(room.dataset.room),state.santa);
+ if(santa)select(state.room,Number(santa.dataset.santa));
+ if(combination){select(...combination.dataset.combination.split(',').map(Number));el('hero').scrollIntoView({behavior:state.motion?'smooth':'instant',block:'start'});}
+ if(favorite){const f=favorites[Number(favorite.dataset.favorite)];state.scale=f.scale;state.count=f.count;el('santa-scale').value=f.scale*100;el('reward-count').value=f.count;select(f.room,f.santa);renderMatrix();}
+});
+el('santa-scale').addEventListener('input',event=>{state.scale=Number(event.target.value)/100;renderHero();renderMatrix();});
+el('reward-count').addEventListener('input',event=>{state.count=Number(event.target.value);renderHero();renderMatrix();});
+for(const id of ['motion','lighting','slots']){el(id).checked=state[id];el(id).addEventListener('change',event=>{state[id]=event.target.checked;renderHero();if(id!=='motion')renderMatrix();});}
+el('save').addEventListener('click',()=>{
+ if(!favorites.some(f=>f.room===state.room&&f.santa===state.santa&&f.scale===state.scale&&f.count===state.count))favorites.push({room:state.room,santa:state.santa,scale:state.scale,count:state.count});
+ try{localStorage.setItem('workshop-art-favorites',JSON.stringify(favorites));el('status').textContent='이 브라우저에 후보를 저장했어요.';}catch{el('status').textContent='현재 화면에 후보를 담았어요. 브라우저 종료 후에는 유지되지 않을 수 있어요.';}
+ renderFavorites();
+});
+el('copy').addEventListener('click',async()=>{
+ const text='작업실 조합 '+rooms[state.room].code+santas[state.santa].code+'\n배경: '+rooms[state.room].name+'\n산타: '+santas[state.santa].name+'\n산타 크기: '+Math.round(state.scale*100)+'%\n장식: '+state.count+'/12';
+ try{await navigator.clipboard.writeText(text);el('status').textContent='선택 내용을 복사했어요. 대화에 붙여 넣어주세요.';}catch{el('status').textContent=text;el('status').style.whiteSpace='pre-line';}
+});
+renderHero();renderMatrix();renderFavorites();
+</script>
+</body>
+</html>
