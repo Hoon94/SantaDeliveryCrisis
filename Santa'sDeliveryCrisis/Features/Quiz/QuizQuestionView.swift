@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// 문제 풀이 화면(S4). 상단 진행 줄, 문제와 코드, 보기 4개, 하단의 캐릭터와 [확인] 버튼.
 struct QuizQuestionView: View {
@@ -8,6 +9,8 @@ struct QuizQuestionView: View {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var bannerTheme: QuizTheme?
     /// 코드를 크게 보는 창이 열려 있는 문제의 번호. nil이면 닫힘
     @State private var codePreviewIndex: Int?
     /// 코드 상자의 화면 좌표. 창이 이 자리에서 펼쳐진다. 스크롤마다 바뀌므로 화면을 다시 그리지 않는 상자에 담아 둔다.
@@ -33,10 +36,50 @@ struct QuizQuestionView: View {
             .scrollIndicators(.hidden)
             .scrollBounceBehavior(.basedOnSize)
             .animation(.spring(response: 0.5, dampingFraction: 0.86), value: model.index)
+            .overlay(alignment: .top) {
+                if let bannerTheme, model.phase == .answering {
+                    Text("\(bannerTheme.title) 과정을 시작해요")
+                        .font(.subheadline.weight(.bold))
+                        .foregroundStyle(Color.nightPrimaryText)
+                        .padding(12)
+                        .background(Color.nightCardBackground, in: RoundedRectangle(cornerRadius: 12))
+                        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(bannerTheme.accent, lineWidth: 1.5))
+                        .padding(12)
+                        .allowsHitTesting(false)
+                        .accessibilityHidden(true)
+                }
+            }
         }
         .safeAreaInset(edge: .bottom, spacing: 0) { bottomDock }
         .overlay { codePreview }
-        .onChange(of: model.index) { codePreviewIndex = nil }
+        .onChange(of: model.index) { oldIndex, _ in
+            codePreviewIndex = nil
+            let previousTheme = QuizTheme(questionIndex: oldIndex, totalCount: model.totalCount)
+            bannerTheme = previousTheme == model.theme ? nil : model.theme
+            if bannerTheme != nil {
+                UIAccessibility.post(notification: .announcement, argument: "\(model.theme.title) 과정을 시작해요")
+            }
+        }
+        .onChange(of: model.bubble) { _, bubble in
+            if model.phase == .answering, let bubble {
+                UIAccessibility.post(notification: .announcement, argument: "\(model.theme.characterName): \(bubble)")
+            }
+        }
+        .onChange(of: model.phase) { _, phase in
+            if phase != .answering { bannerTheme = nil }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active { bannerTheme = nil }
+        }
+        .task(id: bannerTheme) {
+            guard bannerTheme != nil else { return }
+            do {
+                try await Task.sleep(for: .milliseconds(1200))
+                bannerTheme = nil
+            } catch {
+                // 과정 변경 또는 화면 종료로 취소된 이전 안내는 현재 안내를 지우지 않는다.
+            }
+        }
     }
 
     /// 코드를 누르면 열리는 큰 창. 테두리와 닫기 버튼 없이 창 안이나 바깥을 한 번 누르면 닫힌다.
@@ -196,13 +239,24 @@ struct QuizQuestionView: View {
     }
 
     /// 스테이지, 난이도, 태그 칩. 태그에는 그 문제의 카테고리 이름이 맨 앞에 들어간다.
-    /// 칩이 한 줄에 다 들어가지 않으면(큰 글자 등) 카테고리 태그만 남기고 나머지 태그를 줄인다.
+    /// 한 줄에 들어가지 않으면 추가 태그를 줄이고, 그래도 좁으면 세로로 배치한다.
     private func chips(_ snapshot: QuestionSnapshot) -> some View {
         let categoryTag = snapshot.category.categoryName
         let extraTag = snapshot.tags.first { $0 != categoryTag }
         return ViewThatFits(in: .horizontal) {
             chipRow(categoryTag: categoryTag, extraTag: extraTag)
             chipRow(categoryTag: categoryTag, extraTag: nil)
+            VStack(alignment: .leading, spacing: 8) {
+                chip(
+                    QuizStage(task: model.session.task, difficulty: model.session.difficulty).title,
+                    tint: model.session.task.themeColor,
+                    filled: true
+                )
+                chip(model.session.difficulty.displayName, tint: .nightSecondaryText, filled: false)
+                chip("#\(categoryTag)", tint: .nightSecondaryText, filled: false)
+            }
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 
