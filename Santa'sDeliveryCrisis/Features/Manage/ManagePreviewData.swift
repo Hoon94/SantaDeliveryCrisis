@@ -26,6 +26,17 @@ enum ManagePreviewData {
         sample("Optional 체이닝이 nil을 반환하는 경우는?", .swiftSyntax, .normal, isSeed: false, age: 0)
     }
 
+    /// 상세 화면 미리보기에 쓸 기본 문제. 코드, 힌트, 학습 자료, 태그가 모두 들어 있다.
+    static func sampleSeedQuestion() -> Question {
+        let question = sample("다음 코드가 출력하는 값은?", .swiftSyntax, .normal, isSeed: true, age: 0)
+        question.codeSnippet = "let value: Int? = nil\nprint(value?.description ?? \"nil\")"
+        question.hint = "옵셔널이 nil이면 오른쪽 기본값이 쓰여요."
+        question.resourceTitle = "The Swift Programming Language: Optional Chaining"
+        question.resourceURL = "https://docs.swift.org/swift-book/documentation/the-swift-programming-language/optionalchaining/"
+        question.tags = ["Optional", "nil 병합"]
+        return question
+    }
+
     private static func sample(
         _ text: String,
         _ category: QuizCategory,
