@@ -59,6 +59,10 @@ final class MockSessionManager: SessionManaging {
 
     func startSession(task: WorkshopTask, categories: Set<QuizCategory>, difficulty: Difficulty, tags: Set<String>, count: Int) throws -> QuizSession {
         guard resumableSession() == nil else { throw SessionError.sessionAlreadyInProgress }
+        let stage = QuizStage(task: task, difficulty: difficulty)
+        guard stage.isUnlocked(in: trees.currentTree().rewardMask) else {
+            throw SessionError.stageLocked(stage.title)
+        }
         let session = MockData.session()
         session.task = task
         session.category = categories.count == 1 ? categories.first : nil

@@ -32,6 +32,8 @@ protocol QuestionSelecting {
 protocol SessionManaging {
     /// 선택한 카테고리들에서 문제를 고르게 섞어 세션을 시작한다(`select(categories:...)` 규칙).
     /// 카테고리가 하나면 그 카테고리, 둘 이상이면 `QuizSession.category`는 nil이다.
+    /// 현재 트리의 첫 미획득 단계 또는 이미 획득한 단계만 시작한다. 잠긴 단계는 `SessionError.stageLocked`를 던진다.
+    /// 기존 진행 중 세션의 복원과 완료에는 새 해금 검사를 적용하지 않는다.
     func startSession(task: WorkshopTask, categories: Set<QuizCategory>, difficulty: Difficulty, tags: Set<String>, count: Int) throws -> QuizSession
 
     /// `questionIndex`번째 문제(0부터)에 답을 저장한다. 문제는 순서대로만 제출할 수 있다.

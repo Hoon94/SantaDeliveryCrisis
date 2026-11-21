@@ -170,12 +170,12 @@ func run() throws {
             return (session, try rewardManager.finish(session))
         }
 
-        let first = try finishReward(task: .giftProduction, difficulty: .easy, correct: true)
+        let first = try finishReward(task: .wishReception, difficulty: .easy, correct: true)
         check(first.result.passedThreshold && first.result.rewardOutcome == .earned
               && first.result.earnedDecorations == 1 && first.session.rewardOutcome == .earned
               && rewardTrees.currentTree().decorationCount == 1, "보상 결과: 처음 통과는 earned, 1칸 획득")
 
-        let repeated = try finishReward(task: .giftProduction, difficulty: .easy, correct: true)
+        let repeated = try finishReward(task: .wishReception, difficulty: .easy, correct: true)
         check(repeated.result.passedThreshold && repeated.result.rewardOutcome == .alreadyEarned
               && repeated.result.earnedDecorations == 0 && rewardTrees.currentTree().decorationCount == 1,
               "보상 결과: 같은 칸 재통과는 alreadyEarned, 개수 유지")
@@ -189,22 +189,22 @@ func run() throws {
               && rewardContext.saves == saves && rewardTrees.currentTree().decorationCount == 1,
               "보상 결과: 완료 후 finish 재호출은 확정 결과 유지, 저장·추가 지급 없음")
 
-        let missed = try finishReward(task: .wrapping, difficulty: .normal, correct: false)
+        let missed = try finishReward(task: .giftProduction, difficulty: .easy, correct: false)
         check(!missed.result.passedThreshold && missed.result.rewardOutcome == .notEarned
               && missed.result.earnedDecorations == 0 && rewardTrees.currentTree().decorationCount == 1,
               "보상 결과: 미획득 칸의 기준 미달은 notEarned")
 
-        let missedOwned = try finishReward(task: .giftProduction, difficulty: .easy, correct: false)
+        let missedOwned = try finishReward(task: .wishReception, difficulty: .easy, correct: false)
         check(!missedOwned.result.passedThreshold && missedOwned.result.rewardOutcome == .alreadyEarned
               && missedOwned.result.earnedDecorations == 0 && rewardTrees.currentTree().decorationCount == 1,
               "보상 결과: 획득한 칸의 기준 미달은 alreadyEarned, 통과는 false")
 
-        let otherTask = try finishReward(task: .wishReception, difficulty: .hard, correct: true)
+        let otherTask = try finishReward(task: .giftProduction, difficulty: .easy, correct: true)
         check(otherTask.result.rewardOutcome == .earned && otherTask.result.earnedDecorations == 1
               && rewardTrees.currentTree().hasReward(task: .giftProduction, difficulty: .easy)
-              && rewardTrees.currentTree().hasReward(task: .wishReception, difficulty: .hard)
+              && rewardTrees.currentTree().hasReward(task: .wishReception, difficulty: .easy)
               && rewardTrees.currentTree().decorationCount == 2,
-              "보상 결과: 다른 작업의 어려움 칸은 별개로 획득")
+              "보상 결과: 다음 단계의 작업 칸은 별개로 획득")
 
         let bits = WorkshopTask.allCases.flatMap { task in
             Difficulty.allCases.map { task.rewardBit(for: $0) }
@@ -218,19 +218,19 @@ func run() throws {
         let c3 = ModelContext()
         let m3 = SessionManager(context: c3, selector: QuestionSelector(now: { t0 }, shuffle: { $0 }), trees: TreeManager(context: c3, now: { t0 }), settings: settings, now: { t0 })
         QuizCategory.allCases.forEach { c in (0..<6).forEach { _ in c3.insert(q(c, .easy)) } }
-        let ms = try m3.startSession(task: .giftProduction, categories: Set(QuizCategory.allCases), difficulty: .easy, tags: [], count: 5)
+        let ms = try m3.startSession(task: .wishReception, categories: Set(QuizCategory.allCases), difficulty: .easy, tags: [], count: 5)
         check(ms.category == nil && ms.questionSnapshots.count == 5 && Set(ms.questionSnapshots.map { $0.category }).count == 4, "세션: 4카테고리 5문제가 4개 카테고리를 모두 포함, category nil")
         try m3.abandon(ms)
-        let one = try m3.startSession(task: .giftProduction, categories: [.hig], difficulty: .easy, tags: [], count: 5)
+        let one = try m3.startSession(task: .wishReception, categories: [.hig], difficulty: .easy, tags: [], count: 5)
         check(one.category == .hig && one.questionSnapshots.allSatisfy { $0.category == .hig }, "세션: 카테고리 하나면 그 카테고리")
     }
     let pool = (0..<6).map { _ in q() }
     pool.forEach { ctx2.insert($0) }
-    do { _ = try mgr.startSession(task: .giftProduction, categories: [.hig], difficulty: .easy, tags: [], count: 5); check(false, "후보 0개 오류") } catch { check((error as? SessionError) == .noCandidates, "start: 후보 0개 오류") }
-    let s = try mgr.startSession(task: .giftProduction, categories: [.swiftSyntax], difficulty: .easy, tags: [], count: 5)
+    do { _ = try mgr.startSession(task: .wishReception, categories: [.hig], difficulty: .easy, tags: [], count: 5); check(false, "후보 0개 오류") } catch { check((error as? SessionError) == .noCandidates, "start: 후보 0개 오류") }
+    let s = try mgr.startSession(task: .wishReception, categories: [.swiftSyntax], difficulty: .easy, tags: [], count: 5)
     check(s.questionSnapshots.count == 5 && s.passThresholdPercent == 80 && s.status == .inProgress, "start: 5문제, 기준 80 저장")
     check(mgr.resumableSession() === s, "resumable: 진행 중 세션")
-    do { _ = try mgr.startSession(task: .giftProduction, categories: [.swiftSyntax], difficulty: .easy, tags: [], count: 5); check(false, "중복 시작 오류") } catch { check((error as? SessionError) == .sessionAlreadyInProgress, "start: 진행 중이면 오류") }
+    do { _ = try mgr.startSession(task: .wishReception, categories: [.swiftSyntax], difficulty: .easy, tags: [], count: 5); check(false, "중복 시작 오류") } catch { check((error as? SessionError) == .sessionAlreadyInProgress, "start: 진행 중이면 오류") }
     do { _ = try mgr.submit(answerIndex: 1, forQuestionAt: 2, in: s); check(false, "순서 오류") } catch { check((error as? SessionError) == .previousQuestionUnanswered, "submit: 앞선 문제 미답 오류") }
     do { _ = try mgr.submit(answerIndex: 9, forQuestionAt: 0, in: s); check(false, "범위 오류") } catch { check((error as? SessionError) == .invalidAnswerIndex(9), "submit: 보기 번호 범위 오류") }
     do { _ = try mgr.submit(answerIndex: 1, forQuestionAt: 7, in: s); check(false, "문제 범위") } catch { check((error as? SessionError) == .invalidQuestionIndex(7), "submit: 문제 번호 범위 오류") }
@@ -256,13 +256,13 @@ func run() throws {
     check(trees2.currentTree().decorationCount == 1, "finish: 트리에 장식 1개만")
     check(mgr.resumableSession() == nil, "완료 후 resumable nil")
     // 79% 미만: 4/5=80 통과, 3/5=60 실패
-    let s2m = try mgr.startSession(task: .giftProduction, categories: [.swiftSyntax], difficulty: .easy, tags: [], count: 5)
+    let s2m = try mgr.startSession(task: .wishReception, categories: [.swiftSyntax], difficulty: .easy, tags: [], count: 5)
     for i in 0..<3 { _ = try mgr.submit(answerIndex: 1, forQuestionAt: i, in: s2m) }
     for i in 3..<5 { _ = try mgr.submit(answerIndex: 0, forQuestionAt: i, in: s2m) }
     let r60 = try mgr.finish(s2m)
     check(r60.earnedDecorations == 0 && r60.accuracyPercent == 60 && trees2.currentTree().decorationCount == 1, "finish: 60%는 기준 미달, 장식 없음")
     // abandon
-    let s3m = try mgr.startSession(task: .giftProduction, categories: [.swiftSyntax], difficulty: .easy, tags: [], count: 3)
+    let s3m = try mgr.startSession(task: .wishReception, categories: [.swiftSyntax], difficulty: .easy, tags: [], count: 3)
     try mgr.abandon(s3m)
     check(s3m.status == .abandoned && mgr.resumableSession() == nil, "abandon: 포기 처리")
     try mgr.abandon(s3m)
@@ -280,7 +280,7 @@ func run() throws {
     check(rFull.treeCompleted && s4m.treeCompleted && trees2.completedTrees().count == 1 && trees2.currentTree().decorationCount == 0, "finish: 12칸 완성, 빈 트리 시작")
     check(try mgr.finish(s4m).treeCompleted && trees2.completedTrees().count == 1, "finish 재호출: 완성 중복 없음")
     // ---- updateElapsed (누적 총합 저장)
-    let se = try mgr.startSession(task: .giftProduction, categories: [.swiftSyntax], difficulty: .easy, tags: [], count: 5)
+    let se = try mgr.startSession(task: .wishReception, categories: [.swiftSyntax], difficulty: .easy, tags: [], count: 5)
     check(se.elapsedSeconds == 0, "elapsed: 시작 시 0")
     try mgr.updateElapsed(12.5, in: se)
     check(se.elapsedSeconds == 12.5, "elapsed: 누적 총합 12.5 저장")
@@ -304,7 +304,7 @@ func run() throws {
     try mgr.updateElapsed(99, in: se)
     check(se.elapsedSeconds == 45 && ctx2.saves == savesAfterFinish, "elapsed: 완료 세션은 오류 없이 무시하고 값을 바꾸지 않음")
     check(try mgr.finish(se).elapsed == 45, "elapsed: 완료 후 재호출해도 결과 유지")
-    let sa = try mgr.startSession(task: .giftProduction, categories: [.swiftSyntax], difficulty: .easy, tags: [], count: 5)
+    let sa = try mgr.startSession(task: .wishReception, categories: [.swiftSyntax], difficulty: .easy, tags: [], count: 5)
     try mgr.abandon(sa)
     try mgr.updateElapsed(10, in: sa)
     check(sa.elapsedSeconds == 0, "elapsed: 포기한 세션도 무시")

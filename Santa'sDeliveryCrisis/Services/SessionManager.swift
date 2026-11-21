@@ -70,6 +70,10 @@ final class SessionManager: SessionManaging {
             throw SessionError.sessionAlreadyInProgress
         }
 
+        let stage = QuizStage(task: task, difficulty: difficulty)
+        guard stage.isUnlocked(in: trees.currentTree().rewardMask) else {
+            throw SessionError.stageLocked(stage.title)
+        }
         let questions = try context.fetch(FetchDescriptor<Question>())
         let picked = pick(questions, sessions)
         // 이번 세션에서 제목이 같은 문제는 [1/2]처럼 번호를 붙여 구별한다. 풀 당시 모습이므로 스냅샷에만 붙인다.
@@ -257,6 +261,8 @@ final class SessionManager: SessionManaging {
 enum SessionError: Error, LocalizedError, Equatable {
     /// 조건에 맞는 문제가 하나도 없음
     case noCandidates
+    /// 선행 보상을 획득하지 않은 단계의 신규 시작 요청
+    case stageLocked(String)
     /// 진행 중인 세션이 이미 있음
     case sessionAlreadyInProgress
     /// 진행 중이 아닌 세션에 답 저장·완료·포기를 요청함
@@ -275,6 +281,7 @@ enum SessionError: Error, LocalizedError, Equatable {
     var errorDescription: String? {
         switch self {
         case .noCandidates: "조건에 맞는 문제가 없습니다."
+        case .stageLocked(let title): "\(title)은 아직 잠겨 있어요. 앞선 단계의 장식을 먼저 획득해 주세요."
         case .sessionAlreadyInProgress: "진행 중인 세션이 이미 있습니다."
         case .sessionNotInProgress: "진행 중인 세션이 아닙니다."
         case .invalidQuestionIndex(let index): "문제 번호가 올바르지 않습니다: \(index)"

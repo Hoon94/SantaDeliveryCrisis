@@ -102,7 +102,7 @@ struct ResumeChoiceSheet: View {
         }
     }
 
-    private var taskName: String { session.task.displayName }
+    private var taskName: String { QuizStage(task: session.task, difficulty: session.difficulty).title }
 
     private func resolve(_ action: () -> Void) {
         guard isResolving == false else { return }
