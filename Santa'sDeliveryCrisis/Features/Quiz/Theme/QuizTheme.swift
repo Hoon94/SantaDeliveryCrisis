@@ -55,6 +55,16 @@ enum QuizTheme: CaseIterable, Hashable {
     /// 테마를 대표하는 색
     var accent: Color { category.themeColor }
 
+    /// 문제 풀이에서만 사용하는 픽셀 배경 이름.
+    var backgroundName: String {
+        switch self {
+        case .wish: "QuizWishBackground"
+        case .factory: "QuizFactoryBackground"
+        case .wrap: "QuizWrapBackground"
+        case .sleigh: "QuizSleighBackground"
+        }
+    }
+
     /// 캐릭터를 대신하는 이모지
     var character: String {
         switch self {

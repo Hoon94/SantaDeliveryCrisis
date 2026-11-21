@@ -34,9 +34,11 @@ private struct QuizFlowContent: View {
 
     var body: some View {
         ZStack {
-            ThemeBackground(theme: model.phase == .result
-                ? QuizTheme(category: model.session.category ?? model.currentSnapshot?.category ?? .aiUsage)
-                : model.theme)
+            if model.phase != .result {
+                QuizProcessBackground(theme: model.theme)
+            } else {
+                ThemeBackground(theme: QuizTheme(category: model.session.category ?? model.currentSnapshot?.category ?? .aiUsage))
+            }
 
             if model.phase == .result, let summary = model.summary {
                 QuizResultView(summary: summary, services: services, onClose: onClose)

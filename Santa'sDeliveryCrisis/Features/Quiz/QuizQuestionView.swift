@@ -7,6 +7,7 @@ struct QuizQuestionView: View {
     let onExit: () -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     /// 코드를 크게 보는 창이 열려 있는 문제의 번호. nil이면 닫힘
     @State private var codePreviewIndex: Int?
     /// 코드 상자의 화면 좌표. 창이 이 자리에서 펼쳐진다. 스크롤마다 바뀌므로 화면을 다시 그리지 않는 상자에 담아 둔다.
@@ -84,12 +85,44 @@ struct QuizQuestionView: View {
                 hintButton
             }
             ProgressTrack(progress: model.progress, tint: model.theme.accent)
+            processProgress
         }
         .padding(.horizontal, 16)
         .padding(.top, 6)
         .padding(.bottom, 8)
         .frame(maxWidth: 640)
         .frame(maxWidth: .infinity)
+    }
+
+    /// 문항 진행률과 별개로 현재 작업 과정과 앞뒤 과정을 표시한다.
+    private var processProgress: some View {
+        let current = QuizTheme.allCases.firstIndex(of: model.theme) ?? 0
+        return LazyVGrid(
+            columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: dynamicTypeSize.isAccessibilitySize ? 2 : 4),
+            spacing: 6
+        ) {
+            ForEach(Array(QuizTheme.allCases.enumerated()), id: \.element) { offset, theme in
+                VStack(spacing: 4) {
+                    Image(systemName: offset < current ? "checkmark.circle.fill" : offset == current ? "play.circle.fill" : "circle")
+                        .accessibilityHidden(true)
+                    Text(theme.title)
+                        .font(.caption2.weight(offset == current ? .bold : .regular))
+                        .fixedSize(horizontal: false, vertical: true)
+                        .multilineTextAlignment(.center)
+                }
+                .foregroundStyle(offset == current ? theme.accent : Color.nightSecondaryText)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding(.vertical, 8)
+                .background(Color.nightCardBackground.opacity(0.9), in: RoundedRectangle(cornerRadius: 10))
+                .overlay {
+                    if offset == current {
+                        RoundedRectangle(cornerRadius: 10).strokeBorder(theme.accent, lineWidth: 1.5)
+                    }
+                }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel("\(theme.title), \(offset < current ? "완료" : offset == current ? "진행 중" : "예정")")
+            }
+        }
     }
 
     /// 힌트가 있는 문제에만 보인다. 자리는 항상 차지해서 숫자가 가운데에 고정된다.
