@@ -119,10 +119,6 @@ private struct QuizFlowContent: View {
             ) {
                 model.advance()
             }
-            .presentationDetents([.medium, .large])
-            .presentationDragIndicator(.visible)
-            .presentationBackgroundInteraction(.enabled(upThrough: .medium))
-            .interactiveDismissDisabled()
         }
     }
 }

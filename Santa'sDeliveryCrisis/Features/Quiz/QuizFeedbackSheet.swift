@@ -14,6 +14,8 @@ struct QuizFeedbackSheet: View {
 
     private var palette: QuizPalette { QuizPalette(colorScheme: colorScheme) }
     @State private var appeared = false
+    /// 정답 유무와 해설 길이, 글자 크기에 따라 시트의 기본 높이를 맞춘다.
+    @State private var contentHeight: CGFloat = 320
 
     private var tint: Color { isCorrect ? .roomPositive : .roomNegative }
 
@@ -21,7 +23,6 @@ struct QuizFeedbackSheet: View {
         ScrollView {
             VStack(spacing: 16) {
                 badge
-                    .padding(.top, 22)
 
                 Text(isCorrect ? "정답이에요!" : "아쉬워요")
                     .font(.title2.weight(.heavy))
@@ -41,14 +42,26 @@ struct QuizFeedbackSheet: View {
                 .buttonStyle(GlowButtonStyle(tint: palette.accent, usesQuizColors: true))
                 .padding(.top, 4)
             }
+            .padding(.top, 44)
             .padding(.horizontal, 20)
-            .padding(.bottom, 16)
+            .padding(.bottom, 24)
             .frame(maxWidth: 560)
             .frame(maxWidth: .infinity)
+            .fixedSize(horizontal: false, vertical: true)
+            .onGeometryChange(for: CGFloat.self) { geometry in
+                geometry.size.height.rounded(.up)
+            } action: { height in
+                guard height > 0 else { return }
+                contentHeight = height
+            }
         }
         .scrollBounceBehavior(.basedOnSize)
         .background(palette.cardBackground)
         .presentationBackground(palette.cardBackground)
+        .presentationDetents([.height(contentHeight), .large])
+        .presentationDragIndicator(.visible)
+        .presentationBackgroundInteraction(.enabled(upThrough: .height(contentHeight)))
+        .interactiveDismissDisabled()
         .onAppear {
             withAnimation(reduceMotion ? .easeOut(duration: 0.2) : .spring(response: 0.5, dampingFraction: 0.6).delay(0.05)) {
                 appeared = true
