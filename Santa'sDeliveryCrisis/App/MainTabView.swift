@@ -7,6 +7,8 @@ struct MainTabView: View {
         case task, select, records, manage
     }
 
+    @Environment(\.services) private var services
+
     @State private var selectedTab: Tab = .task
     @State private var setupRequestID: UUID?
     @State private var activeQuizSession: QuizSession?
@@ -43,6 +45,16 @@ struct MainTabView: View {
             if id != nil { selectedTab = .task }
         }
         .overlay { RewardFlightOverlay() }
+        .overlay {
+            if let summary = rewardFlight.completion {
+                TreeCompletionView(
+                    summary: summary, feedback: services.feedback,
+                    onClose: { rewardFlight.dismissCompletion() },
+                    showsFullTreeForTesting: TreeCompletionConfiguration.previewAfterOneReward && !summary.result.treeCompleted
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
         // 장식 연출의 셰이더를 앱이 켜진 직후에 미리 컴파일해 첫 연출의 멈춤을 줄인다.
         .overlay(alignment: .topLeading) { ShaderWarmup() }
         .fullScreenCover(item: $activeQuizSession) { session in

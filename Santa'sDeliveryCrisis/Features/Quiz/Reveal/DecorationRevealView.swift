@@ -151,10 +151,10 @@ struct DecorationRevealView: View {
     }
 
     /// 닫기를 누른 순간의 장식 위치에서 작업실 트리로 날아가는 연출을 시작한다.
-    /// 트리가 완성된 세션은 완성 연출이 따로 있어서 날리지 않는다.
+    /// 완성 세션도 먼저 장식을 붙인 뒤 완성 연출로 이어 간다.
     private func launchFlight(from f: RevealFrame, screenOrigin: CGPoint) {
         let result = summary.result
-        guard !result.treeCompleted, result.earnedDecorations > 0 else { return }
+        guard result.earnedDecorations > 0 else { return }
         let end = TreeSlots.clampedCount(summary.treeDecorationCount)
         let start = max(end - result.earnedDecorations, 0)
         guard start < end else { return }
@@ -163,7 +163,7 @@ struct DecorationRevealView: View {
             origin: CGPoint(x: screenOrigin.x + f.center.x, y: screenOrigin.y + f.center.y),
             size: f.ornamentSize * CGFloat(f.ornamentScale),
             slots: start..<end
-        ))
+        ), completion: result.treeCompleted || TreeCompletionConfiguration.previewAfterOneReward ? summary : nil)
     }
 
     // MARK: - 소리와 진동 시간표
@@ -193,7 +193,7 @@ struct DecorationRevealView: View {
         feedback.play(.impact)
         feedback.play(.burst)
         guard await wait(until: RevealFrame.impact + RevealFrame.titleDelay) else { return }
-        feedback.play(summary.result.treeCompleted ? .treeComplete : .reveal)
+        feedback.play(.reveal)
         guard await wait(until: RevealFrame.dockAt) else { return }
         feedback.play(.popup)
     }

@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// 세션 결과(S6). 새 보상이 있으면 획득 연출을, 재풀이·기준 미달이면 결과 카드만 보여 준다.
+/// 세션 결과(S6). 트리 완성·일반 장식 획득·새 보상 없음에 맞는 연출을 보여 준다.
 struct QuizResultView: View {
     let summary: QuizResultSummary
     let services: AppServices
