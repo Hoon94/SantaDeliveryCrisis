@@ -12,6 +12,10 @@ final class SoundPlayer {
     private var buffers: [FeedbackCue: AVAudioPCMBuffer] = [:]
     private var isPrepared = false
     private var isRendering = false
+    #if os(iOS)
+    /// 비동기 세션 활성화가 끝나기 전에는 엔진을 시작하지 않는다.
+    private var isAudioSessionActive = false
+    #endif
     /// 중간에 멈출 수 있어야 하는 소리의 노드
     private var stoppable: [FeedbackCue: AVAudioPlayerNode] = [:]
     /// 동시에 재생할 수 있는 최대 개수. 넘으면 새 소리는 무시한다.
@@ -33,7 +37,6 @@ final class SoundPlayer {
         #if os(iOS)
         let session = AVAudioSession.sharedInstance()
         try? session.setCategory(.ambient, mode: .default, options: [.mixWithOthers])
-        try? session.setActive(true)
         #endif
 
         reverb.loadFactoryPreset(.mediumHall)
@@ -50,7 +53,33 @@ final class SoundPlayer {
         }
 
         renderAllBuffers()
+        #if os(iOS)
+        Task { [weak self] in
+            do {
+                let activated: Bool
+                if #available(iOS 27.0, *) {
+                    activated = try await AVAudioSession.sharedInstance().activate()
+                } else {
+                    // 이전 버전의 동기 API도 화면을 멈추지 않도록 메인 스레드 밖에서 호출한다.
+                    activated = try await Task.detached(priority: .userInitiated) {
+                        try AVAudioSession.sharedInstance().setActive(true)
+                        return true
+                    }.value
+                }
+                guard activated else {
+                    print("오디오 세션을 활성화하지 못했어요")
+                    return
+                }
+                guard let self else { return }
+                self.isAudioSessionActive = true
+                self.startEngineIfNeeded()
+            } catch {
+                print("오디오 세션 활성화 실패: \(error.localizedDescription)")
+            }
+        }
+        #else
         startEngineIfNeeded()
+        #endif
     }
 
     /// 소리를 낸다. 준비가 안 됐으면 먼저 준비한다.
@@ -107,6 +136,9 @@ final class SoundPlayer {
     }
 
     private func startEngineIfNeeded() {
+        #if os(iOS)
+        guard isAudioSessionActive else { return }
+        #endif
         guard !engine.isRunning else { return }
         engine.prepare()
         do {
