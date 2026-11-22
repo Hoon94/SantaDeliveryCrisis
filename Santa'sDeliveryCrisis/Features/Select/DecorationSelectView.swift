@@ -50,7 +50,8 @@ struct DecorationSelectView: View {
                             isAnimating: isVisible && scenePhase == .active && !isCovered,
                             reduceMotion: reduceMotion, onSelect: onSelect
                         )
-                        .frame(height: max(400, max(geometry.size.height - 180, (geometry.size.width - 28) / 2)))
+                        // 2:1 지도에서 마을 하나의 가로 폭은 전체의 1/3이므로 표시 비율은 2:3이다.
+                        .frame(height: max(geometry.size.width - 28, 0) * 1.5)
                     }
 
                     if let count = availableCounts[filter.difficulty], count < filter.count {

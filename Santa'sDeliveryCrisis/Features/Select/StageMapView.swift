@@ -29,14 +29,14 @@ struct StageMapView: View {
         CGPoint(x: 0.904, y: 0.545), CGPoint(x: 0.893, y: 0.430)
     ]
 
-    /// 세로 크기를 따라 지도의 비율을 유지하고, 좁은 화면에서만 가로 이동한다.
+    /// 한 화면에 마을 하나가 들어오도록 표시하고, 자동 이동은 선택 난이도의 마을 중앙에 맞춘다.
     var body: some View {
         GeometryReader { geometry in
-            let height = max(geometry.size.height, geometry.size.width / 2)
-            let width = height * 2
+            let width = geometry.size.width * 3
+            let height = width / 2
             StageMapScrollView(
                 contentSize: CGSize(width: width, height: height),
-                focusX: positions[focusedStage.id].x * width,
+                focusX: CGFloat(group(focusedStage.difficulty)) / 6 * width,
                 focusedStageID: focusedStage.id, focusRequestID: focusRequestID
             ) {
                 TimelineView(.animation(minimumInterval: 1.0 / 15, paused: !isAnimating || reduceMotion)) { timeline in
