@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>마지막 별이 켜지는 순간 · 트리 완성 연출</title>
+<link rel="stylesheet" href="tree-completion-assets/completion.css">
+<script src="tree-completion-assets/completion.js" defer></script>
+</head>
+<body class="dark">
+<main>
+  <header class="page-head">
+    <p class="eyebrow">SANTA’S WORKSHOP / COMPLETION STUDY 01–04</p>
+    <h1>마지막 별이<br><em>켜지는 순간.</em></h1>
+    <div class="intro"><p>열두 번째 장식이 도착한 뒤, 완성의 기쁨을 어떻게 남길까요?</p><p>같은 작업실에서 네 가지 마무리를 비교해 보세요. 앱에 적용하기 전의 독립된 인터랙티브 시안입니다.</p><p><a href="tree-completion-flight-exploration.html">선택한 D안 · 산타와 루돌프의 세 가지 출발 비교 ↗</a></p></div>
+  </header>
+  <section class="toolbar" aria-label="전체 재생 설정">
+    <div class="play-controls">
+      <button id="play-all" class="primary">네 가지 함께 재생</button>
+      <button id="pause-all">모두 일시정지</button>
+      <button id="reset-all">처음 장면</button>
+    </div>
+    <div class="settings">
+      <label>재생 속도 <select id="speed"><option value=".5">0.5배</option><option value="1" selected>1배</option><option value="1.5">1.5배</option></select></label>
+      <label><input id="dark" type="checkbox" checked>다크 배경</label>
+      <label><input id="reduced" type="checkbox">동작 줄이기</label>
+    </div>
+  </section>
+  <p class="guide">재생은 버튼을 누르면 시작합니다. 아래 시간 막대를 움직이면 원하는 순간에 멈춰 비교할 수 있어요.</p>
+  <section id="concepts" class="concept-grid" aria-label="트리 완성 연출 네 가지"></section>
+  <section class="selection" aria-labelledby="selection-title">
+    <div><p class="eyebrow">YOUR CHOICE</p><h2 id="selection-title">어떤 마무리가 어울리나요?</h2><p id="selection-description">각 카드의 ‘이 안 선택’으로 마음에 드는 연출을 골라 주세요.</p></div>
+    <button id="copy" disabled>선택 내용 복사</button>
+  </section>
+  <p id="status" class="status" role="status" aria-live="polite"></p>
+  <footer>작업실 패널의 완성 연출만 비교합니다. 실제 보상·트리 기록·세션 데이터는 변경하지 않으며, 소리는 재생하지 않습니다.</footer>
+</main>
+</body>
+</html>
