@@ -9,6 +9,8 @@ struct RoomSegmentedControl<Value: Hashable>: View {
     let options: [(value: Value, title: String, accessibilityLabel: String)]
     @Binding var selection: Value
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Namespace private var selectionNamespace
 
     private var selectedBackground: Color {
         colorScheme == .dark ? .roomSecondaryText : .roomCardBackground
@@ -27,9 +29,7 @@ struct RoomSegmentedControl<Value: Hashable>: View {
                         .frame(maxWidth: .infinity, minHeight: 32)
                         .background {
                             if isSelected {
-                                RoundedRectangle(cornerRadius: 11)
-                                    .fill(selectedBackground)
-                                    .shadow(color: Color.roomPrimaryText.opacity(0.15), radius: 1.5, y: 1)
+                                selectionHighlight
                             }
                         }
                         .contentShape(Rectangle())
@@ -41,6 +41,23 @@ struct RoomSegmentedControl<Value: Hashable>: View {
         }
         .padding(3)
         .background(Color.roomSubtleBackground, in: RoundedRectangle(cornerRadius: 14))
+        .animation(
+            reduceMotion ? .easeOut(duration: 0.15) : .easeInOut(duration: 0.25),
+            value: selection
+        )
+    }
+
+    /// 선택 배경을 옆 칸으로 이동하며, 동작 줄이기에서는 투명도만 전환한다.
+    @ViewBuilder
+    private var selectionHighlight: some View {
+        let highlight = RoundedRectangle(cornerRadius: 11)
+            .fill(selectedBackground)
+            .shadow(color: Color.roomPrimaryText.opacity(0.15), radius: 1.5, y: 1)
+        if reduceMotion {
+            highlight.transition(.opacity)
+        } else {
+            highlight.matchedGeometryEffect(id: "selection", in: selectionNamespace)
+        }
     }
 }
 
