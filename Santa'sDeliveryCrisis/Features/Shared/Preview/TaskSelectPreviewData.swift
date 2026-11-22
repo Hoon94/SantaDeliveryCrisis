@@ -97,7 +97,7 @@ enum TaskSelectPreviewData {
             settings: source.settings, selector: selector,
             recommender: MockTaskRecommender(category: recommendedCategory),
             sessions: sessionService, trees: treeManager, feedback: source.feedback,
-            media: source.media, traceScenes: source.traceScenes,
+            media: source.media,
             reminders: MockDailyQuizReminderManager()
         )
         return Environment(container: container, services: services)

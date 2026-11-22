@@ -2,24 +2,14 @@ import Foundation
 
 /// 문제의 학습 카테고리. 보상을 쌓는 작업은 WorkshopTask로 구분한다.
 nonisolated enum QuizCategory: String, Codable, CaseIterable, Sendable {
-    /// 소원 접수 (AI 활용)
+    /// AI 활용
     case aiUsage
-    /// 선물 생산 (Swift 문법)
+    /// Swift 문법
     case swiftSyntax
-    /// 포장 (HIG)
+    /// HIG
     case hig
-    /// 썰매 적재 (SwiftUI 실전)
+    /// SwiftUI 실전
     case swiftUIPractice
-
-    /// 기존 문제별 테마 이름. 실제 보상 작업 이름은 WorkshopTask.displayName을 사용한다.
-    var taskName: String {
-        switch self {
-        case .aiUsage: "소원 접수"
-        case .swiftSyntax: "선물 생산"
-        case .hig: "포장"
-        case .swiftUIPractice: "썰매 적재"
-        }
-    }
 
     /// 카테고리 이름
     var categoryName: String {

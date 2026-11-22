@@ -52,7 +52,6 @@ nonisolated struct QuizActivityCalculator: Sendable {
         }
 
         return MonthlyQuizActivity(
-            monthStart: interval.start,
             year: year,
             month: month,
             leadingEmptyDayCount: calendar.component(.weekday, from: interval.start) - calendar.firstWeekday,

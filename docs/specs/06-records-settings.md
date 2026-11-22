@@ -33,7 +33,6 @@
 
 | 키 (@AppStorage) | 타입 | 기본값 | 설명 |
 | --- | --- | --- | --- |
-| `hasLaunchedBefore` | Bool | false | 첫 실행 여부 (시드 주입과 온보딩 판단) |
 | `passThresholdPercent` | Int | 80 | 보상 받는 정답률 기준 (50~100, 10 단위) |
 | `soundEnabled` | Bool | true | 효과음 |
 | `hapticsEnabled` | Bool | true | 진동 |

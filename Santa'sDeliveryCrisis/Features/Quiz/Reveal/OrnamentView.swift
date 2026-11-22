@@ -42,7 +42,7 @@ enum OrnamentStyle: Equatable {
 
 /// 트리 장식 하나. `radiance`가 0이면 빛 없는 평범한 회색 장식, 1이면 색과 광택이 살아난 장식이다.
 /// 모든 값은 호출하는 쪽이 시간의 함수로 넘기므로 이 뷰 자체는 상태가 없다.
-// FIXME: [자산 교체] 도형으로 그린 장식을 실제 장식 이미지로 교체. `radiance`는 이미지 두 장의 교차 페이드로 대신할 수 있다.
+// 도형으로 그린 장식에 연출 진행도에 따른 빛과 반사광을 적용한다.
 struct OrnamentView: View {
     let style: OrnamentStyle
     /// 0(평범함)...1(빛남)

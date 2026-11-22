@@ -19,8 +19,6 @@ nonisolated struct QuizActivityDay: Identifiable, Equatable, Sendable {
 
 /// 앱과 위젯이 공통으로 사용할 현재 월의 학습 표시 데이터.
 nonisolated struct MonthlyQuizActivity: Equatable, Sendable {
-    /// 표시 시간대에서 해당 월의 시작 시각.
-    let monthStart: Date
     /// 그레고리력 기준 연도.
     let year: Int
     /// 그레고리력 기준 월(1...12).

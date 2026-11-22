@@ -5,7 +5,6 @@ import Foundation
 final class SettingsStore {
     /// UserDefaults 키
     enum Key {
-        static let hasLaunchedBefore = "hasLaunchedBefore"
         static let passThresholdPercent = "passThresholdPercent"
         static let soundEnabled = "soundEnabled"
         static let hapticsEnabled = "hapticsEnabled"
@@ -23,7 +22,6 @@ final class SettingsStore {
 
     /// 기본값
     enum Default {
-        static let hasLaunchedBefore = false
         static let passThresholdPercent = 80
         static let soundEnabled = true
         static let hapticsEnabled = true
@@ -41,12 +39,6 @@ final class SettingsStore {
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
-    }
-
-    /// 첫 실행 여부 (시드 주입과 온보딩 판단)
-    var hasLaunchedBefore: Bool {
-        get { bool(Key.hasLaunchedBefore, default: Default.hasLaunchedBefore) }
-        set { defaults.set(newValue, forKey: Key.hasLaunchedBefore) }
     }
 
     /// 보상 받는 정답률 기준. 허용 범위를 벗어난 값은 기본값으로 되돌려 읽는다.
