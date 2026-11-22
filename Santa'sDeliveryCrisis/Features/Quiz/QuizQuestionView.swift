@@ -90,6 +90,10 @@ struct QuizQuestionView: View {
                 Text("\(min(model.index + 1, max(model.totalCount, 1))) / \(model.totalCount)")
                     .font(.headline.monospacedDigit())
                     .foregroundStyle(palette.primaryText)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 6)
+                    .background(palette.cardBackground, in: Capsule())
+                    .overlay { Capsule().strokeBorder(palette.border, lineWidth: 1) }
                     .contentTransition(.numericText())
                     .animation(.snappy, value: model.index)
                     .accessibilityLabel("\(model.index + 1)번째 문제, 총 \(model.totalCount)문제")
@@ -258,7 +262,7 @@ struct QuizQuestionView: View {
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(palette.warning.opacity(0.14))
+                .fill(palette.warning.opacity(0.3))
                 .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(palette.warning.opacity(0.6), lineWidth: 1.2))
         )
     }
@@ -301,7 +305,7 @@ struct QuizQuestionView: View {
         .frame(maxWidth: 640)
         .frame(maxWidth: .infinity)
         .background(
-            palette.dockBackground.opacity(0.8)
+            palette.dockBackground.opacity(0.5)
                 .ignoresSafeArea(edges: .bottom)
         )
     }
