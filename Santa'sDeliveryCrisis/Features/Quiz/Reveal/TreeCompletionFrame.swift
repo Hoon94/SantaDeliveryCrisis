@@ -20,7 +20,7 @@ struct TreeCompletionFrame {
     /// 동작 줄이기에서는 썰매와 마을을 정지 상태로 표시한다.
     let reduced: Bool
 
-    /// 작업실은 원본 정사각형 비율로 화면 중앙에 표시한다.
+    /// 작업실 전체가 보이도록 정사각형 원본 비율을 유지한다.
     var roomSide: CGFloat { min(size.width, size.height * 0.75) }
     /// 작업실 그림의 왼쪽 위 위치.
     var roomOrigin: CGPoint {

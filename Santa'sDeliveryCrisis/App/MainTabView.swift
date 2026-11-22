@@ -49,8 +49,7 @@ struct MainTabView: View {
             if let summary = rewardFlight.completion {
                 TreeCompletionView(
                     summary: summary, feedback: services.feedback,
-                    onClose: { rewardFlight.dismissCompletion() },
-                    showsFullTreeForTesting: TreeCompletionConfiguration.previewAfterOneReward && !summary.result.treeCompleted
+                    onClose: { rewardFlight.dismissCompletion() }
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }

@@ -1,4 +1,4 @@
-import CoreGraphics
+import SwiftUI
 
 /// 공통 트리의 장식 위치와 표시 개수 보정을 관리한다.
 enum TreeSlots {
@@ -39,5 +39,22 @@ enum TreeSlots {
     /// - Returns: 0부터 트리 한 그루의 최대 칸 수 사이의 값.
     static func clampedCount(_ filledCount: Int) -> Int {
         min(max(filledCount, 0), count)
+    }
+
+    /// 픽셀 그림에 맞춰 네 모서리를 한 계단씩 깎은 장식 외곽선.
+    static func ornamentPath(center: CGPoint, radius: CGFloat) -> Path {
+        let step = radius / 3
+        let points: [CGPoint] = [
+            CGPoint(x: -radius + step, y: -radius), CGPoint(x: radius - step, y: -radius),
+            CGPoint(x: radius - step, y: -radius + step), CGPoint(x: radius, y: -radius + step),
+            CGPoint(x: radius, y: radius - step), CGPoint(x: radius - step, y: radius - step),
+            CGPoint(x: radius - step, y: radius), CGPoint(x: -radius + step, y: radius),
+            CGPoint(x: -radius + step, y: radius - step), CGPoint(x: -radius, y: radius - step),
+            CGPoint(x: -radius, y: -radius + step), CGPoint(x: -radius + step, y: -radius + step)
+        ]
+        return Path { path in
+            path.addLines(points.map { CGPoint(x: center.x + $0.x, y: center.y + $0.y) })
+            path.closeSubpath()
+        }
     }
 }

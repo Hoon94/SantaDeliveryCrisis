@@ -8,8 +8,6 @@ struct TreeCompletionView: View {
     let onClose: () -> Void
     /// 프리뷰에서 장면을 고정한다. 실제 실행에서는 시간을 자동으로 진행한다.
     var debugTime: TimeInterval?
-    /// DEBUG 빌드에서 연출의 장식만 열두 개로 표시한다. 실제 저장 결과는 변경하지 않는다.
-    var showsFullTreeForTesting = false
     /// 프리뷰에서 정지 완성 장면을 확인한다. 시스템의 동작 줄이기 설정도 항상 반영한다.
     var forceReduceMotion = false
 
@@ -27,11 +25,6 @@ struct TreeCompletionView: View {
 
     /// 새로 받은 보상을 마지막 장식으로 표시한다. 완성 직후 새 트리의 기록은 읽지 않는다.
     private var stages: [QuizStage] {
-        #if DEBUG
-        if showsFullTreeForTesting {
-            return QuizStage.all.filter { $0 != summary.stage } + [summary.stage]
-        }
-        #endif
         return summary.treeRewardStages.filter { $0 != summary.stage } + [summary.stage]
     }
 
@@ -40,25 +33,32 @@ struct TreeCompletionView: View {
     }
 
     var body: some View {
-        GeometryReader { geometry in
-            TimelineView(.animation(minimumInterval: 1.0 / 30, paused: scenePhase != .active || isFinished || debugTime != nil)) { timeline in
-                let time = isFinished ? TreeCompletionFrame.duration : debugTime ?? playedTime(at: timeline.date)
-                let frame = TreeCompletionFrame(time: time, size: geometry.size, reduced: reduceMotion)
-                ZStack {
-                    Color.roomBackground
-                    roomScene(frame)
-                        .opacity(1 - frame.villageOpacity)
-                    villageScene(frame)
-                        .opacity(frame.villageOpacity)
+        GeometryReader { safeArea in
+            GeometryReader { geometry in
+                TimelineView(.animation(minimumInterval: 1.0 / 30, paused: scenePhase != .active || isFinished || debugTime != nil)) { timeline in
+                    let time = isFinished ? TreeCompletionFrame.duration : debugTime ?? playedTime(at: timeline.date)
+                    let frame = TreeCompletionFrame(time: time, size: geometry.size, reduced: reduceMotion)
+                    ZStack {
+                        Color.roomBackground
+                        roomScene(frame)
+                            .opacity(1 - frame.villageOpacity)
+                        villageScene(frame, topInset: safeArea.safeAreaInsets.top)
+                            .opacity(frame.villageOpacity)
 
-                    if isFinished {
-                        closeControls(size: geometry.size)
-                            .transition(.move(edge: .bottom).combined(with: .opacity))
-                    } else if time < TreeCompletionFrame.captionAt {
-                        playbackControls
+                        if isFinished {
+                            closeControls(size: CGSize(width: geometry.size.width, height: geometry.size.height - safeArea.safeAreaInsets.bottom))
+                                .frame(width: geometry.size.width, height: geometry.size.height, alignment: .top)
+                                .transition(.move(edge: .bottom).combined(with: .opacity))
+                        } else if time < TreeCompletionFrame.captionAt {
+                            playbackControls
+                                .padding(.top, safeArea.safeAreaInsets.top)
+                        }
                     }
+                    .frame(width: geometry.size.width, height: geometry.size.height)
+                    .clipped()
                 }
             }
+            .ignoresSafeArea()
         }
         .background { Color.roomBackground.ignoresSafeArea() }
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.35), value: showsResult)
@@ -122,17 +122,23 @@ struct TreeCompletionView: View {
     private func ornaments(_ frame: TreeCompletionFrame) -> some View {
         Canvas { context, _ in
             let side = frame.roomSide
-            let radius = side * 7 / TreeSlots.designSize.width
+            let scale = side / TreeSlots.designSize.width
+            let radius = 7 * scale
             for (index, stage) in stages.enumerated() where TreeSlots.positions.indices.contains(index) {
                 let slot = TreeSlots.positions[index]
                 let destination = CGPoint(x: (slot.x + 0.11) * side, y: (slot.y * 0.9 - 0.045) * side)
                 let center = destination
                 let energy = RevealMath.smooth((frame.time - 0.85 - Double(11 - index) * 0.055) / 0.28)
-                let circle = Path(ellipseIn: CGRect(x: center.x - radius, y: center.y - radius, width: radius * 2, height: radius * 2))
+                let shape = TreeSlots.ornamentPath(center: center, radius: radius)
                 var ornament = context
                 ornament.addFilter(.shadow(color: stage.task.themeColor.opacity(energy * 0.7), radius: radius * energy))
-                ornament.fill(circle, with: .color(stage.task.themeColor))
-                ornament.stroke(circle, with: .color(.glowCore), lineWidth: 1)
+                ornament.fill(shape, with: .color(stage.task.themeColor))
+                ornament.stroke(shape, with: .color(.glowCore), lineWidth: scale)
+                ornament.fill(
+                    Path(CGRect(x: center.x - 3 * scale, y: center.y - 3 * scale,
+                                width: 3 * scale, height: 3 * scale)),
+                    with: .color(.glowCore)
+                )
 
                 let gather = RevealMath.smooth((frame.time - 1 - Double(index) * 0.025) / 0.85)
                 if gather > 0 && gather < 1 {
@@ -152,7 +158,7 @@ struct TreeCompletionView: View {
 
     // MARK: - 마을과 썰매
 
-    private func villageScene(_ frame: TreeCompletionFrame) -> some View {
+    private func villageScene(_ frame: TreeCompletionFrame, topInset: CGFloat) -> some View {
         let width = max(frame.size.width, frame.size.height * 2)
         let pan = frame.reduced ? 0.5 : RevealMath.smooth((frame.time - TreeCompletionFrame.villageAt) / 5.4)
         return ZStack(alignment: .topLeading) {
@@ -195,7 +201,7 @@ struct TreeCompletionView: View {
             .padding(14)
             .background(Color.roomCardBackground.opacity(0.96), in: RoundedRectangle(cornerRadius: 18))
             .padding(.horizontal, 16)
-            .padding(.top, 16)
+            .padding(.top, topInset + 16)
             .frame(width: frame.size.width, alignment: .top)
             .opacity(frame.captionOpacity)
             .accessibilityHidden(frame.captionOpacity < 0.5)
@@ -347,13 +353,6 @@ struct TreeCompletionView: View {
 
 #Preview("트리 완성 D1 · 전체 재생") {
     TreeCompletionView(summary: .previewTreeComplete, feedback: SilentFeedbackPlayer(), onClose: {})
-}
-
-#Preview("트리 완성 D1 · 신규 보상 한 개로 테스트") {
-    TreeCompletionView(
-        summary: .previewSuccess, feedback: SilentFeedbackPlayer(), onClose: {},
-        showsFullTreeForTesting: true
-    )
 }
 
 #Preview("트리 완성 D1 · 배달 출발 문구") {

@@ -163,7 +163,7 @@ struct DecorationRevealView: View {
             origin: CGPoint(x: screenOrigin.x + f.center.x, y: screenOrigin.y + f.center.y),
             size: f.ornamentSize * CGFloat(f.ornamentScale),
             slots: start..<end
-        ), completion: result.treeCompleted || TreeCompletionConfiguration.previewAfterOneReward ? summary : nil)
+        ), completion: result.treeCompleted ? summary : nil)
     }
 
     // MARK: - 소리와 진동 시간표

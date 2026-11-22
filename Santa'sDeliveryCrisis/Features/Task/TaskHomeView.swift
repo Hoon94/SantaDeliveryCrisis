@@ -96,6 +96,9 @@ struct TaskHomeView: View {
     /// 재풀이와 이전 트리를 완성한 세션은 제외하며 보상을 다시 계산하거나 저장하지 않는다.
     private func earnedTasks(in tree: TreeRecord?) -> [WorkshopTask] {
         guard let tree else { return [] }
+        if TreeCompletionConfiguration.startBeforeFinalStage {
+            return QuizStage.all.filter { $0.isEarned(in: tree.rewardMask) }.map(\.task)
+        }
         return history.filter { session in
             guard session.status == .completed, session.rewardOutcome == .earned,
                   !session.treeCompleted, let finishedAt = session.finishedAt else { return false }

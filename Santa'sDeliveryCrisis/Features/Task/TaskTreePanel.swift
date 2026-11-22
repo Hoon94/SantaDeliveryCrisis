@@ -98,7 +98,7 @@ struct TaskTreePanel: View {
                 let center = CGPoint(x: point.x * size.width, y: point.y * size.height)
                 let isFilled = index < TreeSlots.clampedCount(filledCount)
                 let radius = (isFilled ? 7.0 : 6.0) * scale
-                let shape = ornamentPath(center: center, radius: radius)
+                let shape = TreeSlots.ornamentPath(center: center, radius: radius)
 
                 if isFilled {
                     // 획득 기록이 없는 프리뷰·개발 데이터는 임의의 작업 색을 만들지 않는다.
@@ -120,22 +120,7 @@ struct TaskTreePanel: View {
         }
     }
 
-    /// 픽셀 그림에 맞춰 네 모서리를 한 계단씩 깎은 장식 외곽선.
-    private func ornamentPath(center: CGPoint, radius: CGFloat) -> Path {
-        let step = radius / 3
-        let points: [CGPoint] = [
-            CGPoint(x: -radius + step, y: -radius), CGPoint(x: radius - step, y: -radius),
-            CGPoint(x: radius - step, y: -radius + step), CGPoint(x: radius, y: -radius + step),
-            CGPoint(x: radius, y: radius - step), CGPoint(x: radius - step, y: radius - step),
-            CGPoint(x: radius - step, y: radius), CGPoint(x: -radius + step, y: radius),
-            CGPoint(x: -radius + step, y: radius - step), CGPoint(x: -radius, y: radius - step),
-            CGPoint(x: -radius, y: -radius + step), CGPoint(x: -radius + step, y: -radius + step)
-        ]
-        return Path { path in
-            path.addLines(points.map { CGPoint(x: center.x + $0.x, y: center.y + $0.y) })
-            path.closeSubpath()
-        }
-    }
+
 }
 
 /// 가로로 나열된 네 자세를 순서대로 보여 주는 공방 장인 산타.
