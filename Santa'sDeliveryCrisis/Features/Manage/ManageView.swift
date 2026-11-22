@@ -20,7 +20,7 @@ struct ManageView: View {
     private enum EditTarget: Hashable {
         case new
         case existing(UUID)
-        /// 읽기 전용 상세 화면. 기본 문제와 내 문제 모두 연다.
+        /// 상세 화면. 기본 문제와 내 문제 모두 열고, 편집 가능 여부는 상세에서 구분한다.
         case detail(UUID)
     }
 
