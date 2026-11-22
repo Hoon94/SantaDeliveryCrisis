@@ -25,15 +25,19 @@ struct TaskHomeView: View {
     var body: some View {
         let savedCount = TreeSlots.clampedCount(activeTrees.first?.decorationCount ?? 0)
         let filledCount = max(savedCount - rewardFlight.pendingCount, 0)
+        let ornamentTasks = earnedTasks(in: activeTrees.first)
         // FIXME: [가정] 시안의 N번째 트리 번호를 완성한 트리 수 + 1로 계산. 팀 확인 필요
         let treeNumber = completedTrees.count + 1
 
         let stats = UnsolvedQuestionStats.calculate(questions: questions, history: history)
 
         ViewThatFits(in: .vertical) {
-            content(filledCount: filledCount, treeNumber: treeNumber, stats: stats)
+            content(filledCount: filledCount, ornamentTasks: ornamentTasks, treeNumber: treeNumber, stats: stats)
             ScrollView {
-                content(filledCount: filledCount, treeNumber: treeNumber, stats: stats, scrollable: true)
+                content(
+                    filledCount: filledCount, ornamentTasks: ornamentTasks,
+                    treeNumber: treeNumber, stats: stats, scrollable: true
+                )
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -52,7 +56,8 @@ struct TaskHomeView: View {
     }
 
     private func content(
-        filledCount: Int, treeNumber: Int, stats: UnsolvedQuestionStats, scrollable: Bool = false
+        filledCount: Int, ornamentTasks: [WorkshopTask], treeNumber: Int,
+        stats: UnsolvedQuestionStats, scrollable: Bool = false
     ) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("크리스마스 · \(treeNumber)번째 트리")
@@ -61,10 +66,10 @@ struct TaskHomeView: View {
                 .fixedSize(horizontal: false, vertical: true)
 
             if scrollable {
-                TaskTreePanel(filledCount: filledCount)
+                TaskTreePanel(filledCount: filledCount, ornamentTasks: ornamentTasks)
                     .aspectRatio(TreeSlots.aspectRatio, contentMode: .fit)
             } else {
-                TaskTreePanel(filledCount: filledCount)
+                TaskTreePanel(filledCount: filledCount, ornamentTasks: ornamentTasks)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .layoutPriority(-1)
             }
@@ -82,6 +87,23 @@ struct TaskHomeView: View {
 
             UnsolvedQuestionTiles(stats: stats)
         }
+    }
+
+    /// 현재 트리에 새 보상을 지급한 세션의 작업을 획득 시각순으로 읽는다.
+    /// 재풀이와 이전 트리를 완성한 세션은 제외하며 보상을 다시 계산하거나 저장하지 않는다.
+    private func earnedTasks(in tree: TreeRecord?) -> [WorkshopTask] {
+        guard let tree else { return [] }
+        return history.filter { session in
+            guard session.status == .completed, session.rewardOutcome == .earned,
+                  !session.treeCompleted, let finishedAt = session.finishedAt else { return false }
+            return finishedAt >= tree.startedAt
+        }
+        .sorted {
+            if $0.finishedAt == $1.finishedAt { return $0.startedAt < $1.startedAt }
+            return ($0.finishedAt ?? .distantPast) < ($1.finishedAt ?? .distantPast)
+        }
+        .prefix(tree.decorationCount)
+        .map(\.task)
     }
 
     /// 진행 중 세션이 있으면 복원하고, 없으면 출제 탭으로 이동하는 하나의 진입 버튼.
