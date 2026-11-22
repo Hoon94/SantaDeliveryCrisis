@@ -163,9 +163,10 @@ private struct PixelArtisanSanta: View {
 }
 
 #if DEBUG
-#Preview("픽셀 작업실 · 빈 트리") {
+#Preview("픽셀 작업실 · 빈 트리 · 라이트") {
     TaskTreePanel(filledCount: 0)
         .aspectRatio(1, contentMode: .fit)
+        .preferredColorScheme(.light)
 }
 
 #Preview("픽셀 작업실 · 장식 6개") {
