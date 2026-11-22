@@ -2,7 +2,7 @@ import SwiftData
 import SwiftUI
 
 /// 문제 관리 화면(S10). 문제를 검색하고 작업·난이도로 거르며, 내가 만든 문제를 고치거나 지운다.
-/// 기본(시드) 문제와 애니메이션 문제의 [수정]/[삭제]는 흐리게 표시하고 반응하지 않는다.
+/// 내가 만든 일반 문제에만 스와이프로 수정·삭제를 제공한다.
 struct ManageView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.services) private var services
@@ -67,17 +67,26 @@ struct ManageView: View {
                 ForEach(filteredQuestions) { question in
                     QuestionRow(
                         question: question,
-                        onOpen: { editTarget = .detail(question.id) },
-                        onEdit: { editTarget = .existing(question.id) },
-                        onDelete: { pendingDelete = question }
+                        onOpen: { editTarget = .detail(question.id) }
                     )
                     .listRowBackground(Color.roomCardBackground)
                     .listRowSeparatorTint(Color.roomBorder)
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                        // 내가 만든 일반 문제에만 스와이프 삭제를 붙인다.
+                        // 내가 만든 일반 문제에만 스와이프 수정·삭제를 붙인다.
                         if isEditable(question) {
-                            Button("삭제", role: .destructive) { pendingDelete = question }
-                                .tint(Color.roomNegative)
+                            Button(role: .destructive) {
+                                pendingDelete = question
+                            } label: {
+                                Label("삭제", systemImage: "trash")
+                            }
+                            .tint(Color.roomNegative)
+
+                            Button {
+                                editTarget = .existing(question.id)
+                            } label: {
+                                Label("수정", systemImage: "pencil")
+                            }
+                            .tint(Color.roomAccent)
                         }
                     }
                 }
