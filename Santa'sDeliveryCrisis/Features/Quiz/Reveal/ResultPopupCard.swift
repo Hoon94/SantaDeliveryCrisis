@@ -10,6 +10,8 @@ struct ResultPopupCard: View {
     let tint: Color
     /// 카드가 나타난 뒤 흐른 시간(초)
     let shownFor: Double
+    /// 오답이 있으면 복습 시트를 연다. 단독 프리뷰에서는 생략할 수 있다.
+    var onReview: (() -> Void)? = nil
     let onClose: () -> Void
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -17,33 +19,11 @@ struct ResultPopupCard: View {
     private var isCompact: Bool { dynamicTypeSize >= .accessibility1 }
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                header.stagger(0, t: shownFor)
-
-                Group {
-                    if isCompact {
-                        VStack(spacing: 16) { ring; details }
-                    } else {
-                        HStack(alignment: .center, spacing: 18) { ring; details }
-                    }
-                }
-                .stagger(1, t: shownFor)
-
-                passBanner.stagger(2, t: shownFor)
-                treeProgress.stagger(3, t: shownFor)
-                wrongSummary.stagger(4, t: shownFor)
-
-                Button(action: onClose) {
-                    Text("돌아가기")
-                }
-                .buttonStyle(GlowButtonStyle(tint: tint))
-                .stagger(5, t: shownFor)
-                .padding(.top, 2)
-            }
-            .padding(20)
+        ViewThatFits(in: .vertical) {
+            cardContent.fixedSize(horizontal: false, vertical: true)
+            ScrollView { cardContent }
+                .scrollBounceBehavior(.basedOnSize)
         }
-        .scrollBounceBehavior(.basedOnSize)
         .background(
             RoundedRectangle(cornerRadius: 32, style: .continuous)
                 .fill(Color.nightCardBackground)
@@ -58,6 +38,34 @@ struct ResultPopupCard: View {
         )
         .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
         .allowsHitTesting(shownFor > 0.5)
+    }
+
+    /// 내용이 들어가면 실제 높이만 사용하고, 넘치는 화면에서만 스크롤한다.
+    private var cardContent: some View {
+        VStack(spacing: 12) {
+            header.stagger(0, t: shownFor)
+
+            Group {
+                if isCompact {
+                    VStack(spacing: 16) { ring; details }
+                } else {
+                    HStack(alignment: .center, spacing: 18) { ring; details }
+                }
+            }
+            .stagger(1, t: shownFor)
+
+            passBanner.stagger(2, t: shownFor)
+            treeProgress.stagger(3, t: shownFor)
+            wrongSummary.stagger(4, t: shownFor)
+
+            Button(action: onClose) {
+                Text("돌아가기")
+            }
+            .buttonStyle(GlowButtonStyle(tint: tint))
+            .stagger(5, t: shownFor)
+            .padding(.top, 2)
+        }
+        .padding(16)
     }
 
     // MARK: - 조각
@@ -186,14 +194,31 @@ struct ResultPopupCard: View {
 
     private var wrongSummary: some View {
         let wrong = summary.result.wrongAnswers.count
-        return HStack(spacing: 10) {
-            Image(systemName: wrong == 0 ? "party.popper.fill" : "xmark.circle.fill")
-                .foregroundStyle(wrong == 0 ? Color.ornamentGold : Color.roomNegative)
-            Text(wrong == 0 ? "틀린 문제가 없어요. 모두 맞혔어요!" : "오답 \(wrong)개")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(Color.nightPrimaryText)
-            Spacer(minLength: 0)
+        return Group {
+            if wrong > 0, let onReview {
+                Button(action: onReview) {
+                    HStack(spacing: 10) {
+                        Image(systemName: "xmark.circle.fill").foregroundStyle(Color.roomNegative)
+                        Text("오답 \(wrong)개 보기")
+                        Spacer(minLength: 0)
+                        Image(systemName: "chevron.right").accessibilityHidden(true)
+                    }
+                    .frame(minHeight: 44)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityHint("이번 세션의 오답과 추천 학습 자료를 확인합니다")
+            } else {
+                HStack(spacing: 10) {
+                    Image(systemName: wrong == 0 ? "party.popper.fill" : "xmark.circle.fill")
+                        .foregroundStyle(wrong == 0 ? Color.ornamentGold : Color.roomNegative)
+                    Text(wrong == 0 ? "틀린 문제가 없어요. 모두 맞혔어요!" : "오답 \(wrong)개")
+                    Spacer(minLength: 0)
+                }
+            }
         }
+        .font(.subheadline.weight(.semibold))
+        .foregroundStyle(Color.nightPrimaryText)
         .padding(.horizontal, 14)
         .padding(.vertical, 4)
         .frame(maxWidth: .infinity, alignment: .leading)

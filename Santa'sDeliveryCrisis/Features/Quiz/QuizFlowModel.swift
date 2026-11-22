@@ -242,7 +242,8 @@ final class QuizFlowModel {
                 category: session.category,
                 difficulty: session.difficulty,
                 thresholdPercent: session.passThresholdPercent,
-                treeRewardMask: treeRewardMask
+                treeRewardMask: treeRewardMask,
+                questionSnapshots: session.questionSnapshots
             )
             phase = .result
         } catch {

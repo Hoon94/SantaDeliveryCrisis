@@ -9,6 +9,8 @@ struct DecorationRevealView: View {
     let summary: QuizResultSummary
     let style: OrnamentStyle
     let feedback: QuizFeedbackPlaying
+    /// 결과 카드에서 오답 복습을 요청하는 동작.
+    var onReview: (() -> Void)? = nil
     let onClose: () -> Void
     /// 연출 속도 배율. 1이 실제 속도이고, 미리보기에서 느리게 보려고 1보다 작게 준다.
     var timeScale: Double = 1
@@ -135,7 +137,7 @@ struct DecorationRevealView: View {
 
     private func card(_ f: RevealFrame, size: CGSize, screenOrigin: CGPoint) -> some View {
         let maxHeight = size.height * 0.62
-        return ResultPopupCard(summary: summary, tint: style.tint, shownFor: max(f.cardT, 0)) {
+        return ResultPopupCard(summary: summary, tint: style.tint, shownFor: max(f.cardT, 0), onReview: onReview) {
             feedback.play(.button)
             launchFlight(from: f, screenOrigin: screenOrigin)
             onClose()

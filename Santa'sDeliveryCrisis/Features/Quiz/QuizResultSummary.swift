@@ -14,6 +14,8 @@ struct QuizResultSummary {
     let thresholdPercent: Int
     /// 결과를 반영한 트리의 실제 획득 칸. 완성 직후에는 새 트리가 아닌 완성한 트리의 기록이다.
     let treeRewardMask: Int
+    /// 풀 당시의 문제 내용. 오답 복습은 수정된 원본 대신 이 복사본을 사용한다.
+    let questionSnapshots: [QuestionSnapshot]
 
     /// 획득한 장식을 지도와 같은 스테이지 순서로 표시한다. 개수로 색을 추정하지 않는다.
     var treeRewardStages: [QuizStage] {
