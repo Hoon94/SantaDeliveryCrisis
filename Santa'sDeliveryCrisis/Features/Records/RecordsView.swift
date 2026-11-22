@@ -116,7 +116,7 @@ private struct RecordsToolbar: ToolbarContent {
                     Text("설정")
                 }
                 .font(.subheadline.bold())
-                .foregroundStyle(Color.roomAccent)
+                .foregroundStyle(.primary)
             }
             .accessibilityLabel("설정")
         }

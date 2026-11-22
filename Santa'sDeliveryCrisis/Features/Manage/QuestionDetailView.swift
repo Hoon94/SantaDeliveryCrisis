@@ -63,7 +63,7 @@ struct QuestionDetailView: View {
                     .disabled(!isEditable)
                 } label: {
                     Image(systemName: "ellipsis")
-                        .foregroundStyle(Color.roomAccent)
+                        .foregroundStyle(.primary)
                 }
                 .accessibilityLabel("문제 더보기")
             }

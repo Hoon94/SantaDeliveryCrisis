@@ -54,7 +54,7 @@ struct DailyQuizReminderTimeSheet: View {
                 }
             }
         }
-        .tint(Color.roomAccent)
+        .tint(.primary)
         .presentationBackground(Color.roomBackground)
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)

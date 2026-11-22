@@ -79,14 +79,14 @@ struct ManageView: View {
                             } label: {
                                 Label("삭제", systemImage: "trash")
                             }
-                            .tint(Color.roomNegative)
+                            .tint(.red)
 
                             Button {
                                 editTarget = .existing(question.id)
                             } label: {
                                 Label("수정", systemImage: "pencil")
                             }
-                            .tint(Color.roomAccent)
+                            .tint(.gray)
                         }
                     }
                 }
@@ -245,7 +245,7 @@ private struct ManageToolbar: ToolbarContent {
             Button(action: onAdd) {
                 Image(systemName: "plus")
                     .font(.title3.bold())
-                    .foregroundStyle(Color.roomAccent)
+                    .foregroundStyle(.primary)
             }
             .accessibilityLabel("새 문제")
         }
