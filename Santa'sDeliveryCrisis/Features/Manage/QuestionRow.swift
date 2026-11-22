@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// 문제 관리 목록의 한 행. 제목과 "카테고리 · 난이도 · 내 문제/기본"을 보여 준다.
+/// 문제 관리 목록의 한 행. 제목, "카테고리 · 난이도 · 내 문제/기본", 태그를 보여 준다.
 /// 행을 누르면 상세 화면이 열리고, 수정·삭제 스와이프 동작은 목록에서 제공한다.
 /// 기본(시드) 문제와 애니메이션 문제는 고치거나 지울 수 없어서 자물쇠를 보여 준다.
 struct QuestionRow: View {
@@ -26,6 +26,15 @@ struct QuestionRow: View {
                     .multilineTextAlignment(.leading)
                     .foregroundStyle(Color.roomPrimaryText)
                 subtitleLine
+                if !question.tags.isEmpty {
+                    Text(question.tags.map { "#\($0)" }.joined(separator: "  "))
+                        .font(.caption)
+                        .foregroundStyle(Color.roomSecondaryText)
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.top, 4)
+                        .accessibilityLabel("태그: \(question.tags.joined(separator: ", "))")
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .frame(minHeight: 44)
@@ -59,3 +68,11 @@ struct QuestionRow: View {
         return "\(question.category.categoryName) · \(question.difficulty.displayName) · \(owner)"
     }
 }
+
+#if DEBUG
+#Preview("태그가 있는 문제") {
+    QuestionRow(question: ManagePreviewData.sampleSeedQuestion(), onOpen: {})
+        .padding()
+        .background(Color.roomCardBackground)
+}
+#endif
