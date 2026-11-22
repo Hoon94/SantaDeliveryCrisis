@@ -47,8 +47,8 @@ struct RecordsView: View {
                             topPadding: 24
                         )
                     } else {
-                        SolvedCountChart(days: summary.days, period: period)
                         WeakCategoryList(categories: summary.weakCategories)
+                        SolvedCountChart(days: summary.days, period: period)
                     }
                 }
             }

@@ -3,11 +3,16 @@ import SwiftUI
 // 기록·설정 화면이 공유하는 시안(작업실 팔레트) 컴포넌트.
 // 색은 모두 Asset 카탈로그의 `Room*` 색 세트(라이트/다크)를 쓴다. 카드 스타일은 `Extensions/View+RoomCardBackground.swift`.
 
-/// 시안의 세그먼트 컨트롤. 배경은 soft, 선택된 칸은 카드 색으로 떠 보인다.
+/// 주간·월간과 정답률 선택에 쓰는 세그먼트. 다크 모드에서는 같은 초록 계열로 선택을 구분한다.
 struct RoomSegmentedControl<Value: Hashable>: View {
     /// 선택 가능한 값과 화면에 보일 글자
     let options: [(value: Value, title: String, accessibilityLabel: String)]
     @Binding var selection: Value
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var selectedBackground: Color {
+        colorScheme == .dark ? .roomSecondaryText : .roomCardBackground
+    }
 
     var body: some View {
         HStack(spacing: 3) {
@@ -23,7 +28,7 @@ struct RoomSegmentedControl<Value: Hashable>: View {
                         .background {
                             if isSelected {
                                 RoundedRectangle(cornerRadius: 11)
-                                    .fill(Color.roomCardBackground)
+                                    .fill(selectedBackground)
                                     .shadow(color: Color.roomPrimaryText.opacity(0.15), radius: 1.5, y: 1)
                             }
                         }
@@ -37,6 +42,25 @@ struct RoomSegmentedControl<Value: Hashable>: View {
         .padding(3)
         .background(Color.roomSubtleBackground, in: RoundedRectangle(cornerRadius: 14))
     }
+}
+
+#Preview("선택 표시 · 다크 모드") {
+    @Previewable @State var period = RecordsPeriod.week
+    @Previewable @State var threshold = 80
+
+    VStack(spacing: 24) {
+        RoomSegmentedControl(
+            options: RecordsPeriod.allCases.map { ($0, $0.displayName, $0.displayName) },
+            selection: $period
+        )
+        RoomSegmentedControl(
+            options: stride(from: 50, through: 100, by: 10).map { ($0, "\($0)", "\($0)퍼센트") },
+            selection: $threshold
+        )
+    }
+    .padding()
+    .background(Color.roomBackground)
+    .preferredColorScheme(.dark)
 }
 
 /// 시안의 얇은 진행 막대(높이 6)
