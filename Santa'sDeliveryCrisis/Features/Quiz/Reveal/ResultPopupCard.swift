@@ -63,20 +63,23 @@ struct ResultPopupCard: View {
     // MARK: - 조각
 
     private var header: some View {
-        HStack(spacing: 8) {
-            Image(systemName: summary.isSuccess ? "gift.fill" : "gift")
-                .foregroundStyle(summary.isSuccess ? tint : Color.nightSecondaryText)
-            Text("세션 결과")
-                .font(.headline)
-                .foregroundStyle(Color.nightPrimaryText)
-            Spacer(minLength: 0)
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                Image(systemName: summary.isSuccess ? "gift.fill" : "gift")
+                    .foregroundStyle(summary.isSuccess ? tint : Color.nightSecondaryText)
+                Text("세션 결과")
+                    .font(.headline)
+                    .foregroundStyle(Color.nightPrimaryText)
+            }
             Text(summary.stage.title)
                 .font(.caption.weight(.bold))
                 .foregroundStyle(Color.glowWhite)
+                .fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 5)
                 .background(Capsule().fill(tint))
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var ring: some View {

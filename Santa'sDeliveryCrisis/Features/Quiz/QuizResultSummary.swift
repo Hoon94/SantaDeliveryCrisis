@@ -39,7 +39,7 @@ struct QuizResultSummary {
         }
     }
 
-    /// 퀴즈를 시작한 단계. 내부 보상 작업을 사용자에게 스테이지 번호로 표시한다.
+    /// 퀴즈를 시작한 단계. 저장된 보상 작업·난이도를 장소와 단계 이름으로 표시한다.
     var stage: QuizStage { QuizStage(task: task, difficulty: difficulty) }
 
     /// 카테고리 이름. 혼합 세션이면 설명 문구

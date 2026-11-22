@@ -54,7 +54,7 @@ struct ResumeChoiceSheet: View {
             Button("취소", role: .cancel) {}
             Button("새로 시작", role: .destructive) { resolve(onRestart) }
         } message: {
-            Text("진행 중이던 세션(\(taskName) · \(session.difficulty.displayName) \(session.answers.count)/\(session.questionSnapshots.count))은\n이어서 풀 수 없게 돼요.")
+            Text("진행 중이던 세션(\(stageTitle) · \(session.difficulty.displayName) \(session.answers.count)/\(session.questionSnapshots.count))은\n이어서 풀 수 없게 돼요.")
         }
         .tint(.primary)
     }
@@ -65,8 +65,9 @@ struct ResumeChoiceSheet: View {
                 .font(.title3)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
-                Text("\(taskName) · \(session.difficulty.displayName)")
+                Text("\(stageTitle) · \(session.difficulty.displayName)")
                     .font(.subheadline.weight(.bold))
+                    .fixedSize(horizontal: false, vertical: true)
                     .foregroundStyle(Color.nightPrimaryText)
                 Text("\(session.answers.count) / \(session.questionSnapshots.count) 문제까지 풀었어요")
                     .font(.caption)
@@ -102,7 +103,7 @@ struct ResumeChoiceSheet: View {
         }
     }
 
-    private var taskName: String { QuizStage(task: session.task, difficulty: session.difficulty).title }
+    private var stageTitle: String { QuizStage(task: session.task, difficulty: session.difficulty).title }
 
     private func resolve(_ action: () -> Void) {
         guard isResolving == false else { return }

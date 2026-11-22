@@ -36,8 +36,35 @@ nonisolated struct QuizStage: Identifiable, Hashable, Sendable {
         }
     }
 
-    /// 출제 화면에서 표시하는 단계 이름.
-    var title: String { "스테이지 \(groupNumber)-\(stepNumber)" }
+    /// 난이도별 지도 구역과 세션 안내에 표시하는 장소 이름.
+    var districtName: String {
+        switch difficulty {
+        case .easy: "소원 우체국"
+        case .normal: "선물 제작소"
+        case .hard: "루돌프 정류장"
+        }
+    }
+
+    /// 기존 보상 작업과 난이도에 대응하는 단계 이름.
+    var stepName: String {
+        switch (difficulty, task) {
+        case (.easy, .wishReception): "우편함 열기"
+        case (.easy, .giftProduction): "주소 확인"
+        case (.easy, .wrapping): "소원 기록"
+        case (.easy, .sleighLoading): "접수 마감"
+        case (.normal, .wishReception): "재료 준비"
+        case (.normal, .giftProduction): "뚝딱 조립"
+        case (.normal, .wrapping): "리본 포장"
+        case (.normal, .sleighLoading): "품질 검사"
+        case (.hard, .wishReception): "썰매 점검"
+        case (.hard, .giftProduction): "선물 싣기"
+        case (.hard, .wrapping): "루돌프 정렬"
+        case (.hard, .sleighLoading): "출동 완료"
+        }
+    }
+
+    /// 풀이·결과·이어 풀기에서 공통으로 표시하는 장소와 단계 이름.
+    var title: String { "\(districtName) · \(stepName)" }
 
     /// 현재 트리에서 이 단계의 보상을 획득했는지 확인한다.
     func isEarned(in rewardMask: Int) -> Bool {

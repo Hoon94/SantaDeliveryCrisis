@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// 테마별 임시 배경. 작업 이름을 흐릿하게 크게 박고, 테마 색 빛 번짐과 천천히 떠다니는 눈송이를 깐다.
+/// 테마별 임시 배경. 테마 색 빛 번짐과 소품, 천천히 떠다니는 눈송이를 깐다.
 // FIXME: [자산 교체] 테마별 배경 일러스트가 오면 이 뷰 안을 이미지로 교체한다. 바깥 사용처는 그대로 둔다.
 struct ThemeBackground: View {
     let theme: QuizTheme
@@ -28,30 +28,12 @@ struct ThemeBackground: View {
                 endRadius: 380
             )
 
-            watermark
             props
             Snowfall(isAnimated: !reduceMotion)
         }
         .ignoresSafeArea()
         .animation(.easeInOut(duration: 0.6), value: theme)
         .accessibilityHidden(true)
-    }
-
-    /// 작업 이름을 비스듬히 크게. 읽는 글자가 아니라 분위기용이라 아주 옅게 둔다.
-    private var watermark: some View {
-        GeometryReader { proxy in
-            Text(theme.title)
-                .font(.system(size: min(proxy.size.width * 0.34, 150), weight: .black, design: .rounded))
-                .foregroundStyle(Color.nightPrimaryText.opacity(0.06))
-                .lineLimit(1)
-                .minimumScaleFactor(0.4)
-                .fixedSize()
-                .rotationEffect(.degrees(-14))
-                .blur(radius: 1.2)
-                .position(x: proxy.size.width * 0.5, y: proxy.size.height * 0.34)
-                .id(theme)
-                .transition(.opacity)
-        }
     }
 
     /// 테마 소품 이모지를 흐리게 흩어 둔다.

@@ -84,7 +84,7 @@ struct StageMapView: View {
 
     private func districtSign(_ difficulty: Difficulty) -> some View {
         VStack(spacing: 3) {
-            Text("스테이지 \(QuizStage(task: .wishReception, difficulty: difficulty).groupNumber)")
+            Text(QuizStage(task: .wishReception, difficulty: difficulty).districtName)
                 .font(.subheadline.weight(.heavy))
             Text(difficulty.displayName)
                 .font(.caption.weight(.bold))
@@ -134,16 +134,17 @@ private struct StageMapNode: View {
                             }
                         }
 
-                    Text("\(stage.groupNumber)-\(stage.stepNumber)")
-                        .font(.caption2.weight(.heavy).monospacedDigit())
-                        .lineLimit(1)
-                        .fixedSize(horizontal: true, vertical: false)
+                    Text(stage.stepName)
+                        .font(.caption2.weight(.heavy))
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
                         .foregroundStyle(Color.glowWhite)
                         .padding(.horizontal, 7)
                         .padding(.vertical, 3)
                         .background(isNext ? Color.ornamentRed : Color.inkShadow, in: RoundedRectangle(cornerRadius: 3))
                         .overlay { RoundedRectangle(cornerRadius: 3).strokeBorder(Color.glowWhite, lineWidth: 1) }
                         .opacity(isUnlocked && !hasCandidates ? 0.65 : 1)
+                        .frame(maxWidth: 100)
                 }
                 .frame(minWidth: 52, minHeight: 44, alignment: .bottom)
                 .contentShape(Rectangle())
