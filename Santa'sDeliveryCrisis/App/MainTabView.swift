@@ -1,7 +1,7 @@
 import SwiftData
 import SwiftUI
 
-/// 하단 탭 4개: 작업실 / 출제 / 기록 / 관리. 각 탭은 독립된 NavigationStack을 가진다.
+/// 하단 탭 4개: 작업실 / 출제 / 관리 / 기록. 각 탭은 독립된 NavigationStack을 가진다.
 struct MainTabView: View {
     private enum Tab: Hashable {
         case task, select, records, manage
@@ -29,12 +29,12 @@ struct MainTabView: View {
             }
                 .tabItem { Label("출제", systemImage: "tree") }
                 .tag(Tab.select)
-            TabRoot(title: "기록") { RecordsView() }
-                .tabItem { Label("기록", systemImage: "chart.bar") }
-                .tag(Tab.records)
             TabRoot(title: "관리") { ManageView() }
                 .tabItem { Label("관리", systemImage: "list.bullet.rectangle") }
                 .tag(Tab.manage)
+            TabRoot(title: "기록") { RecordsView() }
+                .tabItem { Label("기록", systemImage: "chart.bar") }
+                .tag(Tab.records)
         }
         .tint(.appTint)
         // 장식이 날아가기 시작하면 트리가 있는 작업실 탭으로 옮긴다. 퀴즈 화면은 그 위에서 페이드로 닫힌다.
