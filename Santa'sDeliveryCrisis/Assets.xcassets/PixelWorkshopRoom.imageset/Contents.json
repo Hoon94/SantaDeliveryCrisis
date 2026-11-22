@@ -1,13 +1,22 @@
 {
-  "images": [
+  "images" : [
     {
-      "filename": "pixel-workshop-room.png",
-      "idiom": "universal",
-      "scale": "1x"
+      "filename" : "pixel-workshop-room-light.png",
+      "idiom" : "universal"
+    },
+    {
+      "appearances" : [
+        {
+          "appearance" : "luminosity",
+          "value" : "dark"
+        }
+      ],
+      "filename" : "pixel-workshop-room.png",
+      "idiom" : "universal"
     }
   ],
-  "info": {
-    "author": "xcode",
-    "version": 1
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
   }
 }

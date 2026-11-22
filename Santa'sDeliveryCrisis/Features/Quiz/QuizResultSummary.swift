@@ -34,12 +34,12 @@ struct QuizResultSummary {
         switch result.rewardOutcome {
         case .earned: "장식을 1개 받았어요"
         case .alreadyEarned: "이미 획득한 장식은 그대로예요. 추가 보상은 없어요"
-        case .notEarned: "벌칙은 없어요. 다시 도전해 보세요"
+        case .notEarned: "다시 도전해 보세요"
         case .pending: "아직 결과가 확정되지 않았어요"
         }
     }
 
-    /// 퀴즈를 시작한 단계. 내부 보상 작업을 사용자에게 스테이지 번호로 표시한다.
+    /// 퀴즈를 시작한 단계. 저장된 보상 작업·난이도를 장소와 단계 이름으로 표시한다.
     var stage: QuizStage { QuizStage(task: task, difficulty: difficulty) }
 
     /// 카테고리 이름. 혼합 세션이면 설명 문구

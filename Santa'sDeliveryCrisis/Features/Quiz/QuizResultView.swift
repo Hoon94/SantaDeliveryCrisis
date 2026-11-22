@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// 세션 결과(S6). 새 보상이 있으면 획득 연출을, 재풀이·기준 미달이면 결과 카드만 보여 준다.
+/// 세션 결과(S6). 트리 완성·일반 장식 획득·새 보상 없음에 맞는 연출을 보여 준다.
 struct QuizResultView: View {
     let summary: QuizResultSummary
     let services: AppServices
@@ -45,7 +45,7 @@ private struct MissedDecorationView: View {
                         OrnamentView(style: OrnamentStyle(task: summary.task), radiance: 0, size: min(proxy.size.width * 0.28, 120))
                             .rotationEffect(.degrees(sway), anchor: .top)
                             .saturation(0.6)
-                        Text(summary.passedThreshold ? "기준을 통과했어요" : "이번에는 기준에 못 미쳤어요")
+                        Text(summary.passedThreshold ? "획득 조건을 충족했어요" : "이번에는 장식을 획득하지 못했어요")
                             .font(.title3.weight(.heavy))
                             .foregroundStyle(Color.glowCore)
                             .multilineTextAlignment(.center)
@@ -57,8 +57,8 @@ private struct MissedDecorationView: View {
                     .padding(.horizontal, 24)
                     .opacity(appear)
                     .offset(y: (1 - appear) * 12)
+                    .padding(.top, max(proxy.safeAreaInsets.top + 24, 96))
                     .frame(width: proxy.size.width, height: proxy.size.height, alignment: .top)
-                    .padding(.top, 70)
 
                     ResultPopupCard(summary: summary, tint: .nightAccent, shownFor: max(t - 0.5, 0)) {
                         feedback.play(.button)
@@ -90,6 +90,11 @@ private struct MissedDecorationView: View {
         ThemeBackground(theme: .factory)
         QuizResultView(summary: .previewFailure, services: .preview) {}
     }
+}
+
+#Preview("결과 · 미달 · 큰 글자") {
+    QuizResultView(summary: .previewFailure, services: .preview) {}
+        .dynamicTypeSize(.accessibility3)
 }
 #endif
 

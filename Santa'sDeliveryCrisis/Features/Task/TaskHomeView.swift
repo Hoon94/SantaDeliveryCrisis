@@ -23,11 +23,14 @@ struct TaskHomeView: View {
     private var completedTrees: [TreeRecord]
     /// 저장된 트리 기록을 읽어 화면을 구성하며 트리가 없으면 0칸으로 표시한다.
     var body: some View {
-        let savedCount = TreeSlots.clampedCount(activeTrees.first?.decorationCount ?? 0)
+        let completing = rewardFlight.pendingCompletion ?? rewardFlight.completion
+        let savedCount = completing?.treeDecorationCount ?? TreeSlots.clampedCount(activeTrees.first?.decorationCount ?? 0)
         let filledCount = max(savedCount - rewardFlight.pendingCount, 0)
-        let ornamentTasks = earnedTasks(in: activeTrees.first)
+        let ornamentTasks = completing.map { summary in
+            (summary.treeRewardStages.filter { $0 != summary.stage } + [summary.stage]).map(\.task)
+        } ?? earnedTasks(in: activeTrees.first)
         // FIXME: [가정] 시안의 N번째 트리 번호를 완성한 트리 수 + 1로 계산. 팀 확인 필요
-        let treeNumber = completedTrees.count + 1
+        let treeNumber = completedTrees.count + (completing?.result.treeCompleted == true ? 0 : 1)
 
         let stats = UnsolvedQuestionStats.calculate(questions: questions, history: history)
 
@@ -93,6 +96,9 @@ struct TaskHomeView: View {
     /// 재풀이와 이전 트리를 완성한 세션은 제외하며 보상을 다시 계산하거나 저장하지 않는다.
     private func earnedTasks(in tree: TreeRecord?) -> [WorkshopTask] {
         guard let tree else { return [] }
+        if TreeCompletionConfiguration.startBeforeFinalStage {
+            return QuizStage.all.filter { $0.isEarned(in: tree.rewardMask) }.map(\.task)
+        }
         return history.filter { session in
             guard session.status == .completed, session.rewardOutcome == .earned,
                   !session.treeCompleted, let finishedAt = session.finishedAt else { return false }
@@ -120,7 +126,7 @@ struct TaskHomeView: View {
                 Text(session == nil ? "퀴즈 시작하기" : "이어서 풀기")
                     .font(.body.weight(.heavy))
                 if let session {
-                    Text("\(session.task.displayName) · \(session.difficulty.displayName) · \(session.answers.count) / \(session.questionSnapshots.count) 문제")
+                    Text("\(QuizStage(task: session.task, difficulty: session.difficulty).title) · \(session.difficulty.displayName) · \(session.answers.count) / \(session.questionSnapshots.count) 문제")
                         .font(.caption)
                         .opacity(0.85)
                 }

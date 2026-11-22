@@ -36,6 +36,11 @@ final class RewardFlightCenter {
     /// 지금 진행 중인 비행. 없으면 nil
     private(set) var flight: Flight?
 
+    /// 비행하는 동안 작업실에 유지할 완성 트리의 결과.
+    private(set) var pendingCompletion: QuizResultSummary?
+    /// 장식 부착이 끝난 뒤 표시할 완성 연출의 결과.
+    private(set) var completion: QuizResultSummary?
+
     /// 아직 트리에 도착하지 않아 트리에서 숨겨야 하는 장식 수
     private(set) var pendingCount = 0
 
@@ -46,9 +51,11 @@ final class RewardFlightCenter {
 
     /// 새 비행을 시작한다. 이미 진행 중이면 이전 비행의 숨김을 풀고 새 비행으로 바꾼다.
     /// - Parameter flight: 출발 위치와 받을 칸 정보. 칸이 비어 있으면 아무것도 하지 않는다.
-    func start(_ flight: Flight) {
+    func start(_ flight: Flight, completion: QuizResultSummary? = nil) {
         guard flight.count > 0 else { return }
         self.flight = flight
+        pendingCompletion = completion
+        self.completion = nil
         pendingCount = flight.count
     }
 
@@ -61,6 +68,13 @@ final class RewardFlightCenter {
     func finish() {
         pendingCount = 0
         flight = nil
+        completion = pendingCompletion
+        pendingCompletion = nil
+    }
+
+    /// 완성 장면을 닫고 저장된 현재 트리를 다시 표시한다.
+    func dismissCompletion() {
+        completion = nil
     }
 
     /// 트리 칸의 화면 좌표.

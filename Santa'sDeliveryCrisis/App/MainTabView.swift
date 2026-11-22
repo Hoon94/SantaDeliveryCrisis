@@ -1,11 +1,13 @@
 import SwiftData
 import SwiftUI
 
-/// 하단 탭 4개: 작업실 / 출제 / 기록 / 관리. 각 탭은 독립된 NavigationStack을 가진다.
+/// 하단 탭 4개: 작업실 / 출제 / 관리 / 기록. 각 탭은 독립된 NavigationStack을 가진다.
 struct MainTabView: View {
     private enum Tab: Hashable {
         case task, select, records, manage
     }
+
+    @Environment(\.services) private var services
 
     @State private var selectedTab: Tab = .task
     @State private var setupRequestID: UUID?
@@ -29,19 +31,29 @@ struct MainTabView: View {
             }
                 .tabItem { Label("출제", systemImage: "tree") }
                 .tag(Tab.select)
-            TabRoot(title: "기록") { RecordsView() }
-                .tabItem { Label("기록", systemImage: "chart.bar") }
-                .tag(Tab.records)
             TabRoot(title: "관리") { ManageView() }
                 .tabItem { Label("관리", systemImage: "list.bullet.rectangle") }
                 .tag(Tab.manage)
+            TabRoot(title: "기록") { RecordsView() }
+                .tabItem { Label("기록", systemImage: "chart.bar") }
+                .tag(Tab.records)
         }
+        // 탭바의 선택 색상. 화면 내부의 기본 틴트는 TabRoot에서 별도로 지정한다.
         .tint(.appTint)
         // 장식이 날아가기 시작하면 트리가 있는 작업실 탭으로 옮긴다. 퀴즈 화면은 그 위에서 페이드로 닫힌다.
         .onChange(of: rewardFlight.flight?.id) { _, id in
             if id != nil { selectedTab = .task }
         }
         .overlay { RewardFlightOverlay() }
+        .overlay {
+            if let summary = rewardFlight.completion {
+                TreeCompletionView(
+                    summary: summary, feedback: services.feedback,
+                    onClose: { rewardFlight.dismissCompletion() }
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
         // 장식 연출의 셰이더를 앱이 켜진 직후에 미리 컴파일해 첫 연출의 멈춤을 줄인다.
         .overlay(alignment: .topLeading) { ShaderWarmup() }
         .fullScreenCover(item: $activeQuizSession) { session in
@@ -71,6 +83,8 @@ private struct TabRoot<Content: View>: View {
                 .navigationTitle(title)
                 .navigationBarTitleDisplayMode(.inline)
         }
+        // 탭바의 앱 색상이 툴바·알림·편집 화면의 일반 동작까지 상속되지 않게 한다.
+        .tint(.primary)
     }
 }
 
@@ -87,6 +101,13 @@ private struct TabRoot<Content: View>: View {
 }
 
 #if DEBUG
+#Preview("탭·툴바·알림 색상 · 다크") {
+    MainTabView()
+        .modelContainer(ManagePreviewData.container(withQuestions: true))
+        .environment(\.services, .preview)
+        .preferredColorScheme(.dark)
+}
+
 /// 실제 세션 서비스를 사용해 탭 전환과 퀴즈 종료 후 복귀를 확인하는 프리뷰.
 @ViewBuilder
 private func quizNavigationPreview(existingSession: Bool) -> some View {

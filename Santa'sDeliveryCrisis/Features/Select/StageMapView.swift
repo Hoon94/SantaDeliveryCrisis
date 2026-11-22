@@ -19,24 +19,24 @@ struct StageMapView: View {
     /// 잠김과 후보 부족 안내는 출제 화면에서 처리한다.
     let onSelect: (QuizStage) -> Void
 
-    /// 시안 이미지와 함께 사용하는 단계의 위치 비율.
+    /// 가운데 마을 양 끝 빈터를 안쪽으로 옮긴 지도에 맞춘 단계의 위치 비율.
     private let positions: [CGPoint] = [
         CGPoint(x: 0.071, y: 0.545), CGPoint(x: 0.116, y: 0.680),
         CGPoint(x: 0.222, y: 0.660), CGPoint(x: 0.262, y: 0.480),
-        CGPoint(x: 0.350, y: 0.590), CGPoint(x: 0.415, y: 0.545),
-        CGPoint(x: 0.579, y: 0.505), CGPoint(x: 0.650, y: 0.600),
+        CGPoint(x: 0.380, y: 0.665), CGPoint(x: 0.415, y: 0.545),
+        CGPoint(x: 0.579, y: 0.505), CGPoint(x: 0.605, y: 0.665),
         CGPoint(x: 0.748, y: 0.685), CGPoint(x: 0.793, y: 0.540),
         CGPoint(x: 0.904, y: 0.545), CGPoint(x: 0.893, y: 0.430)
     ]
 
-    /// 세로 크기를 따라 지도의 비율을 유지하고, 좁은 화면에서만 가로 이동한다.
+    /// 한 화면에 마을 하나가 들어오도록 표시하고, 자동 이동은 선택 난이도의 마을 중앙에 맞춘다.
     var body: some View {
         GeometryReader { geometry in
-            let height = max(geometry.size.height, geometry.size.width / 2)
-            let width = height * 2
+            let width = geometry.size.width * 3
+            let height = width / 2
             StageMapScrollView(
                 contentSize: CGSize(width: width, height: height),
-                focusX: positions[focusedStage.id].x * width,
+                focusX: CGFloat(group(focusedStage.difficulty)) / 6 * width,
                 focusedStageID: focusedStage.id, focusRequestID: focusRequestID
             ) {
                 TimelineView(.animation(minimumInterval: 1.0 / 15, paused: !isAnimating || reduceMotion)) { timeline in
@@ -84,7 +84,7 @@ struct StageMapView: View {
 
     private func districtSign(_ difficulty: Difficulty) -> some View {
         VStack(spacing: 3) {
-            Text("스테이지 \(QuizStage(task: .wishReception, difficulty: difficulty).groupNumber)")
+            Text(QuizStage(task: .wishReception, difficulty: difficulty).districtName)
                 .font(.subheadline.weight(.heavy))
             Text(difficulty.displayName)
                 .font(.caption.weight(.bold))
@@ -134,16 +134,17 @@ private struct StageMapNode: View {
                             }
                         }
 
-                    Text("\(stage.groupNumber)-\(stage.stepNumber)")
-                        .font(.caption2.weight(.heavy).monospacedDigit())
-                        .lineLimit(1)
-                        .fixedSize(horizontal: true, vertical: false)
+                    Text(stage.stepName)
+                        .font(.caption2.weight(.heavy))
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
                         .foregroundStyle(Color.glowWhite)
                         .padding(.horizontal, 7)
                         .padding(.vertical, 3)
                         .background(isNext ? Color.ornamentRed : Color.inkShadow, in: RoundedRectangle(cornerRadius: 3))
                         .overlay { RoundedRectangle(cornerRadius: 3).strokeBorder(Color.glowWhite, lineWidth: 1) }
                         .opacity(isUnlocked && !hasCandidates ? 0.65 : 1)
+                        .frame(maxWidth: 100)
                 }
                 .frame(minWidth: 52, minHeight: 44, alignment: .bottom)
                 .contentShape(Rectangle())

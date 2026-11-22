@@ -75,12 +75,10 @@ struct QuestionEditView: View {
             ToolbarItem(placement: .topBarLeading) {
                 Button("취소", action: cancel)
                     .fontWeight(.bold)
-                    .foregroundStyle(Color.roomAccent)
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Button("저장", action: save)
                     .fontWeight(.bold)
-                    .foregroundStyle(Color.roomAccent)
                     .disabled(!canSave)
                     .accessibilityHint(canSave ? "" : "필수 항목을 모두 올바르게 입력해야 저장할 수 있어요")
             }

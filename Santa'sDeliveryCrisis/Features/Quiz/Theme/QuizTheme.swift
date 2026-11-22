@@ -49,9 +49,6 @@ enum QuizTheme: CaseIterable, Hashable {
         }
     }
 
-    /// 작업 이름. 배경의 흐릿한 글자와 화면 제목에 쓴다.
-    var title: String { category.taskName }
-
     /// 테마를 대표하는 색
     var accent: Color { category.themeColor }
 

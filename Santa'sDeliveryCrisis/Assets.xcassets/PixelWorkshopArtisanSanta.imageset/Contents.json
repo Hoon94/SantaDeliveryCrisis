@@ -1,13 +1,12 @@
 {
-  "images": [
+  "images" : [
     {
-      "filename": "pixel-workshop-artisan-santa.png",
-      "idiom": "universal",
-      "scale": "1x"
+      "filename" : "pixel-workshop-artisan-santa.png",
+      "idiom" : "universal"
     }
   ],
-  "info": {
-    "author": "xcode",
-    "version": 1
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
   }
 }

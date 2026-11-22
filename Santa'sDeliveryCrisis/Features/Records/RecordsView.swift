@@ -47,8 +47,8 @@ struct RecordsView: View {
                             topPadding: 24
                         )
                     } else {
-                        SolvedCountChart(days: summary.days, period: period)
                         WeakCategoryList(categories: summary.weakCategories)
+                        SolvedCountChart(days: summary.days, period: period)
                     }
                 }
             }
@@ -116,7 +116,7 @@ private struct RecordsToolbar: ToolbarContent {
                     Text("설정")
                 }
                 .font(.subheadline.bold())
-                .foregroundStyle(Color.roomAccent)
+                .foregroundStyle(.primary)
             }
             .accessibilityLabel("설정")
         }

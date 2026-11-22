@@ -36,4 +36,14 @@ import SwiftData
         rewardMask |= task.rewardBit(for: difficulty)
         return true
     }
+
+    #if DEBUG
+    /// 지도 순서의 마지막 스테이지를 제외한 열한 칸을 채운다.
+    func prepareBeforeFinalStage() {
+        rewardMask = QuizStage.all.dropLast().reduce(0) {
+            $0 | $1.task.rewardBit(for: $1.difficulty)
+        }
+    }
+    #endif
+
 }

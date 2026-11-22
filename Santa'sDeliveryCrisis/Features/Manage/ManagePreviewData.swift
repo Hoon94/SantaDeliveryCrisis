@@ -17,6 +17,10 @@ enum ManagePreviewData {
             sample("HIG 최소 터치 영역은?", .hig, .easy, isSeed: true, age: 21 * day),
             sample("코드 실행 순서 애니메이션", .swiftSyntax, .easy, isSeed: true, age: 22 * day, kind: .animation),
         ]
+        // 제목에 없는 한글 태그로도 검색할 수 있도록 샘플에 태그를 넣는다.
+        if let question = samples.first {
+            question.tags = ["옵셔널", "Optional Chaining"]
+        }
         samples.forEach(context.insert)
         return container
     }

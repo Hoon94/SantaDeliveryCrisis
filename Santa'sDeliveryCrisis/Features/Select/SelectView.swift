@@ -299,7 +299,7 @@ struct SelectView: View {
         focus(on: nextStage)
     }
 
-    /// 같은 구역을 다시 선택해도 사용자가 움직인 지도 위치를 해당 지점으로 돌린다.
+    /// 같은 난이도를 다시 선택해도 사용자가 움직인 지도를 해당 마을 중앙으로 돌린다.
     private func focus(on stage: QuizStage) {
         focusedStage = stage
         focusRequestID = UUID()

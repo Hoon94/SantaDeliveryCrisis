@@ -20,8 +20,8 @@ struct QuizProcessBackground: View {
                     .id(theme)
                     .transition(.opacity)
             }
-            // 라이트 모드의 밝은 색상막이 픽셀 배경을 뿌옇게 덮지 않도록 농도를 낮춘다.
-            .overlay(palette.backdrop.opacity(colorScheme == .light ? 0.15 : 0.5))
+            // 라이트·다크 모두 같은 농도의 색상막을 덮어 글자와 배경을 구분한다.
+            .overlay(palette.backdrop.opacity(0.5))
             .animation(reduceMotion ? nil : .easeInOut(duration: 0.55), value: theme)
         }
         .ignoresSafeArea()

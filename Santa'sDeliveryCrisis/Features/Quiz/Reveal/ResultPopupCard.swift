@@ -63,20 +63,23 @@ struct ResultPopupCard: View {
     // MARK: - 조각
 
     private var header: some View {
-        HStack(spacing: 8) {
-            Image(systemName: summary.isSuccess ? "gift.fill" : "gift")
-                .foregroundStyle(summary.isSuccess ? tint : Color.nightSecondaryText)
-            Text("세션 결과")
-                .font(.headline)
-                .foregroundStyle(Color.nightPrimaryText)
-            Spacer(minLength: 0)
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                Image(systemName: summary.isSuccess ? "gift.fill" : "gift")
+                    .foregroundStyle(summary.isSuccess ? tint : Color.nightSecondaryText)
+                Text("세션 결과")
+                    .font(.headline)
+                    .foregroundStyle(Color.nightPrimaryText)
+            }
             Text(summary.stage.title)
                 .font(.caption.weight(.bold))
                 .foregroundStyle(Color.glowWhite)
+                .fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 5)
                 .background(Capsule().fill(tint))
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var ring: some View {
@@ -128,7 +131,7 @@ struct ResultPopupCard: View {
                 .font(.title3)
                 .foregroundStyle(isSuccess ? Color.roomPositive : Color.roomNegative)
             VStack(alignment: .leading, spacing: 2) {
-                Text(isSuccess ? "기준 \(summary.thresholdPercent)% 통과" : "기준 \(summary.thresholdPercent)%에 못 미쳤어요")
+                Text(isSuccess ? "획득 조건 \(summary.thresholdPercent)% 충족" : "획득 조건 \(summary.thresholdPercent)%에 못 미쳤어요")
                     .font(.subheadline.weight(.bold))
                     .foregroundStyle(Color.nightPrimaryText)
                 Text(summary.rewardMessage)
@@ -249,7 +252,7 @@ private struct AccuracyRing: View {
             .padding(.horizontal, 18)
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("정답률 \(percent)퍼센트, \(total)문제 중 \(correct)문제 정답. 기준은 \(threshold)퍼센트")
+        .accessibilityLabel("정답률 \(percent)퍼센트, \(total)문제 중 \(correct)문제 정답. 장식 획득 조건은 \(threshold)퍼센트")
     }
 }
 

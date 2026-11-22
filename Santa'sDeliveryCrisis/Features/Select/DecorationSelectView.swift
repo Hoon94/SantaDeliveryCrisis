@@ -50,7 +50,8 @@ struct DecorationSelectView: View {
                             isAnimating: isVisible && scenePhase == .active && !isCovered,
                             reduceMotion: reduceMotion, onSelect: onSelect
                         )
-                        .frame(height: max(400, max(geometry.size.height - 180, (geometry.size.width - 28) / 2)))
+                        // 2:1 지도에서 마을 하나의 가로 폭은 전체의 1/3이므로 표시 비율은 2:3이다.
+                        .frame(height: max(geometry.size.width - 28, 0) * 1.5)
                     }
 
                     if let count = availableCounts[filter.difficulty], count < filter.count {
@@ -194,6 +195,7 @@ private struct StageMapPreview: View {
 #Preview("스테이지 · 기존 비순차 보상 보존") { StageMapPreview(earnedCount: 1, sparseRewards: true) }
 #Preview("스테이지 · 후보 없음") { StageMapPreview(insufficientCandidates: true) }
 #Preview("스테이지 · 동작 줄이기") { StageMapPreview(forceReduceMotion: true) }
+#Preview("스테이지 · 라이트") { StageMapPreview(earnedCount: 4).preferredColorScheme(.light) }
 #Preview("스테이지 · 다크") { StageMapPreview(earnedCount: 4).preferredColorScheme(.dark) }
 #Preview("스테이지 · 큰 글자") { StageMapPreview().dynamicTypeSize(.accessibility5) }
 #Preview("스테이지 · iPad", traits: .fixedLayout(width: 1024, height: 768)) { StageMapPreview(earnedCount: 8) }
