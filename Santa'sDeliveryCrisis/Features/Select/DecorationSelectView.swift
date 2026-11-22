@@ -194,6 +194,7 @@ private struct StageMapPreview: View {
 #Preview("스테이지 · 기존 비순차 보상 보존") { StageMapPreview(earnedCount: 1, sparseRewards: true) }
 #Preview("스테이지 · 후보 없음") { StageMapPreview(insufficientCandidates: true) }
 #Preview("스테이지 · 동작 줄이기") { StageMapPreview(forceReduceMotion: true) }
+#Preview("스테이지 · 라이트") { StageMapPreview(earnedCount: 4).preferredColorScheme(.light) }
 #Preview("스테이지 · 다크") { StageMapPreview(earnedCount: 4).preferredColorScheme(.dark) }
 #Preview("스테이지 · 큰 글자") { StageMapPreview().dynamicTypeSize(.accessibility5) }
 #Preview("스테이지 · iPad", traits: .fixedLayout(width: 1024, height: 768)) { StageMapPreview(earnedCount: 8) }
