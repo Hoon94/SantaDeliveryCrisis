@@ -20,6 +20,8 @@ struct ManageView: View {
     private enum EditTarget: Hashable {
         case new
         case existing(UUID)
+        /// 읽기 전용 상세 화면. 기본 문제와 내 문제 모두 연다.
+        case detail(UUID)
     }
 
     var body: some View {
@@ -65,6 +67,7 @@ struct ManageView: View {
                 ForEach(filteredQuestions) { question in
                     QuestionRow(
                         question: question,
+                        onOpen: { editTarget = .detail(question.id) },
                         onEdit: { editTarget = .existing(question.id) },
                         onDelete: { pendingDelete = question }
                     )
@@ -80,8 +83,8 @@ struct ManageView: View {
                 }
             } footer: {
                 if filteredQuestions.contains(where: { !isEditable($0) }) {
-                    Text("🔒 기본 문제는 수정할 수 없어요")
-                        .font(.caption)
+                    Label("기본 문제는 수정할 수 없어요", systemImage: "lock.fill")
+                        .font(.footnote)
                         .foregroundStyle(Color.roomSecondaryText)
                         .frame(maxWidth: .infinity)
                         .padding(.top, 4)
@@ -91,6 +94,9 @@ struct ManageView: View {
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
         .listSectionSpacing(.compact)
+        // 필터 칩 바로 아래에서 첫 문제까지 간격이 벌어지지 않도록 목록 위쪽의 기본 여백을 없앤다.
+        .contentMargins(.top, 0, for: .scrollContent)
+        .environment(\.defaultMinListHeaderHeight, 0)
         .padding(.horizontal, -16)
     }
 
@@ -161,6 +167,16 @@ struct ManageView: View {
         switch target {
         case .new:
             QuestionEditView(question: nil)
+        case .detail(let id):
+            if let question = questions.first(where: { $0.id == id }) {
+                QuestionDetailView(question: question)
+            } else {
+                ContentUnavailableView(
+                    "문제를 찾을 수 없어요",
+                    systemImage: "exclamationmark.triangle",
+                    description: Text("삭제되었을 수 있어요.")
+                )
+            }
         case .existing(let id):
             if let question = questions.first(where: { $0.id == id }), isEditable(question) {
                 QuestionEditView(question: question)

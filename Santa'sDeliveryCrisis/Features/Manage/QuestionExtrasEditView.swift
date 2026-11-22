@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// 해설, 힌트, 학습 자료(제목과 주소), 태그를 입력하는 화면. 문제 편집 화면(S11)에서 들어온다.
+/// 힌트, 학습 자료(제목과 주소), 태그를 입력하는 화면. 문제 편집 화면(S11)에서 들어온다.
+/// 해설은 필수 항목이라 별도 화면(`QuestionExplanationEditView`)에서 입력한다.
 /// 입력값은 편집 화면과 같은 `QuestionDraft`를 공유한다.
 struct QuestionExtrasEditView: View {
     @Binding var draft: QuestionDraft
@@ -8,16 +9,6 @@ struct QuestionExtrasEditView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
-                section("해설 (필수)") {
-                    TextField("정답이 왜 맞는지 적어 주세요", text: $draft.explanation, axis: .vertical)
-                        .lineLimit(3...10)
-                }
-                if QuestionDraft.trimmed(draft.explanation).isEmpty {
-                    Text("해설을 입력해 주세요")
-                        .font(.caption.bold())
-                        .foregroundStyle(Color.roomNegative)
-                        .padding(.top, -6)
-                }
                 section("힌트") {
                     TextField("풀이에 도움이 되는 힌트", text: $draft.hint, axis: .vertical)
                         .lineLimit(1...4)
@@ -57,8 +48,7 @@ struct QuestionExtrasEditView: View {
     }
 
     private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
-        let hasError = (title == "학습 자료 주소" && !draft.isResourceURLValid)
-            || (title == "해설 (필수)" && QuestionDraft.trimmed(draft.explanation).isEmpty)
+        let hasError = title == "학습 자료 주소" && !draft.isResourceURLValid
         return VStack(alignment: .leading, spacing: 2) {
             Text(title)
                 .font(.caption)
