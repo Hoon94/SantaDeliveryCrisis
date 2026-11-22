@@ -19,12 +19,12 @@ struct StageMapView: View {
     /// 잠김과 후보 부족 안내는 출제 화면에서 처리한다.
     let onSelect: (QuizStage) -> Void
 
-    /// 시안 이미지와 함께 사용하는 단계의 위치 비율.
+    /// 가운데 마을 양 끝 빈터를 안쪽으로 옮긴 지도에 맞춘 단계의 위치 비율.
     private let positions: [CGPoint] = [
         CGPoint(x: 0.071, y: 0.545), CGPoint(x: 0.116, y: 0.680),
         CGPoint(x: 0.222, y: 0.660), CGPoint(x: 0.262, y: 0.480),
-        CGPoint(x: 0.350, y: 0.590), CGPoint(x: 0.415, y: 0.545),
-        CGPoint(x: 0.579, y: 0.505), CGPoint(x: 0.650, y: 0.600),
+        CGPoint(x: 0.380, y: 0.665), CGPoint(x: 0.415, y: 0.545),
+        CGPoint(x: 0.579, y: 0.505), CGPoint(x: 0.605, y: 0.665),
         CGPoint(x: 0.748, y: 0.685), CGPoint(x: 0.793, y: 0.540),
         CGPoint(x: 0.904, y: 0.545), CGPoint(x: 0.893, y: 0.430)
     ]
