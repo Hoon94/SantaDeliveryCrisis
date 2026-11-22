@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// 문제 검색 입력 칸(시안의 "🔍 문제 검색")
+/// 문제 제목과 태그를 함께 검색하는 입력 칸.
 struct ManageSearchField: View {
     @Binding var text: String
 
@@ -9,7 +9,7 @@ struct ManageSearchField: View {
             Image(systemName: "magnifyingglass")
                 .foregroundStyle(Color.roomSecondaryText)
                 .accessibilityHidden(true)
-            TextField("문제 검색", text: $text)
+            TextField("문제 또는 태그 검색", text: $text)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
                 .submitLabel(.search)

@@ -145,7 +145,9 @@ struct ManageView: View {
         return questions.filter { question in
             (category == nil || question.category == category)
                 && (difficulty == nil || question.difficulty == difficulty)
-                && (keyword.isEmpty || question.text.localizedStandardContains(keyword))
+                && (keyword.isEmpty
+                    || question.text.localizedStandardContains(keyword)
+                    || question.tags.contains { $0.localizedStandardContains(keyword) })
         }
     }
 
