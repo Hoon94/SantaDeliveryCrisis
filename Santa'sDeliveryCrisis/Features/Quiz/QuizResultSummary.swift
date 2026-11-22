@@ -34,7 +34,7 @@ struct QuizResultSummary {
         switch result.rewardOutcome {
         case .earned: "장식을 1개 받았어요"
         case .alreadyEarned: "이미 획득한 장식은 그대로예요. 추가 보상은 없어요"
-        case .notEarned: "벌칙은 없어요. 다시 도전해 보세요"
+        case .notEarned: "다시 도전해 보세요"
         case .pending: "아직 결과가 확정되지 않았어요"
         }
     }

@@ -305,7 +305,7 @@ struct QuizQuestionView: View {
         .frame(maxWidth: 640)
         .frame(maxWidth: .infinity)
         .background(
-            palette.dockBackground.opacity(0.5)
+            palette.dockBackground.opacity(0.4)
                 .ignoresSafeArea(edges: .bottom)
         )
     }

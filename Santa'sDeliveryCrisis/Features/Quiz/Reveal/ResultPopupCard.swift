@@ -131,7 +131,7 @@ struct ResultPopupCard: View {
                 .font(.title3)
                 .foregroundStyle(isSuccess ? Color.roomPositive : Color.roomNegative)
             VStack(alignment: .leading, spacing: 2) {
-                Text(isSuccess ? "기준 \(summary.thresholdPercent)% 통과" : "기준 \(summary.thresholdPercent)%에 못 미쳤어요")
+                Text(isSuccess ? "획득 조건 \(summary.thresholdPercent)% 충족" : "획득 조건 \(summary.thresholdPercent)%에 못 미쳤어요")
                     .font(.subheadline.weight(.bold))
                     .foregroundStyle(Color.nightPrimaryText)
                 Text(summary.rewardMessage)
@@ -252,7 +252,7 @@ private struct AccuracyRing: View {
             .padding(.horizontal, 18)
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("정답률 \(percent)퍼센트, \(total)문제 중 \(correct)문제 정답. 기준은 \(threshold)퍼센트")
+        .accessibilityLabel("정답률 \(percent)퍼센트, \(total)문제 중 \(correct)문제 정답. 장식 획득 조건은 \(threshold)퍼센트")
     }
 }
 
