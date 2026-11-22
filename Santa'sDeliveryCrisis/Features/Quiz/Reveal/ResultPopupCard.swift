@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// 세션 결과 팝업. 정답률 링, 작업과 난이도, 소요 시간, 트리 진행도, 오답 수, [돌아가기] 버튼.
+/// 세션 결과 팝업. 정답률 링, 스테이지와 난이도, 소요 시간, 트리 진행도, 오답 수, [돌아가기] 버튼.
 ///
 /// 등장 연출은 `shownFor`(카드가 나타난 뒤 흐른 시간)만으로 정해진다. 그래서 어느 시각의 모습이든 바로 그릴 수 있고,
 /// 연출이 끝난 뒤에는 `shownFor`를 크게 주면 최종 모습 그대로다.
@@ -70,7 +70,7 @@ struct ResultPopupCard: View {
                 .font(.headline)
                 .foregroundStyle(Color.nightPrimaryText)
             Spacer(minLength: 0)
-            Text(summary.taskTitle)
+            Text(summary.stage.title)
                 .font(.caption.weight(.bold))
                 .foregroundStyle(Color.glowWhite)
                 .padding(.horizontal, 10)
@@ -160,10 +160,9 @@ struct ResultPopupCard: View {
                     .foregroundStyle(summary.result.treeCompleted ? tint : Color.nightPrimaryText)
             }
             TreePips(
-                filled: count,
+                stages: summary.treeRewardStages,
                 total: slots,
-                newest: summary.isSuccess ? count - 1 : nil,
-                tint: tint,
+                newest: summary.isSuccess ? summary.treeRewardStages.firstIndex(of: summary.stage) : nil,
                 t: shownFor
             )
             if summary.result.treeCompleted {
@@ -258,10 +257,9 @@ private struct AccuracyRing: View {
 
 /// 트리 장식 칸 12개. 방금 받은 칸은 톡 튀며 빛난다.
 private struct TreePips: View {
-    let filled: Int
+    let stages: [QuizStage]
     let total: Int
     let newest: Int?
-    let tint: Color
     let t: Double
 
     var body: some View {
@@ -274,7 +272,8 @@ private struct TreePips: View {
     }
 
     private func pip(_ i: Int) -> some View {
-        let isFilled = i < filled
+        let stage = stages[safe: i]
+        let tint = stage.map { OrnamentStyle(task: $0.task).tint } ?? Color.clear
         let isNewest = newest == i
         // 새 칸은 카드가 나타나고 조금 뒤 튀어 오른다.
         let pop = isNewest ? RevealMath.spring(t - 1.1, damping: 8, frequency: 12) : 1
@@ -282,9 +281,9 @@ private struct TreePips: View {
         return ZStack {
             Circle()
                 .strokeBorder(Color.nightBorder, lineWidth: 1.5)
-            if isFilled && (!isNewest || appear > 0) {
+            if stage != nil && (!isNewest || appear > 0) {
                 Circle()
-                    .fill(RadialGradient(colors: [.glowWhite.opacity(0.8), isNewest ? tint : .ornamentGold, .decorationCap], center: UnitPoint(x: 0.35, y: 0.3), startRadius: 0, endRadius: 14))
+                    .fill(RadialGradient(colors: [.glowWhite.opacity(0.8), tint, tint.opacity(0.65)], center: UnitPoint(x: 0.35, y: 0.3), startRadius: 0, endRadius: 14))
                     .scaleEffect(isNewest ? pop : 1)
                     .shadow(color: isNewest ? tint.opacity(0.9) : .clear, radius: isNewest ? 8 * appear : 0)
             }

@@ -1,8 +1,8 @@
 import SwiftUI
 
-/// 코드 전체를 크게 보여 주는 창. 테두리와 제목줄, 닫기 버튼이 없다.
+/// 문제 안의 코드와 같은 문법 색상·줄 번호를 사용하는 확대창.
 ///
-/// - 모양: 맥 터미널 창처럼 어두운 배경에 밝은 글자, 작은 모서리 곡률(10pt). 색은 `TerminalBackground`, `TerminalText`에서 바꾼다.
+/// - 모양: Swift 상단 바와 줄 번호가 있는 읽기 전용 에디터. 출제 화면의 라이트·다크 색상을 따른다.
 /// - 크기: 화면 한가운데에, 화면 높이의 약 3분의 2. 글자는 코드 상자보다 작게 해서 한눈에 더 많이 보이게 한다.
 /// - 열기: 누른 코드 상자에서 창이 커지며 펼쳐진다. 뒤 화면은 창과 같은 흐름으로 서서히 어두워진다.
 /// - 닫기: 창 안이나 바깥을 한 번 누르면 반대로 접힌다.
@@ -17,6 +17,9 @@ struct CodePreviewPopup: View {
     let onClose: () -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var palette: QuizPalette { QuizPalette(colorScheme: colorScheme) }
     /// 0이면 닫힘, 1이면 열림. 용수철이 1을 살짝 넘겼다 돌아온다.
     @State private var progress: Double = 0
     @State private var isClosing = false
@@ -46,19 +49,11 @@ struct CodePreviewPopup: View {
                     .opacity(0.62 * min(max(progress, 0), 1))
                     .ignoresSafeArea()
 
-                ScrollView([.horizontal, .vertical], showsIndicators: false) {
-                    Text(code)
-                        .font(.system(.footnote, design: .monospaced))
-                        .foregroundStyle(Color.terminalText)
-                        .fixedSize(horizontal: true, vertical: true)
-                        .padding(20)
-                        .frame(minWidth: finalRect.width, minHeight: finalRect.height, alignment: .topLeading)
-                        .opacity(textOpacity)
-                }
-                .scrollBounceBehavior(.basedOnSize)
+                QuizCodeView(code: code, isExpanded: true)
+                .opacity(textOpacity)
                 .frame(width: finalRect.width, height: finalRect.height, alignment: .topLeading)
                 .frame(width: rect.width, height: rect.height, alignment: .topLeading)
-                .background(Color.terminalBackground)
+                .background(palette.subtleBackground)
                 .clipShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
                 .shadow(color: Color.inkShadow.opacity(0.5 * min(max(progress, 0), 1)), radius: 34, y: 14)
                 .position(x: rect.midX, y: rect.midY)

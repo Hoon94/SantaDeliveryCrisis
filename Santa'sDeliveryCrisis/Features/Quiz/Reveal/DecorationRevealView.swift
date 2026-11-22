@@ -90,7 +90,7 @@ struct DecorationRevealView: View {
                 .offset(f.jitter.offset)
                 .opacity(f.ornamentOpacity)
                 .position(f.center)
-                .accessibilityLabel(f.radiance > 0.5 ? style.title : "장식")
+                .accessibilityLabel(f.radiance > 0.5 ? "\(summary.stage.title) 장식" : "장식")
 
             // 번쩍임
             if f.flashAlpha > 0.002 {
@@ -117,7 +117,7 @@ struct DecorationRevealView: View {
         let y = max(f.center.y - f.ornamentSize * 0.82 - 26, 90)
         return VStack(spacing: 6) {
             RevealTitle(text: "장식 획득 성공!", t: f.titleT, reduced: reduceMotion)
-            Text(style.title)
+            Text("\(summary.stage.title) 장식")
                 .font(.headline)
                 .foregroundStyle(Color.glowCore)
                 .shadow(color: Color.inkShadow.opacity(0.6), radius: 4, y: 1)

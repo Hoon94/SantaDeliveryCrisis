@@ -142,7 +142,6 @@ struct SelectView: View {
             rewardMask: rewardMask, focusedStage: focusedStage, focusRequestID: focusRequestID,
             isCovered: isEditing || activeQuizSession != nil,
             onEdit: beginEditing,
-            onResetSettings: resetSettings,
             onSelect: startSession
         )
         .blur(radius: isEditing ? 5 : 0)
@@ -281,12 +280,6 @@ struct SelectView: View {
 
     private func beginEditing() {
         filterState.beginEditing()
-        isEditing = true
-    }
-
-    /// 트리·장식·세션 기록은 유지하고 출제 조건만 기본값으로 되돌려 팝업을 연다.
-    private func resetSettings() {
-        resetFilter()
         isEditing = true
     }
 

@@ -12,8 +12,16 @@ struct QuizResultSummary {
     let difficulty: Difficulty
     /// 세션을 시작할 때 저장된 정답률 기준
     let thresholdPercent: Int
-    /// 결과를 반영한 뒤 현재 트리의 장식 수. 트리가 완성됐다면 완성된 트리의 칸 수(12)
-    let treeDecorationCount: Int
+    /// 결과를 반영한 트리의 실제 획득 칸. 완성 직후에는 새 트리가 아닌 완성한 트리의 기록이다.
+    let treeRewardMask: Int
+
+    /// 획득한 장식을 지도와 같은 스테이지 순서로 표시한다. 개수로 색을 추정하지 않는다.
+    var treeRewardStages: [QuizStage] {
+        QuizStage.all.filter { $0.isEarned(in: treeRewardMask) }
+    }
+
+    /// 결과에 표시할 트리 장식 수.
+    var treeDecorationCount: Int { treeRewardStages.count }
 
     /// 장식을 받았는가
     var isSuccess: Bool { result.earnedDecorations > 0 }
@@ -31,8 +39,8 @@ struct QuizResultSummary {
         }
     }
 
-    /// 화면에 보여 줄 작업 이름
-    var taskTitle: String { task.displayName }
+    /// 퀴즈를 시작한 단계. 내부 보상 작업을 사용자에게 스테이지 번호로 표시한다.
+    var stage: QuizStage { QuizStage(task: task, difficulty: difficulty) }
 
     /// 카테고리 이름. 혼합 세션이면 설명 문구
     var categoryTitle: String { category?.categoryName ?? "여러 카테고리 섞음" }

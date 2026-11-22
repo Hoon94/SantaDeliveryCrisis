@@ -21,8 +21,6 @@ struct DecorationSelectView: View {
     let isCovered: Bool
     /// 기존 설정 팝업을 연다.
     let onEdit: () -> Void
-    /// 출제 조건만 기본값으로 되돌린다.
-    let onResetSettings: () -> Void
     /// 선택한 단계의 잠금·후보·기존 세션을 확인한 뒤 시작한다.
     let onSelect: (QuizStage) -> Void
     /// 프리뷰에서 시스템 설정과 별개로 정지 상태를 확인한다.
@@ -82,25 +80,10 @@ struct DecorationSelectView: View {
             : AnyLayout(HStackLayout(spacing: 8))
 
         return VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("출제")
-                    .font(.title2.weight(.heavy))
-                    .foregroundStyle(Color.nightPrimaryText)
-                    .accessibilityAddTraits(.isHeader)
-                Spacer()
-                Button(action: onResetSettings) {
-                    Label("초기화", systemImage: "arrow.counterclockwise")
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(Color.nightPrimaryText)
-                        .padding(.horizontal, 11)
-                        .padding(.vertical, 6)
-                        .background(Color.nightCardBackground, in: Capsule())
-                        .overlay { Capsule().strokeBorder(Color.nightBorder, lineWidth: 1) }
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("출제 설정 초기화")
-                .accessibilityHint("난이도, 카테고리와 문제 수를 기본값으로 되돌립니다")
-            }
+            Text("출제")
+                .font(.title2.weight(.heavy))
+                .foregroundStyle(Color.nightPrimaryText)
+                .accessibilityAddTraits(.isHeader)
 
             layout {
                 conditionChip
@@ -196,7 +179,7 @@ private struct StageMapPreview: View {
             filter: SelectFilter(difficulty: stage.difficulty),
             availableCounts: [.easy: insufficientCandidates ? 0 : 15, .normal: 15, .hard: 15],
             rewardMask: rewardMask, focusedStage: stage, focusRequestID: focusRequestID,
-            isCovered: false, onEdit: {}, onResetSettings: {}, onSelect: { _ in },
+            isCovered: false, onEdit: {}, onSelect: { _ in },
             forceReduceMotion: forceReduceMotion
         )
         .background(Color.nightBackgroundTop)

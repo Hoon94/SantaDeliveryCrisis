@@ -14,6 +14,8 @@ struct QuizFlowView: View {
 
     var body: some View {
         QuizFlowContent(session: session, services: services, onClose: onClose)
+            // 진입 화면의 강조색을 상속하지 않아 시스템 알림의 일반 버튼 색을 통일한다.
+            .tint(.primary)
     }
 }
 
@@ -22,6 +24,9 @@ private struct QuizFlowContent: View {
     @State private var model: QuizFlowModel
     private let services: AppServices
     private let onClose: () -> Void
+
+    @Environment(\.colorScheme) private var colorScheme
+    private var palette: QuizPalette { QuizPalette(colorScheme: colorScheme) }
 
     @Environment(\.scenePhase) private var scenePhase
     @State private var isExitAlertShown = false
@@ -34,7 +39,11 @@ private struct QuizFlowContent: View {
 
     var body: some View {
         ZStack {
-            ThemeBackground(theme: model.theme)
+            if model.phase != .result {
+                QuizProcessBackground(theme: model.theme)
+            } else {
+                ThemeBackground(theme: QuizTheme(category: model.session.category ?? model.currentSnapshot?.category ?? .aiUsage))
+            }
 
             if model.phase == .result, let summary = model.summary {
                 QuizResultView(summary: summary, services: services, onClose: onClose)
@@ -48,16 +57,16 @@ private struct QuizFlowContent: View {
                 if model.phase == .finishing {
                     ProgressView("결과를 계산하고 있어요")
                         .padding(24)
-                        .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(Color.nightCardBackground))
-                        .foregroundStyle(Color.nightPrimaryText)
+                        .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(palette.cardBackground))
+                        .foregroundStyle(palette.primaryText)
                 }
             }
         }
         .animation(.easeInOut(duration: 0.45), value: model.phase == .result)
         .sheet(isPresented: feedbackBinding) { feedbackSheet }
         .alert("퀴즈를 그만할까요?", isPresented: $isExitAlertShown) {
-            Button("나가기") { leave() }
             Button("계속 풀기", role: .cancel) {}
+            Button("나가기", role: .destructive) { leave() }
         } message: {
             Text(exitMessage)
         }
@@ -110,10 +119,6 @@ private struct QuizFlowContent: View {
             ) {
                 model.advance()
             }
-            .presentationDetents([.medium, .large])
-            .presentationDragIndicator(.visible)
-            .presentationBackgroundInteraction(.enabled(upThrough: .medium))
-            .interactiveDismissDisabled()
         }
     }
 }
@@ -163,5 +168,11 @@ private struct QuizFlowPreviewHost: View {
 #Preview("퀴즈 5문제 · 오늘의 출제") { QuizFlowPreviewHost(category: nil) }
 #Preview("퀴즈 · 큰 글자") {
     QuizFlowPreviewHost(category: .swiftSyntax).dynamicTypeSize(.accessibility3)
+}
+#Preview("퀴즈 · 라이트 색상") {
+    QuizFlowPreviewHost(category: nil).preferredColorScheme(.light)
+}
+#Preview("퀴즈 · 다크 색상") {
+    QuizFlowPreviewHost(category: nil).preferredColorScheme(.dark)
 }
 #endif

@@ -1,13 +1,10 @@
 import SwiftUI
 
-/// 퀴즈 화면의 테마. 배경과 문제에 반응하는 캐릭터를 정한다.
-///
-/// 지금은 작업(카테고리)과 일대일로 연결한다. 테마를 카테고리와 따로 고르게 되면 `init(category:)`만 바꾸면 된다.
-// FIXME: [자산 교체] 배경은 흐릿한 글자와 색으로 대신하고, 캐릭터는 이모지로 대신한다. 실제 일러스트가 오면 교체
+/// 문항 진행에 따른 작업 과정. 배경과 캐릭터는 문제 카테고리와 독립적으로 정한다.
 enum QuizTheme: CaseIterable, Hashable {
     case wish, factory, wrap, sleigh
 
-    /// 카테고리에 해당하는 테마
+    /// 기존 결과 화면의 배경을 보존하기 위한 카테고리 연결. 풀이 과정 계산에는 사용하지 않는다.
     init(category: QuizCategory) {
         switch category {
         case .aiUsage: self = .wish
@@ -17,7 +14,32 @@ enum QuizTheme: CaseIterable, Hashable {
         }
     }
 
-    /// 테마의 카테고리
+    /// 실제 세션 문항 수를 네 과정에 균등하게 나누고, 남는 문항은 뒤쪽 과정부터 배정한다.
+    /// 문항 번호는 0부터 시작한다. 빈 세션은 기본 과정, 범위 밖 번호는 처음 또는 마지막 문항을 따른다.
+    init(questionIndex: Int, totalCount: Int) {
+        guard totalCount > 0 else {
+            self = .wish
+            return
+        }
+
+        let themes = Self.allCases
+        let baseCount = totalCount / themes.count
+        let remainder = totalCount % themes.count
+        let index = min(max(questionIndex, 0), totalCount - 1)
+        var endIndex = 0
+
+        for (offset, theme) in themes.enumerated() {
+            endIndex += baseCount + (offset >= themes.count - remainder ? 1 : 0)
+            if index < endIndex {
+                self = theme
+                return
+            }
+        }
+
+        self = .sleigh
+    }
+
+    /// 기존 과정별 이름과 색을 가져오는 표시용 연결. 현재 문제의 카테고리를 뜻하지 않는다.
     var category: QuizCategory {
         switch self {
         case .wish: .aiUsage
@@ -33,22 +55,54 @@ enum QuizTheme: CaseIterable, Hashable {
     /// 테마를 대표하는 색
     var accent: Color { category.themeColor }
 
-    /// 캐릭터를 대신하는 이모지
-    var character: String {
+    /// 문제 풀이에서만 사용하는 픽셀 배경 이름.
+    var backgroundName: String {
         switch self {
-        case .wish: "🎅"
-        case .factory: "🧝"
-        case .wrap: "🧝‍♀️"
-        case .sleigh: "🦌"
+        case .wish: "QuizWishBackground"
+        case .factory: "QuizFactoryBackground"
+        case .wrap: "QuizWrapBackground"
+        case .sleigh: "QuizSleighBackground"
         }
     }
 
-    /// 접근성 설명에 쓰는 캐릭터 이름
+    /// 두 자세가 가로로 나란히 배치된 캐릭터 이미지 이름.
+    var characterImageName: String {
+        switch self {
+        case .wish: "QuizWishCharacter"
+        case .factory: "QuizFactoryCharacter"
+        case .wrap: "QuizWrapCharacter"
+        case .sleigh: "QuizSleighCharacter"
+        }
+    }
+
+    /// 두 자세의 발 중심을 맞추는 가로 보정 비율. 원본 한 칸의 너비는 768픽셀이다.
+    /// 손을 펼친 자세의 전체 외곽 대신 움직이지 않는 발 위치를 기준으로 측정했다.
+    var speakingHorizontalOffset: CGFloat {
+        switch self {
+        case .wish: 80.0 / 768.0
+        case .factory: 80.5 / 768.0
+        case .wrap: 64.0 / 768.0
+        case .sleigh: 8.5 / 768.0
+        }
+    }
+
+    /// 접근성 설명에 쓰는 담당 캐릭터 이름.
     var characterName: String {
         switch self {
         case .wish: "산타"
-        case .factory, .wrap: "엘프"
+        case .factory: "생산 엘프"
+        case .wrap: "포장 엘프"
         case .sleigh: "루돌프"
+        }
+    }
+
+    /// 새 문제에서 보여 주는 기본 대사.
+    var idleLine: String {
+        switch self {
+        case .wish: "오늘은 어떤 소원이 왔을까?"
+        case .factory: "좋아, 선물을 만들 준비가 됐어!"
+        case .wrap: "이 선물에는 어떤 리본이 어울릴까?"
+        case .sleigh: "선물들을 싣고 출발할 준비를 하자!"
         }
     }
 
@@ -62,33 +116,13 @@ enum QuizTheme: CaseIterable, Hashable {
         }
     }
 
-    /// 문제를 푸는 동안 캐릭터 말풍선
+    /// 보기 변경마다 순환하는 고민 대사. 정답 여부를 암시하지 않는다.
     var thinkingLines: [String] {
         switch self {
-        case .wish: ["어떤 소원일까…", "흠, 잘 읽어 보자", "편지를 살펴볼게요"]
-        case .factory: ["부품을 확인해요", "조립 순서가…", "차근차근 해 봐요"]
-        case .wrap: ["어떻게 쌀까요?", "리본이 어디 있더라", "꼼꼼하게 볼게요"]
-        case .sleigh: ["짐이 무겁네요", "출발 전 점검!", "균형을 맞춰요"]
-        }
-    }
-
-    /// 정답일 때 말풍선
-    var correctLines: [String] {
-        switch self {
-        case .wish: ["소원 접수 완료!", "잘 읽었어요!", "호호호, 정답!"]
-        case .factory: ["선물 완성!", "딱 맞아요!", "조립 성공!"]
-        case .wrap: ["포장 완료!", "리본이 예뻐요!", "깔끔해요!"]
-        case .sleigh: ["적재 완료!", "출발 준비 끝!", "좋아요!"]
-        }
-    }
-
-    /// 오답일 때 말풍선
-    var wrongLines: [String] {
-        switch self {
-        case .wish: ["어라, 편지가 섞였네", "다음엔 잘 읽어 봐요"]
-        case .factory: ["앗, 부품이 안 맞아요", "다시 해 보면 돼요"]
-        case .wrap: ["포장지가 모자라요", "괜찮아요, 다시!"]
-        case .sleigh: ["짐이 기울었어요", "다시 정리해요"]
+        case .wish: ["편지를 차근차근 읽어 보자.", "다른 소원과 헷갈린 건 아닐까?", "급하지 않아. 한 번 더 살펴보자.", "중요한 단어를 찾아볼까?", "어떤 뜻인지 같이 생각해 보자."]
+        case .factory: ["부품 하나씩 비교해 보자.", "조립 순서를 다시 떠올려 볼까?", "다른 방법도 천천히 살펴보자.", "서두르지 말고 모양을 맞춰 보자.", "작은 차이가 있을지도 몰라."]
+        case .wrap: ["모서리까지 꼼꼼히 살펴보자.", "리본을 묶기 전에 한 번 더 생각해 보자.", "비슷해 보여도 다른 점이 있을까?", "천천히 골라도 괜찮아.", "포장 순서를 떠올려 보면 어떨까?"]
+        case .sleigh: ["짐의 균형을 다시 살펴보자.", "출발 전에는 차근차근 확인해야지.", "다른 자리에 놓으면 어떨까?", "천천히 생각해. 아직 출발 전이니까!", "놓친 선물이 없는지 한 번 더 볼까?"]
         }
     }
 }
