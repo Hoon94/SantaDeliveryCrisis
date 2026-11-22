@@ -12,19 +12,24 @@ struct SelectFilter: Equatable {
     /// 출제할 문제 수. 허용된 값 이외에는 기본값인 5를 사용한다.
     private(set) var count: Int
 
-    /// 기본 설정은 보통, 전체 카테고리, 5문제다. 빈 카테고리는 전체 선택으로 보정한다.
+    /// 기본 설정은 쉬움, 전체 카테고리, 5문제다. 빈 카테고리는 전체 선택으로 보정한다.
     /// - Parameters:
     ///   - difficulty: 출제할 난이도.
     ///   - categories: 하나 이상의 카테고리. 비어 있으면 전체 카테고리를 사용한다.
     ///   - count: 5·10·15 중 문제 수. 그 외 값은 5로 보정한다.
     init(
-        difficulty: Difficulty = .normal,
+        difficulty: Difficulty = .easy,
         categories: Set<QuizCategory> = Set(QuizCategory.allCases),
         count: Int = 5
     ) {
         self.difficulty = difficulty
         self.categories = categories.isEmpty ? Set(QuizCategory.allCases) : categories
         self.count = Self.allowedCounts.contains(count) ? count : 5
+    }
+
+    /// 다른 출제 조건을 유지하며 지도에서 선택한 단계의 난이도를 맞춘다.
+    func selecting(_ difficulty: Difficulty) -> SelectFilter {
+        SelectFilter(difficulty: difficulty, categories: categories, count: count)
     }
 
     /// 선택을 반전하되 마지막으로 남은 카테고리의 해제는 무시한다.
@@ -69,6 +74,12 @@ struct SelectFilterState {
     /// 편집값을 확정한다. 이후 취소는 이 설정으로 돌아간다.
     mutating func apply() {
         applied = editing
+    }
+
+    /// 지도에서 선택한 단계의 난이도를 적용값과 편집값에 함께 반영한다.
+    mutating func selectDifficulty(_ difficulty: Difficulty) {
+        applied = applied.selecting(difficulty)
+        editing = applied
     }
 
     /// 편집 중 변경을 버리고 마지막 적용값으로 되돌린다.

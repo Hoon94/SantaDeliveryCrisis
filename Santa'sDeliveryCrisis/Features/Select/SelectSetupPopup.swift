@@ -12,6 +12,9 @@ struct SelectSetupPopup: View {
     /// 추천기가 선택한 카테고리. nil이면 추천 배지를 표시하지 않는다.
     var recommendedCategory: QuizCategory? = nil
 
+    /// 현재 트리의 획득 칸으로 난이도 구역의 입장 가능 여부를 계산한다.
+    var rewardMask: Int = 0
+
     /// 편집한 조건을 적용하고 팝업을 닫는 동작.
     let onApply: () -> Void
 
@@ -30,7 +33,7 @@ struct SelectSetupPopup: View {
             )
 
             Button(action: onApply) {
-                Text("장식 선택")
+                Text("스테이지 선택")
                     .font(.body.weight(.heavy))
                     .frame(maxWidth: .infinity)
                     .padding(14)
@@ -38,7 +41,7 @@ struct SelectSetupPopup: View {
                     .background(Color.nightAccent, in: Capsule())
             }
             .buttonStyle(.plain)
-            .accessibilityHint("출제 조건을 적용하고 장식 선택 화면으로 이동합니다")
+            .accessibilityHint("출제 조건을 적용하고 스테이지 지도로 이동합니다")
         }
         .fixedSize(horizontal: false, vertical: true)
         .padding(.top, 18)
@@ -66,7 +69,7 @@ struct SelectSetupPopup: View {
                 .foregroundStyle(Color.nightPrimaryText)
                 .accessibilityAddTraits(.isHeader)
                 .accessibilityFocused($isTitleFocused)
-            Text("설정을 마치고 켜진 장식을 눌러 시작해요")
+            Text("설정을 마치고 열린 스테이지를 눌러 시작해요")
                 .font(.caption)
                 .foregroundStyle(Color.nightSecondaryText)
         }
@@ -91,6 +94,7 @@ struct SelectSetupPopup: View {
 
     private func difficultyButton(_ option: Difficulty) -> some View {
         let isSelected = filter.difficulty == option
+        let isUnlocked = QuizStage.destination(for: option, rewardMask: rewardMask) != nil
         let color = difficultyColor(option)
         let labelLayout = dynamicTypeSize.isAccessibilitySize
             ? AnyLayout(HStackLayout(spacing: 8))
@@ -101,11 +105,20 @@ struct SelectSetupPopup: View {
             labelLayout {
                 Text(stars(option))
                     .font(.caption.weight(.bold))
-                    .foregroundStyle(color)
+                    .foregroundStyle(isUnlocked ? color : Color.nightSecondaryText)
                     .accessibilityHidden(true)
-                Text(option.displayName)
-                    .font(.subheadline.weight(.heavy))
-                    .foregroundStyle(Color.nightPrimaryText)
+                VStack(spacing: 3) {
+                    Text(option.displayName)
+                        .font(.subheadline.weight(.heavy))
+                        .foregroundStyle(Color.nightPrimaryText)
+                    Label(
+                        !isUnlocked ? "잠김" : isSelected ? "선택됨" : "선택 가능",
+                        systemImage: !isUnlocked ? "lock.fill" : isSelected ? "checkmark" : "lock.open"
+                    )
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(Color.nightSecondaryText)
+                    .fixedSize()
+                }
             }
             .frame(maxWidth: .infinity)
             .padding(.top, 7)
@@ -125,8 +138,9 @@ struct SelectSetupPopup: View {
             .contentShape(RoundedRectangle(cornerRadius: 20))
         }
         .buttonStyle(.plain)
+        .disabled(!isUnlocked)
         .accessibilityLabel(option.displayName)
-        .accessibilityValue(isSelected ? "선택됨" : "선택 안 됨")
+        .accessibilityValue(!isUnlocked ? "잠김, 앞선 단계의 장식을 먼저 획득해야 해요" : isSelected ? "선택됨" : "선택 안 됨")
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 

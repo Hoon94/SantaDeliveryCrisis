@@ -10,6 +10,8 @@ struct StartSessionCoordinator {
         case started(QuizSession)
         /// 후보가 부족하거나 세션 생성·포기 호출이 실패했다.
         case failed
+        /// 선행 보상이 없어 선택한 단계에 들어갈 수 없다.
+        case locked(QuizStage)
     }
 
     private let sessions: any SessionManaging
@@ -34,6 +36,8 @@ struct StartSessionCoordinator {
         task: WorkshopTask, filter: SelectFilter, questions: [Question],
         currentTree: TreeRecord?, allowsPractice: Bool = false
     ) -> Outcome {
+        let stage = QuizStage(task: task, difficulty: filter.difficulty)
+        guard stage.isUnlocked(in: currentTree?.rewardMask ?? 0) else { return .locked(stage) }
         if let existing = sessions.resumableSession() {
             return .needsResumeChoice(existing)
         }
@@ -67,6 +71,8 @@ struct StartSessionCoordinator {
         questions: [Question],
         currentTree: TreeRecord?, allowsPractice: Bool = false
     ) -> Outcome {
+        let stage = QuizStage(task: task, difficulty: filter.difficulty)
+        guard stage.isUnlocked(in: currentTree?.rewardMask ?? 0) else { return .locked(stage) }
         guard canStart(filter: filter, questions: questions) else {
             return .failed
         }
@@ -100,6 +106,8 @@ struct StartSessionCoordinator {
                 count: filter.count
             )
             return .started(session)
+        } catch SessionError.stageLocked(_) {
+            return .locked(QuizStage(task: task, difficulty: filter.difficulty))
         } catch {
             return .failed
         }

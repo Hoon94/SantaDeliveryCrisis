@@ -1,82 +1,79 @@
 import SwiftUI
 
-/// 트리 이미지 위에 네 장식과 적용된 출제 조건을 표시하는 화면.
-/// 네 작업의 시작 가능 여부는 같으며, 누른 작업은 세션의 보상 대상만 결정한다.
+/// 기존 출제 제목·설정·진행도 아래에 산타 마을 스테이지 지도를 표시한다.
 struct DecorationSelectView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var isVisible = false
 
     /// 마지막으로 적용한 출제 설정.
     let filter: SelectFilter
-
-    /// 네 장식의 켜짐 상태와 후보 부족 정보. 선택한 카테고리 전체의 후보 수로 계산해 모두 같은 값을 가진다.
-    let availability: [DecorationAvailability]
-
-    /// 현재 트리에서 획득한 장식 수. 표시만 하며 트리 기록은 변경하지 않는다.
-    let filledCount: Int
-
-    /// 현재 트리의 작업·난이도별 획득 상태.
-    var rewardMask: Int = 0
-
-    /// 적용한 조건으로 설정 팝업을 다시 여는 동작.
+    /// 선택한 카테고리의 난이도별 후보 수.
+    let availableCounts: [Difficulty: Int]
+    /// 현재 트리의 실제 보상 칸.
+    let rewardMask: Int
+    /// 지도에서 중앙에 맞출 단계.
+    let focusedStage: QuizStage
+    /// 설정 적용·초기화 등 같은 위치로 돌아가는 요청.
+    let focusRequestID: UUID
+    /// 설정 팝업이나 퀴즈가 지도를 덮을 때는 시간 갱신을 멈춘다.
+    let isCovered: Bool
+    /// 기존 설정 팝업을 연다.
     let onEdit: () -> Void
-
-    /// 출제 설정만 기본값으로 되돌리는 동작.
+    /// 출제 조건만 기본값으로 되돌린다.
     let onResetSettings: () -> Void
-
-    /// 켜진 장식을 눌러 세션 시작을 요청하는 동작. 누른 장식은 알려 주지만 출제 카테고리에는 쓰지 않는다.
-    let onSelect: (WorkshopTask) -> Void
-
-    /// 프리뷰에서 정적 연출을 강제한다. 시스템의 모션 줄이기는 항상 우선한다.
+    /// 선택한 단계의 잠금·후보·기존 세션을 확인한 뒤 시작한다.
+    let onSelect: (QuizStage) -> Void
+    /// 프리뷰에서 시스템 설정과 별개로 정지 상태를 확인한다.
     var forceReduceMotion = false
 
     private var reduceMotion: Bool { systemReduceMotion || forceReduceMotion }
+    private var filledCount: Int { rewardMask.nonzeroBitCount }
 
-    /// 상단에 제목·조건 칩·설정 초기화·장식 진행도를 표시하고 아래에 트리와 장식을 배치한다.
+    /// 지도는 남은 공간에 맞추되 터치 간격이 필요한 작은 화면에서는 세로 스크롤을 허용한다.
     var body: some View {
-        TimelineView(.animation(minimumInterval: 1.0 / 30, paused: reduceMotion)) { timeline in
-            content(time: reduceMotion ? 0 : timeline.date.timeIntervalSinceReferenceDate)
-        }
-    }
+        GeometryReader { geometry in
+            ScrollView {
+                VStack(spacing: 14) {
+                    header
+                    Text("열린 스테이지를 눌러 퀴즈를 시작하세요")
+                        .font(.subheadline.weight(.bold))
+                        .foregroundStyle(Color.nightSecondaryText)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
 
-    private func content(time: TimeInterval) -> some View {
-        ScrollView {
-            VStack(spacing: 14) {
-                header
+                    if dynamicTypeSize.isAccessibilitySize {
+                        accessibleStages
+                    } else {
+                        StageMapView(
+                            rewardMask: rewardMask, focusedStage: focusedStage, focusRequestID: focusRequestID,
+                            availableCounts: availableCounts, requestedCount: filter.count,
+                            isAnimating: isVisible && scenePhase == .active && !isCovered,
+                            reduceMotion: reduceMotion, onSelect: onSelect
+                        )
+                        .frame(height: max(400, max(geometry.size.height - 180, (geometry.size.width - 28) / 2)))
+                    }
 
-                Text("장식을 눌러 퀴즈를 시작하세요")
-                    .font(.subheadline.weight(.bold))
-                    .foregroundStyle(Color.nightSecondaryText)
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
-
-                if dynamicTypeSize.isAccessibilitySize {
-                    accessibleDecorations(time: time)
-                } else {
-                    DecorationSelectTree(
-                        availability: availability, onSelect: onSelect,
-                        time: time, reduceMotion: reduceMotion, rewardMask: rewardMask
-                    )
-                }
-                if let count = availability.first?.shortageCount {
-                    Text("고른 조건에는 \(count)문제만 있어요. 문제 수나 카테고리를 바꿔 보세요")
+                    if let count = availableCounts[filter.difficulty], count < filter.count {
+                        Text("고른 조건에는 \(count)문제만 있어요. 문제 수나 카테고리를 바꿔 보세요")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(Color.nightPrimaryText)
+                            .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    Text("장식 12개를 모아 작업실 트리를 완성해요")
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(Color.nightPrimaryText)
+                        .foregroundStyle(Color.nightSecondaryText)
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                Text("장식 12개를 모두 켜면 작업실 문이 열려요")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(Color.nightSecondaryText)
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
-
-                // 세 난이도의 획득 상태는 각 장식 아래 인디케이터로 표시한다.
+                .padding(14)
             }
-            .padding(14)
+            .scrollBounceBehavior(.basedOnSize, axes: .vertical)
         }
-        .scrollBounceBehavior(.basedOnSize, axes: .vertical)
-        .scrollClipDisabled()
+        .onAppear { isVisible = true }
+        .onDisappear { isVisible = false }
     }
 
     private var header: some View {
@@ -146,155 +143,75 @@ struct DecorationSelectView: View {
             .accessibilityLabel("장식 \(TreeSlots.count)개 중 \(TreeSlots.clampedCount(filledCount))개 획득")
     }
 
-    private func accessibleDecorations(time: TimeInterval) -> some View {
-        VStack(spacing: 32) {
-            ForEach(availability, id: \.task) { result in
-                SelectableDecoration(availability: result, rewardMask: rewardMask) {
-                    onSelect(result.task)
-                }
-                .offset(y: reduceMotion ? 0 : DecorationAmbientMotion.bobOffset(
-                    time: time, task: result.task
-                ))
-                .containerRelativeFrame(.horizontal) { width, _ in width * 0.6 }
-                .frame(maxWidth: .infinity)
-            }
-        }
-        .background {
-            ChristmasTreeImage(imageScale: 2.5)
-                .overlay {
-                    DecorationAmbientEffects(time: time, isAnimated: reduceMotion == false)
-                }
-                .accessibilityHidden(true)
-                .allowsHitTesting(false)
-        }
-    }
-
-}
-
-private struct DecorationSelectTree: View {
-    let availability: [DecorationAvailability]
-    let onSelect: (WorkshopTask) -> Void
-    let time: TimeInterval
-    let reduceMotion: Bool
-    let rewardMask: Int
-
-    var body: some View {
-        GeometryReader { geometry in
-            let scale = geometry.size.width / TreeSlots.designSize.width
-            let treeHeight = TreeSlots.designSize.height * scale
-            let top = (geometry.size.height - treeHeight) / 2
-            let ornamentWidth = 44 * scale
-            let ornamentHeight = ornamentWidth * DecorationView.designSize.height / DecorationView.designSize.width + 24
-
-            ZStack(alignment: .topLeading) {
-                ChristmasTreeImage(imageScale: 1.8)
-                    .frame(width: geometry.size.width, height: treeHeight)
-                    .offset(y: top)
-                    .accessibilityHidden(true)
-                    .allowsHitTesting(false)
-                
-                DecorationAmbientEffects(time: time, isAnimated: reduceMotion == false)
-
-                ForEach(availability, id: \.task) { result in
-                    let point = position(result.task)
-                    SelectableDecoration(availability: result, rewardMask: rewardMask) {
-                        onSelect(result.task)
+    /// 큰 글자에서는 지도를 작은 글자로 축소하지 않고 열두 단계를 목록으로 표시한다.
+    private var accessibleStages: some View {
+        VStack(spacing: 10) {
+            ForEach(QuizStage.all) { stage in
+                let earned = stage.isEarned(in: rewardMask)
+                let unlocked = stage.isUnlocked(in: rewardMask)
+                Button { onSelect(stage) } label: {
+                    HStack(spacing: 12) {
+                        Image(systemName: earned ? "checkmark.circle.fill" : unlocked ? "arrow.right.circle.fill" : "lock.fill")
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(stage.title).font(.headline)
+                            Text("\(stage.difficulty.displayName) · \(earned ? "장식 획득 완료" : unlocked ? "다음 도전" : "잠김")")
+                                .font(.body)
+                            if (availableCounts[stage.difficulty] ?? 0) < filter.count {
+                                Text("출제 후보 부족").font(.caption)
+                            }
+                        }
+                        Spacer(minLength: 0)
                     }
-                    .offset(y: reduceMotion ? 0 : DecorationAmbientMotion.bobOffset(
-                        time: time, task: result.task
-                    ))
-                    .frame(width: ornamentWidth)
-                    .offset(
-                        x: point.x * scale - ornamentWidth / 2,
-                        y: top + point.y * scale - ornamentHeight / 2
-                    )
+                    .foregroundStyle(Color.nightPrimaryText)
+                    .padding(14)
+                    .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                    .background(Color.nightCardBackground, in: RoundedRectangle(cornerRadius: 16))
                 }
+                .buttonStyle(.plain)
+                .accessibilityElement(children: .combine)
+                .accessibilityHint(unlocked ? "퀴즈 시작" : "앞선 단계의 장식을 먼저 획득해야 해요")
             }
-            .frame(width: geometry.size.width, height: geometry.size.height, alignment: .topLeading)
-        }
-        .aspectRatio(TreeSlots.designSize.width / 380, contentMode: .fit)
-    }
-
-    private func position(_ task: WorkshopTask) -> CGPoint {
-        // 트리 이미지를 맞춘 220×214 좌표계에 카테고리 장식을 배치한다.
-        switch task {
-        case .wishReception: CGPoint(x: 110, y: 70)
-        case .giftProduction: CGPoint(x: 65, y: 128)
-        case .wrapping: CGPoint(x: 155, y: 128)
-        case .sleighLoading: CGPoint(x: 110, y: 174)
         }
     }
 }
 
 #if DEBUG
-private struct DecorationSelectPreview: View {
-    let filter: SelectFilter
-    var filledCount = 6
+/// 실제 보상 비트를 단계 순서로 구성하는 지도 표시 전용 프리뷰.
+private struct StageMapPreview: View {
+    var earnedCount = 0
+    var sparseRewards = false
     var forceReduceMotion = false
+    var insufficientCandidates = false
+    private let focusRequestID = UUID()
+
+    private var rewardMask: Int {
+        var mask = QuizStage.all.prefix(earnedCount).reduce(0) { $0 | $1.task.rewardBit(for: $1.difficulty) }
+        if sparseRewards { mask |= WorkshopTask.wrapping.rewardBit(for: .hard) }
+        return mask
+    }
 
     var body: some View {
-        let questions = zip(QuizCategory.allCases, [5, 3, 0, 7]).flatMap { category, count in
-            Difficulty.allCases.flatMap { difficulty in
-                TaskSelectPreviewData.questions(
-                    category: category, difficulty: difficulty,
-                    count: difficulty == .normal ? count : 5
-                )
-            }
-        }
-        let results = DecorationAvailability.calculate(
-            filter: filter, questions: questions, selector: QuestionSelector()
-        )
+        let stage = QuizStage.next(in: rewardMask) ?? QuizStage(task: .sleighLoading, difficulty: .hard)
         DecorationSelectView(
-            filter: filter, availability: results, filledCount: filledCount,
-            rewardMask: (1 << TreeSlots.clampedCount(filledCount)) - 1,
-            onEdit: {}, onResetSettings: {}, onSelect: { _ in },
+            filter: SelectFilter(difficulty: stage.difficulty),
+            availableCounts: [.easy: insufficientCandidates ? 0 : 15, .normal: 15, .hard: 15],
+            rewardMask: rewardMask, focusedStage: stage, focusRequestID: focusRequestID,
+            isCovered: false, onEdit: {}, onResetSettings: {}, onSelect: { _ in },
             forceReduceMotion: forceReduceMotion
         )
-            .background {
-                LinearGradient(
-                    colors: [.nightBackgroundTop, .nightBackgroundBottom],
-                    startPoint: .top, endPoint: .bottom
-                )
-                .ignoresSafeArea()
-            }
+        .background(Color.nightBackgroundTop)
     }
 }
 
-#Preview("장식 선택 · 모두 켜짐") {
-    DecorationSelectPreview(filter: SelectFilter(difficulty: .easy))
-}
-
-#Preview("장식 선택 · 획득 장식 없음") {
-    DecorationSelectPreview(filter: SelectFilter(), filledCount: 0)
-}
-
-#Preview("장식 선택 · 장식 12개") {
-    DecorationSelectPreview(filter: SelectFilter(), filledCount: TreeSlots.count)
-}
-
-#Preview("장식 선택 · 일부 켜짐과 후보 부족") {
-    DecorationSelectPreview(filter: SelectFilter())
-}
-
-#Preview("장식 선택 · 다크") {
-    DecorationSelectPreview(filter: SelectFilter())
-        .preferredColorScheme(.dark)
-}
-
-#Preview("장식 선택 · 큰 글자") {
-    DecorationSelectPreview(filter: SelectFilter())
-        .dynamicTypeSize(.accessibility5)
-}
-
-#Preview("장식 선택 · iPad 폭", traits: .fixedLayout(width: 1024, height: 768)) {
-    DecorationSelectPreview(filter: SelectFilter(difficulty: .easy))
-}
-
-#Preview("장식 선택 · 연출과 시스템 모션 설정") {
-    DecorationSelectPreview(filter: SelectFilter(difficulty: .easy))
-}
-
-#Preview("장식 선택 · 모션 줄이기") {
-    DecorationSelectPreview(filter: SelectFilter(difficulty: .easy), forceReduceMotion: true)
-}
+#Preview("스테이지 · 처음 시작") { StageMapPreview() }
+#Preview("스테이지 · 쉬움 진행") { StageMapPreview(earnedCount: 2) }
+#Preview("스테이지 · 보통 해금") { StageMapPreview(earnedCount: 4) }
+#Preview("스테이지 · 어려움 해금") { StageMapPreview(earnedCount: 8) }
+#Preview("스테이지 · 마지막 장식 직전") { StageMapPreview(earnedCount: 11) }
+#Preview("스테이지 · 기존 비순차 보상 보존") { StageMapPreview(earnedCount: 1, sparseRewards: true) }
+#Preview("스테이지 · 후보 없음") { StageMapPreview(insufficientCandidates: true) }
+#Preview("스테이지 · 동작 줄이기") { StageMapPreview(forceReduceMotion: true) }
+#Preview("스테이지 · 다크") { StageMapPreview(earnedCount: 4).preferredColorScheme(.dark) }
+#Preview("스테이지 · 큰 글자") { StageMapPreview().dynamicTypeSize(.accessibility5) }
+#Preview("스테이지 · iPad", traits: .fixedLayout(width: 1024, height: 768)) { StageMapPreview(earnedCount: 8) }
 #endif
