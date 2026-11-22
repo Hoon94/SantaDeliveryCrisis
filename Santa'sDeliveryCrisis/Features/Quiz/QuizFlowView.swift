@@ -175,4 +175,34 @@ private struct QuizFlowPreviewHost: View {
 #Preview("퀴즈 · 다크 색상") {
     QuizFlowPreviewHost(category: nil).preferredColorScheme(.dark)
 }
+
+#Preview("문제 풀이 · 첨부 이미지") {
+    if let url = quizImagePreviewURL(), let container = try? ModelContainerFactory.make(inMemory: true) {
+        let source = AppServices.preview
+        let services = AppServices(
+            settings: source.settings, selector: source.selector, recommender: source.recommender,
+            sessions: source.sessions, trees: source.trees, feedback: source.feedback,
+            media: MediaFileManager(context: container.mainContext, directory: url.deletingLastPathComponent()),
+            reminders: source.reminders
+        )
+        let question = Question(
+            text: "그림 속 산타 마을에 어울리는 배경 설명은 무엇일까요?",
+            imageFileName: url.lastPathComponent,
+            choices: ["눈 덮인 겨울 마을", "햇볕이 뜨거운 사막", "야자수가 있는 해변", "단풍이 든 숲"],
+            correctIndex: 0,
+            explanation: "눈 덮인 지붕과 나무가 있는 겨울 마을이에요.",
+            hint: "지붕과 나무 위에 무엇이 쌓여 있는지 살펴보세요.",
+            category: .swiftUIPractice, difficulty: .easy
+        )
+        let session = QuizSession(
+            task: .wishReception, category: question.category, difficulty: question.difficulty,
+            questionSnapshots: [QuestionSnapshot(question)], passThresholdPercent: 80
+        )
+        QuizFlowView(session: session, onClose: {})
+            .modelContainer(container)
+            .environment(\.services, services)
+    } else {
+        ContentUnavailableView("이미지 문제를 준비하지 못했어요", systemImage: "photo")
+    }
+}
 #endif

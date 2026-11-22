@@ -1,7 +1,7 @@
 import SwiftUI
 import UIKit
 
-/// 문제 풀이 화면(S4). 상단 진행 줄, 문제와 코드, 보기 4개, 하단의 캐릭터와 [확인] 버튼.
+/// 문제 풀이 화면(S4). 상단 진행 줄, 문제·첨부 이미지·코드, 보기 4개, 하단의 캐릭터와 [확인] 버튼.
 struct QuizQuestionView: View {
     @Bindable var model: QuizFlowModel
     let services: AppServices
@@ -143,6 +143,12 @@ struct QuizQuestionView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(18)
                 .background(card)
+
+            if let fileName = snapshot.imageFileName, !fileName.isEmpty {
+                QuizQuestionImage(url: (services.media as? MediaURLProviding)?.url(for: fileName))
+                    .padding(12)
+                    .background(card)
+            }
 
             if let code = snapshot.codeSnippet, !code.isEmpty {
                 codeBlock(code)
