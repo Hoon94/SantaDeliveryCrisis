@@ -30,8 +30,6 @@ struct CategoryAccuracy: Identifiable, Equatable {
     let category: QuizCategory
     /// 0...100. 이 기간에 답한 문제가 없으면 nil
     let accuracyPercent: Int?
-    /// 답한 문제 수
-    let answeredCount: Int
 
     var id: QuizCategory { category }
 }
@@ -42,8 +40,6 @@ struct RecordsSummary: Equatable {
     let attemptCount: Int
     /// 세션별 정답률의 평균(소수점 버림). 끝낸 세션이 없으면 nil
     let averageScore: Int?
-    /// 푼 문제 수
-    let solvedCount: Int
     /// 기간 안의 모든 날(주간 7일, 월간은 그 달 일수). 세션이 없는 날도 포함
     let days: [DailyRecord]
     /// 4개 카테고리 전부. 정답률이 낮은 순이고, 동률이면 작업 순서가 앞선 쪽이 먼저.
@@ -74,7 +70,7 @@ struct RecordsStatistics {
     /// `now`가 속한 주 또는 달의 집계를 계산한다.
     func summary(sessions: [QuizSession], period: RecordsPeriod, now: Date = Date()) -> RecordsSummary {
         guard let interval = interval(for: period, containing: now) else {
-            return RecordsSummary(attemptCount: 0, averageScore: nil, solvedCount: 0, days: [], weakCategories: [])
+            return RecordsSummary(attemptCount: 0, averageScore: nil, days: [], weakCategories: [])
         }
         let inPeriod = sessions.filter { session in
             guard session.status == .completed, let finishedAt = session.finishedAt else { return false }
@@ -84,7 +80,6 @@ struct RecordsStatistics {
         return RecordsSummary(
             attemptCount: inPeriod.count,
             averageScore: average(of: scores),
-            solvedCount: inPeriod.reduce(0) { $0 + $1.answers.count },
             days: days(in: interval, sessions: inPeriod),
             weakCategories: weakCategories(in: inPeriod)
         )
@@ -151,10 +146,10 @@ struct RecordsStatistics {
             .map { category -> CategoryAccuracy in
                 let count = answered[category] ?? 0
                 guard count > 0 else {
-                    return CategoryAccuracy(category: category, accuracyPercent: nil, answeredCount: 0)
+                    return CategoryAccuracy(category: category, accuracyPercent: nil)
                 }
                 let percent = Accuracy.percent(correct: correct[category] ?? 0, total: count)
-                return CategoryAccuracy(category: category, accuracyPercent: percent, answeredCount: count)
+                return CategoryAccuracy(category: category, accuracyPercent: percent)
             }
             .enumerated()
             .sorted { lhs, rhs in

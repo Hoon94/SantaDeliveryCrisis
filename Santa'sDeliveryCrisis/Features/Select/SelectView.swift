@@ -125,7 +125,7 @@ struct SelectView: View {
     }
 
     private var background: some View {
-        // FIXME: [가정 7] 출제 탭만 나이트 색상 사용. 최종 팔레트 확정 후 정리
+        // 출제 화면은 라이트·다크 대응 나이트 팔레트를 사용한다.
         LinearGradient(
             stops: [
                 .init(color: .nightBackgroundTop, location: 0),

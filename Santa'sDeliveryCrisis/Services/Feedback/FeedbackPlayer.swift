@@ -18,10 +18,6 @@ final class FeedbackPlayer: QuizFeedbackPlaying {
         haptics.prepare()
     }
 
-    func playCorrect() { play(.correct) }
-    func playWrong() { play(.wrong) }
-    func playTreeComplete() { play(.treeComplete) }
-
     func play(_ cue: FeedbackCue) {
         if settings.soundEnabled { sound.play(cue) }
         if settings.hapticsEnabled { haptics.play(cue) }

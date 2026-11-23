@@ -1,7 +1,6 @@
 import SwiftUI
 
-/// 테마별 임시 배경. 테마 색 빛 번짐과 소품, 천천히 떠다니는 눈송이를 깐다.
-// FIXME: [자산 교체] 테마별 배경 일러스트가 오면 이 뷰 안을 이미지로 교체한다. 바깥 사용처는 그대로 둔다.
+/// 결과 화면의 테마 배경. 테마 색 빛 번짐과 소품, 천천히 떠다니는 눈송이를 깐다.
 struct ThemeBackground: View {
     let theme: QuizTheme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion

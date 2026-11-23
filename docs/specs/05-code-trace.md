@@ -6,6 +6,10 @@
 - 디자인 기준: [디자인 매뉴얼](../design/santa-workshop-main-manual.html) 4장(애니메이션 문제), [화면 설계서](../design/screen-spec.html)의 S4-T
 - 표기: `[가정]`은 팀이 아직 확정하지 않은 내용입니다. 구현 전에 사용자에게 확인합니다(프로젝트 스펙 16장).
 
+## 현재 구현 상태
+
+아래는 후속 기능 명세입니다. 현재 앱에는 코드 트레이스 재생 화면과 장면 데이터가 없으며, 호출되지 않던 `TraceStep`·`TraceSceneRegistry`와 빈 장면 서비스 연결은 제거했습니다. 저장 데이터 호환을 위해 `QuestionKind.animation`과 `animationID` 필드는 유지합니다.
+
 ## 작업 범위
 
 - 포함: `TraceStep`, 코드 하이라이트·변수 표시·말풍선 컴포넌트, 장면 3~5개, 접근성(모션 줄이기, VoiceOver)

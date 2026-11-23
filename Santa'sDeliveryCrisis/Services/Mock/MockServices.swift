@@ -1,4 +1,4 @@
-import SwiftUI
+import Foundation
 
 /// 화면 미리보기와 병렬 개발용 가짜 구현. 실제 구현이 준비되면 교체한다.
 /// 미리보기용 샘플 데이터
@@ -160,16 +160,8 @@ final class MockTreeManager: TreeManaging {
     func completedTrees() -> [TreeRecord] { completed }
 }
 
-/// 아무것도 재생하지 않는 피드백
-typealias MockFeedbackPlayer = SilentFeedbackPlayer
-
 /// 파일을 다루지 않는 미디어 관리자
 struct MockMediaFileManager: MediaFileManaging {
     func store(from url: URL) throws -> String { url.lastPathComponent }
     func cleanUnreferencedFiles() throws {}
-}
-
-/// 장면이 하나도 없는 저장소
-struct MockTraceSceneRegistry: TraceSceneRegistry {
-    func scene(for animationID: String) -> (steps: [TraceStep], view: AnyView)? { nil }
 }

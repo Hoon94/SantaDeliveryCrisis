@@ -11,13 +11,6 @@ enum TreeSlots {
     /// 트리 영역의 너비와 높이 비율.
     static let aspectRatio = designSize.width / designSize.height
 
-    /// 주어진 영역 안에 기준 좌표계가 들어가는 최대 배율을 반환한다.
-    /// - Parameter availableSize: 부모 뷰가 제공하는 영역.
-    /// - Returns: 가로와 세로가 모두 영역 안에 들어가는 배율.
-    static func scale(in availableSize: CGSize) -> CGFloat {
-        min(availableSize.width / designSize.width, availableSize.height / designSize.height)
-    }
-
     /// 위에서 아래, 같은 줄에서는 왼쪽에서 오른쪽 순서인 장식 위치 비율.
     static let positions: [CGPoint] = [
         CGPoint(x: 110, y: 62),

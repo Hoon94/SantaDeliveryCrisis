@@ -8,6 +8,6 @@
 
 ## 작업 범위
 
-- 포함: Xcode 프로젝트 설정(iOS 17, iPad 방향), 폴더 구조, 8장 모델, enum, 9장 프로토콜과 결과 타입(`SessionResult`, `TreeGrantResult`, `QuestionSnapshot`, `TraceSceneAction` 빈 자리), 화면 미리보기용 가짜(mock) 구현, `MediaFileManaging`, `SettingsStore`(설정 키와 기본값), 테스트 타깃, iOS 17 배포 설정 확인, 색상 Asset 기본 틀, 탭 뼈대
+- 포함: Xcode 프로젝트 설정(iOS 17, iPad 방향), 폴더 구조, 8장 모델, enum, 9장 프로토콜과 결과 타입(`SessionResult`, `TreeGrantResult`, `QuestionSnapshot`), 화면 미리보기용 가짜(mock) 구현, `MediaFileManaging`, `SettingsStore`(설정 키와 기본값), 테스트 타깃, iOS 17 배포 설정 확인, 색상 Asset 기본 틀, 탭 뼈대
 - 의존: 없음
 - 병렬 가능: 가장 먼저, 가능한 한 빨리 develop에 병합

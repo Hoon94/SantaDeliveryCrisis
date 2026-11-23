@@ -1,17 +1,17 @@
-import SwiftUI
+import Foundation
 
 /// 카테고리 추천 (S2 팝업의 [추천] 배지)
 protocol TaskRecommending {
     /// 답한 기록이 있는 카테고리 중 정답률이 가장 낮은 카테고리.
-    /// 동률이면 작업 순서(소원 접수, 선물 생산, 포장, 썰매 적재)가 앞선 쪽, 기록이 없으면 nil
+    /// 동률이면 QuizCategory.allCases 순서가 앞선 쪽, 기록이 없으면 nil
     func recommendedCategory(sessions: [QuizSession]) -> QuizCategory?
 }
 
-/// 세션용 문제 선택. 선택 출제는 category를 하나만 넘긴다.
+/// 세션용 문제 선택. 여러 카테고리는 select(categories:...) 확장을 사용한다.
 protocol QuestionSelecting {
     /// 조건에 맞는 문제를 `count`개 고른다.
     /// - Parameters:
-    ///   - category: nil이면 4개 작업 전체에서 고름. 여러 카테고리를 골라 섞는 경우는 `select(categories:...)` 확장을 쓴다
+    ///   - category: nil이면 모든 학습 카테고리에서 고름. 여러 카테고리를 골라 섞는 경우는 `select(categories:...)` 확장을 쓴다
     ///   - tags: 비어 있으면 전체 태그. 여러 개면 하나라도 가진 문제. 1차 UI는 항상 비움
     ///   - history: 답(정오답, 시각)과 풀 당시 스냅샷(카테고리, 태그)을 함께 읽는 세션 기록
     func select(
@@ -108,13 +108,6 @@ struct TreeGrantResult {
     let rewardOutcome: RewardOutcome
 }
 
-/// 효과음과 햅틱
-protocol FeedbackPlaying {
-    func playCorrect()
-    func playWrong()
-    func playTreeComplete()
-}
-
 /// 사용자 미디어 파일 저장과 정리. 정리 로직을 한 곳에 두고 문제 관리와 세션이 같이 호출한다.
 protocol MediaFileManaging {
     /// 선택한 이미지·영상을 앱 내부 폴더에 새 파일명으로 복사하고 그 파일명을 돌려준다. 기존 파일은 덮어쓰지 않는다.
@@ -122,26 +115,4 @@ protocol MediaFileManaging {
 
     /// 어떤 `Question`, 진행 중 세션 스냅샷, 원본이 남은 문제의 끝난 세션 스냅샷도 참조하지 않는 파일을 삭제한다.
     func cleanUnreferencedFiles() throws
-}
-
-/// 애니메이션 문제 한 단계
-struct TraceStep {
-    /// 하이라이트할 코드 줄 (1부터)
-    let line: Int
-    /// 말풍선과 VoiceOver 설명
-    let narration: String
-    /// 이 단계 이후의 변수 값
-    let variables: [String: String]
-    /// 캐릭터와 배경의 동작
-    let sceneAction: TraceSceneAction
-}
-
-/// 캐릭터와 배경의 동작. 작업 5(애니메이션 문제)가 값을 정의한다.
-/// 작업 0에서는 다른 작업이 컴파일되도록 빈 자리(`.none`)만 둔다.
-enum TraceSceneAction { case none }
-
-/// animationID로 장면과 실행 순서를 찾는 저장소
-protocol TraceSceneRegistry {
-    /// 장면을 찾지 못하면 nil
-    func scene(for animationID: String) -> (steps: [TraceStep], view: AnyView)?
 }

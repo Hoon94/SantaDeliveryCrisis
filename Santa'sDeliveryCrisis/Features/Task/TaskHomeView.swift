@@ -29,7 +29,7 @@ struct TaskHomeView: View {
         let ornamentTasks = completing.map { summary in
             (summary.treeRewardStages.filter { $0 != summary.stage } + [summary.stage]).map(\.task)
         } ?? earnedTasks(in: activeTrees.first)
-        // FIXME: [가정] 시안의 N번째 트리 번호를 완성한 트리 수 + 1로 계산. 팀 확인 필요
+        // 완성 연출 중에는 방금 완성한 트리 번호를 유지한다.
         let treeNumber = completedTrees.count + (completing?.result.treeCompleted == true ? 0 : 1)
 
         let stats = UnsolvedQuestionStats.calculate(questions: questions, history: history)

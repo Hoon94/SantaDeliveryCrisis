@@ -2,7 +2,6 @@ import SwiftData
 import SwiftUI
 
 /// 앱 전체가 공유하는 서비스 묶음. 한 곳에서 조립하고 화면은 Environment로 주입받는다.
-/// 실제 구현(작업 2 등)이 준비되면 이 조립 지점의 mock만 교체한다.
 struct AppServices {
     let settings: SettingsStore
     let selector: QuestionSelecting
@@ -11,11 +10,10 @@ struct AppServices {
     let trees: TreeManaging
     let feedback: QuizFeedbackPlaying
     let media: MediaFileManaging
-    let traceScenes: TraceSceneRegistry
     /// 학습 알림의 권한·예약·설정 상태를 관리한다.
     let reminders: any DailyQuizReminderManaging
 
-    /// 실제 구현(출제, 추천, 세션, 트리, 피드백, 미디어, 설정)과 아직 구현되지 않은 mock(장면)을 조립한다.
+    /// 실제 서비스를 조립하고, 메모리 저장소에서는 시스템 알림 대신 프리뷰용 구현을 사용한다.
     /// 세션과 트리는 같은 `ModelContext`를 써야 세션 완료와 장식 지급이 한 번의 저장으로 묶인다.
     static func make(context: ModelContext) -> AppServices {
         let settings = SettingsStore()
@@ -48,7 +46,6 @@ struct AppServices {
             trees: trees,
             feedback: FeedbackPlayer(settings: settings),
             media: media,
-            traceScenes: MockTraceSceneRegistry(),
             reminders: reminders
         )
     }
@@ -62,9 +59,8 @@ struct AppServices {
             recommender: MockTaskRecommender(),
             sessions: MockSessionManager(trees: trees),
             trees: trees,
-            feedback: MockFeedbackPlayer(),
+            feedback: SilentFeedbackPlayer(),
             media: MockMediaFileManager(),
-            traceScenes: MockTraceSceneRegistry(),
             reminders: MockDailyQuizReminderManager()
         )
     }()

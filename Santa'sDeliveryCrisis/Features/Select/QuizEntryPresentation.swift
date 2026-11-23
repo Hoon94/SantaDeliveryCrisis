@@ -19,7 +19,7 @@ struct QuizEntryPresentation: View {
         .opacity(isVisible ? 1 : 0)
         .transaction { $0.disablesAnimations = false }
         .task {
-            // FIXME: [가정 6] 1차 전환은 모션 줄이기에서도 페이드만 사용. 확대 연출은 추후 결정
+            // 동작 줄이기에서도 화면 전환은 짧은 페이드로 표시한다.
             withAnimation(.easeInOut(duration: 0.25)) {
                 isVisible = true
             }

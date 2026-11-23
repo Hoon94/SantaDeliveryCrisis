@@ -120,10 +120,10 @@ struct WeakCategoryList: View {
 
 #Preview {
     WeakCategoryList(categories: [
-        CategoryAccuracy(category: .swiftSyntax, accuracyPercent: 54, answeredCount: 13),
-        CategoryAccuracy(category: .swiftUIPractice, accuracyPercent: 66, answeredCount: 9),
-        CategoryAccuracy(category: .hig, accuracyPercent: 81, answeredCount: 16),
-        CategoryAccuracy(category: .aiUsage, accuracyPercent: nil, answeredCount: 0),
+        CategoryAccuracy(category: .swiftSyntax, accuracyPercent: 54),
+        CategoryAccuracy(category: .swiftUIPractice, accuracyPercent: 66),
+        CategoryAccuracy(category: .hig, accuracyPercent: 81),
+        CategoryAccuracy(category: .aiUsage, accuracyPercent: nil),
     ])
     .padding()
     .background(Color.roomBackground)
