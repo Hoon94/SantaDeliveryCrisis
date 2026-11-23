@@ -21,6 +21,11 @@ struct TaskHomeView: View {
     /// 완성한 트리 기록을 관찰해 표시 번호를 갱신한다.
     @Query(filter: #Predicate<TreeRecord> { $0.completedAt != nil })
     private var completedTrees: [TreeRecord]
+    /// 가로가 넓은 환경(iPad)에서 트리 패널이 커지는 폭의 상한.
+    private static let regularPanelMaxWidth: CGFloat = 640
+
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+
     /// 저장된 트리 기록을 읽어 화면을 구성하며 트리가 없으면 0칸으로 표시한다.
     var body: some View {
         let completing = rewardFlight.pendingCompletion ?? rewardFlight.completion
@@ -71,6 +76,15 @@ struct TaskHomeView: View {
             if scrollable {
                 TaskTreePanel(filledCount: filledCount, ornamentTasks: ornamentTasks)
                     .aspectRatio(TreeSlots.aspectRatio, contentMode: .fit)
+                    .frame(maxWidth: horizontalSizeClass == .regular ? Self.regularPanelMaxWidth : .infinity)
+                    .frame(maxWidth: .infinity)
+            } else if horizontalSizeClass == .regular {
+                // iPad: 패널을 남는 공간에 맞춰 비율을 유지한 채 줄이고 가운데에 둔다(잘림 방지).
+                TaskTreePanel(filledCount: filledCount, ornamentTasks: ornamentTasks)
+                    .aspectRatio(TreeSlots.aspectRatio, contentMode: .fit)
+                    .frame(maxWidth: Self.regularPanelMaxWidth)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .layoutPriority(-1)
             } else {
                 TaskTreePanel(filledCount: filledCount, ornamentTasks: ornamentTasks)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)

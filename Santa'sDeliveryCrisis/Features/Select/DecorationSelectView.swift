@@ -3,6 +3,7 @@ import SwiftUI
 /// 기존 출제 제목·설정·진행도 아래에 산타 마을 스테이지 지도를 표시한다.
 struct DecorationSelectView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.accessibilityReduceMotion) private var systemReduceMotion
     @Environment(\.scenePhase) private var scenePhase
     @State private var isVisible = false
@@ -43,15 +44,33 @@ struct DecorationSelectView: View {
 
                     if dynamicTypeSize.isAccessibilitySize {
                         accessibleStages
+                    } else if fillsMapHeight(in: geometry.size) {
+                        // iPad 세로: 지도가 남는 세로 공간을 채우고, 모자란 가로는 좌우 스크롤로 본다.
+                        let viewportWidth = max(geometry.size.width - 28, 0)
+                        StageMapView(
+                            rewardMask: rewardMask, focusedStage: focusedStage, focusRequestID: focusRequestID,
+                            availableCounts: availableCounts, requestedCount: filter.count,
+                            isAnimating: isVisible && scenePhase == .active && !isCovered,
+                            reduceMotion: reduceMotion, onSelect: onSelect,
+                            fillsHeight: true
+                        )
+                        .frame(
+                            minHeight: StageMapView.height(forViewportWidth: viewportWidth, visibleVillages: 2),
+                            maxHeight: StageMapView.height(forViewportWidth: viewportWidth, visibleVillages: 1)
+                        )
                     } else {
                         StageMapView(
                             rewardMask: rewardMask, focusedStage: focusedStage, focusRequestID: focusRequestID,
                             availableCounts: availableCounts, requestedCount: filter.count,
                             isAnimating: isVisible && scenePhase == .active && !isCovered,
-                            reduceMotion: reduceMotion, onSelect: onSelect
+                            reduceMotion: reduceMotion, onSelect: onSelect,
+                            visibleVillages: visibleVillages(in: geometry.size)
                         )
-                        // 2:1 지도에서 마을 하나의 가로 폭은 전체의 1/3이므로 표시 비율은 2:3이다.
-                        .frame(height: max(geometry.size.width - 28, 0) * 1.5)
+                        // 2:1 지도에서 마을 하나의 가로 폭은 전체의 1/3이다. 보이는 마을 수에 맞춰 높이를 정한다.
+                        .frame(height: StageMapView.height(
+                            forViewportWidth: max(geometry.size.width - 28, 0),
+                            visibleVillages: visibleVillages(in: geometry.size)
+                        ))
                     }
 
                     if let count = availableCounts[filter.difficulty], count < filter.count {
@@ -68,11 +87,24 @@ struct DecorationSelectView: View {
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 .padding(14)
+                // 지도가 남는 높이를 받을 수 있도록 내용을 화면 높이 이상으로 둔다.
+                .frame(minHeight: fillsMapHeight(in: geometry.size) ? geometry.size.height : nil, alignment: .top)
             }
             .scrollBounceBehavior(.basedOnSize, axes: .vertical)
         }
         .onAppear { isVisible = true }
         .onDisappear { isVisible = false }
+    }
+
+    /// iPhone은 마을 하나, iPad 가로는 지도 전체, iPad 세로는 마을 둘이 한 화면에 보이게 한다.
+    private func visibleVillages(in size: CGSize) -> CGFloat {
+        guard horizontalSizeClass == .regular else { return 1 }
+        return size.width > size.height ? 3 : 2
+    }
+
+    /// iPad 세로(마을 2개 기준)에서만 지도 아래 빈 공간을 지도로 채운다. 가로와 iPhone은 기존 크기를 쓴다.
+    private func fillsMapHeight(in size: CGSize) -> Bool {
+        horizontalSizeClass == .regular && dynamicTypeSize.isAccessibilitySize == false && size.width <= size.height
     }
 
     private var header: some View {
