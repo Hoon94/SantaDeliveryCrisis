@@ -19,6 +19,23 @@ struct StageMapView: View {
     /// 잠김과 후보 부족 안내는 출제 화면에서 처리한다.
     let onSelect: (QuizStage) -> Void
 
+    /// 화면에 한 번에 보이는 마을 수. 1이면 iPhone처럼 마을 하나, 3이면 지도 전체.
+    var visibleVillages: CGFloat = 1
+
+    /// true이면 `visibleVillages` 대신 주어진 높이를 지도가 꽉 채우도록 보이는 마을 수를 정한다(1~3, 소수 가능).
+    var fillsHeight = false
+
+    /// 지도는 마을 3개가 이어진 2:1 그림이다. 보이는 폭에 맞는 표시 높이를 계산한다.
+    static func height(forViewportWidth width: CGFloat, visibleVillages: CGFloat) -> CGFloat {
+        width * 3 / max(visibleVillages, 1) / 2
+    }
+
+    /// 보이는 영역의 높이를 지도 높이와 같게 만드는 마을 수. 1~3 범위로 제한한다.
+    static func villagesFilling(viewport: CGSize) -> CGFloat {
+        guard viewport.height > 0 else { return 1 }
+        return min(max(viewport.width * 1.5 / viewport.height, 1), 3)
+    }
+
     /// 가운데 마을 양 끝 빈터를 안쪽으로 옮긴 지도에 맞춘 단계의 위치 비율.
     private let positions: [CGPoint] = [
         CGPoint(x: 0.071, y: 0.545), CGPoint(x: 0.116, y: 0.680),
@@ -32,7 +49,10 @@ struct StageMapView: View {
     /// 한 화면에 마을 하나가 들어오도록 표시하고, 자동 이동은 선택 난이도의 마을 중앙에 맞춘다.
     var body: some View {
         GeometryReader { geometry in
-            let width = geometry.size.width * 3
+            let villages = fillsHeight
+                ? Self.villagesFilling(viewport: geometry.size)
+                : max(visibleVillages, 1)
+            let width = geometry.size.width * 3 / villages
             let height = width / 2
             StageMapScrollView(
                 contentSize: CGSize(width: width, height: height),
