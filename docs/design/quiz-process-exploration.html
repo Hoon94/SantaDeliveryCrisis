@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>선물을 준비하는 한 판 · 퀴즈 과정 시안</title>
+<link rel="stylesheet" href="quiz-process-assets/prototype.css">
+</head>
+<body class="dark">
+<header class="page-head">
+<div class="eyebrow">SANTA'S WORKSHOP / QUIZ JOURNEY STUDY</div>
+<h1>한 문제씩,<br><em>선물이 출발할 때까지.</em></h1>
+<p class="intro">소원을 읽는 산타, 장난감을 만드는 엘프, 포장하는 엘프, 썰매를 기다리는 루돌프.<br>문제 배치는 그대로 두고, 한 판의 진도에 따라 네 작업 공간을 지나갑니다.</p>
+<div class="toolbar"><nav class="view-tabs" aria-label="시안 보기 방식"><button data-view="compare" aria-pressed="true">네 과정 나란히 비교</button><button data-view="experience" aria-pressed="false">퀴즈 흐름 체험</button></nav><div class="display-controls"><label><input id="dark-mode" type="checkbox" checked>어두운 화면</label><label><input id="motion-mode" type="checkbox">움직임</label><label><input id="large-type" type="checkbox">큰 글자</label></div></div>
+<div class="scope"><b>변경 영역</b><span>배경 · 담당 캐릭터 · 과정 진행 표시 · 말풍선. 문제·코드·보기·힌트·확인 버튼은 기존 앱의 배치를 기준으로 유지합니다.</span></div>
+</header>
+<main>
+<section id="compare" aria-labelledby="compare-title"><div class="section-heading"><div><div class="eyebrow">01 / FOUR MOMENTS, ONE JOURNEY</div><h2 id="compare-title">같은 문제, 다른 작업 공간.</h2><p>문제와 문항 번호는 같게 두고 테마와 두 캐릭터 자세를 비교합니다. 각 화면의 ‘대사와 두 자세 재생’을 눌러 동작을 볼 수 있습니다. 진행 기록은 없습니다.</p></div></div><div id="comparison-grid" class="comparison-grid"></div></section>
+<section id="experience" hidden aria-labelledby="experience-title"><div class="section-heading"><div><div class="eyebrow">02 / PLAY THROUGH THE JOURNEY</div><h2 id="experience-title">소원 접수부터 썰매 적재까지.</h2><p>보기를 바꿔 선택하면 캐릭터의 고민 대사와 자세가 반응합니다. 확인 후에는 정답·해설을 보고 다음 문제로 이동합니다.</p></div></div><div class="experience-layout"><div id="live-device" class="live-device"></div><aside class="journey-guide"><section class="guide-section"><h3>한 판의 문제 수</h3><div class="count-controls" id="count-controls"></div><p class="note">문제 수를 변경하면 체험을 처음부터 다시 시작합니다.</p><div id="allocation" class="allocation"></div></section><section class="guide-section"><div class="row-between"><h3>지금의 작업 공간</h3><span class="mini-label" id="live-phase-code"></span></div><div class="environment-live" id="environment-live"></div><div id="phase-story"></div></section><section class="guide-section"><h3>전환은 짧게, 풀이는 그대로</h3><p>과정의 마지막 문제를 채점해도 해설은 같은 공간에서 확인합니다. ‘다음 문제’를 눌렀을 때만 다음 공간으로 옮겨 갑니다.</p><p>과정 진행과 보상 통과는 별개입니다. 마지막에는 전체 정답률로 통과 여부를 보여 줍니다.</p><div class="guide-actions"><button id="restart">처음부터 다시 체험</button><button id="copy-direction">이 시안 방향 복사</button></div><p id="copy-status" class="status" role="status" aria-live="polite"></p></section></aside></div></section>
+<section class="principles"><div><h3>장면은 바뀌어도, 학습은 연결되게</h3><p>학습 카테고리는 문제마다 태그로 표시합니다. 네 작업 과정은 카테고리와 독립적으로 한 판의 진행을 보여 줍니다.</p></div><div><h3>캐릭터는 각자 맡은 일을 하게</h3><p>접수는 산타, 생산과 포장은 서로 다른 엘프, 마지막 적재는 루돌프. 캐릭터마다 고민 대사 다섯 개를 준비했습니다. 다른 보기로 바꿀 때마다 다음 대사와 두 자세가 반응하며, 정답 여부를 암시하지 않습니다.</p></div><div><h3>게임 배경보다 문제가 먼저 읽히게</h3><p>픽셀 그림은 공간의 분위기를 만들고, 문제와 보기는 불투명한 카드로 대비를 확보합니다. 작은 캐릭터는 확인 버튼 옆에서 보기 선택에 맞춰 기본·대화 두 자세를 교대합니다. 해설 시트는 정답과 설명에 집중합니다.</p></div></section>
+</main>
+<footer>HTML 디자인 시안 · 프로젝트 시드 문제 일부를 사용한 독립적인 체험입니다. 실제 세션·보상·해금·기기 설정에는 접근하지 않습니다. 새로고침하면 체험 상태가 사라집니다. 배경과 투명 캐릭터를 별도 레이어로 사용합니다. 산타는 작업실 원본의 얼굴과 복장을 기준으로 편지를 든 두 자세를 제작했습니다. 다른 세 캐릭터도 같은 스타일의 2프레임 시트를 사용합니다.</footer>
+<dialog id="code-dialog" aria-labelledby="code-title"><div class="dialog-head"><h2 id="code-title">코드 크게 보기</h2><button id="close-code" aria-label="코드 닫기">닫기</button></div><pre id="expanded-code"></pre></dialog>
+<dialog id="exit-dialog" aria-labelledby="exit-title"><h2 id="exit-title">체험을 잠시 멈출까요?</h2><p>이 페이지를 열어 둔 동안만 진행 상태가 유지됩니다. 앱에 기록을 저장하지 않습니다.</p><div class="dialog-actions"><button id="continue-quiz">계속 풀기</button><button id="pause-quiz">비교 화면으로</button></div></dialog>
+<div id="announcement" class="sr-only" role="status" aria-live="polite"></div>
+<script src="quiz-process-assets/prototype.js"></script>
+</body>
+</html>

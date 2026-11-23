@@ -1,0 +1,157 @@
+# 세션·저장 서비스 사용 가이드 (A 담당 구현)
+
+B, C, D가 화면에서 출제·세션·트리 서비스를 부를 때 참고하는 문서입니다. 규칙의 기준은 [02-session-engine](specs/02-session-engine.md)이고, 이 문서는 구현된 동작과 호출 순서를 정리합니다.
+
+- 서비스는 `@Environment(\.services)`로 받습니다. 화면 코드가 서비스 구현 클래스를 직접 만들지 않습니다.
+- 실제 구현은 `AppServices.make(context:)`에서 조립합니다. 미리보기는 가짜 묶음(`AppServices.preview`) 또는 실제 서비스(`PreviewData.make()`, 디버그 빌드 전용)를 씁니다.
+
+## 1. 서비스 목록
+
+| 서비스 | 규약 | 구현 | 역할 |
+| --- | --- | --- | --- |
+| `services.selector` | `QuestionSelecting` | `QuestionSelector` | 문제 고르기, 후보 수 계산 |
+| `services.recommender` | `TaskRecommending` | `TaskRecommender` | [추천] 배지 카테고리 계산 |
+| `services.sessions` | `SessionManaging` | `SessionManager` | 세션 시작, 답 저장, 완료, 이어 풀기, 포기 |
+| `services.trees` | `TreeManaging` | `TreeManager` | 현재 트리, 완성 트리 목록 (장식 지급은 `finish` 안에서 처리) |
+
+## 2. 호출 순서
+
+### 세션 시작 (C)
+```swift
+// 1) 진행 중 세션이 있는지 먼저 확인한다.
+if let resumable = services.sessions.resumableSession() {
+    // "이어서 풀기" 또는 "새로 시작" 선택 화면(S2-A1)
+    // 새로 시작을 고르면 확인(S2-A2) 뒤에:
+    try services.sessions.abandon(resumable)
+}
+// 2) 시작한다. 오류는 S2-E1에 연결한다.
+// 카테고리를 여러 개 고르면 고르게 섞어 출제한다. 하나만 고르면 그 카테고리다.
+let session = try services.sessions.startSession(
+    task: .giftProduction,       // 보상을 쌓을 작업: 문제 카테고리와 독립적
+    categories: [.swiftSyntax, .hig], difficulty: .normal, tags: [], count: 5
+)
+```
+
+### 장식 켜짐과 추천 배지 (C)
+```swift
+// 고른 카테고리 전체를 한 번에 합산한다. 단계의 난이도별로 요청 수 이상인지 확인하며, 순차 해금은 별도로 검사한다.
+let count = services.selector.availableCount(
+    categories: selectedCategories, difficulty: difficulty, tags: [], questions: questions
+)
+// 추천 배지. nil이면 배지를 표시하지 않는다.
+let recommended = services.recommender.recommendedCategory(sessions: sessions)
+```
+`questions`와 `sessions`는 화면에서 `@Query`로 조회해 넘깁니다.
+
+### 퀴즈 진행 (B)
+```swift
+// 문제 번호는 0부터. [확인]을 누를 때마다 한 번 호출한다.
+let answer = try services.sessions.submit(answerIndex: selected, forQuestionAt: index, in: session)
+answer.isCorrect   // 정오답
+
+// 마지막 문제까지 답을 저장한 뒤
+let result = try services.sessions.finish(session)
+result.earnedDecorations   // 0 또는 1
+result.treeCompleted       // true면 트리 완성 연출
+```
+문제 내용은 원본 `Question`이 아니라 `session.questionSnapshots[index]`에서 읽습니다.
+
+### 소요 시간 저장 (B)
+퀴즈 화면이 시간을 누적하고, 서비스는 저장만 합니다. 화면이 떠 있고 앱이 활성 상태인 동안만 더합니다.
+```swift
+// 증가분이 아니라 누적 총합을 넘긴다. 이어 풀 때는 session.elapsedSeconds에서 시작해 더한다.
+try services.sessions.updateElapsed(totalSeconds, in: session)
+```
+- 호출 시점: 답을 제출한 직후, 앱이 백그라운드로 갈 때, `finish` 직전
+- 같은 값을 여러 번 불러도 결과가 같고, 저장된 값보다 작은 값은 무시합니다(시간이 줄어들지 않음).
+- 완료(`completed`)나 포기(`abandoned`) 세션에 부르면 오류 없이 무시합니다. 완료 직후 백그라운드 진입 같은 호출이 와도 안전합니다.
+- 음수, NaN, 무한대는 `SessionError.invalidElapsed` 오류입니다.
+- 결과 화면은 `SessionResult.elapsed`를 읽으면 됩니다. C는 이 함수를 부를 일이 없습니다.
+
+### 이어 풀기 (B, C)
+- 복원 위치는 `session.answers.count`번째 문제입니다. `currentIndex`와 다르면 `answers.count`를 따릅니다.
+- 모든 문제의 답이 저장된 상태라면 문제 화면 없이 `finish`를 호출합니다.
+
+### 트리와 기록 (C, D)
+```swift
+services.trees.currentTree().decorationCount    // 0...12
+services.trees.completedTrees()                 // 완성한 트리, 최근 완성 순
+```
+
+## 3. 동작 규칙 요약
+
+| 상황 | 동작 |
+| --- | --- |
+| 같은 문제에 `submit`을 다시 호출 | 처음 저장된 답을 그대로 돌려주고 새로 저장하지 않음(값이 달라도 유지) |
+| 앞선 문제에 답하지 않고 뒤 문제를 제출 | `previousQuestionUnanswered` 오류 |
+| `finish`를 두 번 호출 | 저장된 결과를 돌려주고 장식을 다시 지급하지 않음 |
+| 모든 문제에 답하기 전에 `finish` | `notAllAnswered` 오류 |
+| 진행 중 세션이 있는데 `startSession` | `sessionAlreadyInProgress` 오류 |
+| 조건에 맞는 문제가 0개 | `noCandidates` 오류 |
+| 후보가 요청한 문제 수보다 적음 | 가능한 만큼만 출제 `[가정]` |
+| 저장 실패 | 바뀐 값을 되돌리고 오류를 던짐. 세션은 `inProgress`로 남아 재시도 가능 |
+| 완료·포기 세션에 `updateElapsed` | 오류 없이 무시하고 값을 바꾸지 않음 |
+| 저장된 값보다 작은 값으로 `updateElapsed` | 무시(더 큰 값 유지) |
+| 음수·NaN으로 `updateElapsed` | `invalidElapsed` 오류 |
+
+오류는 모두 `SessionError`이며 한국어 설명(`error.localizedDescription`)이 있습니다.
+
+## 4. 기준값과 계산 규칙
+
+기준값은 `Services/SelectionCriteria.swift`에 있습니다.
+
+| 기준 | 값 |
+| --- | --- |
+| 약한 문제 | 정답률 60% **미만**, 또는 마지막 풀이가 오답 |
+| 오래 안 푼 문제 | 마지막 풀이가 5일 **이상** 지남(하루 = 24시간). 한 번도 안 푼 문제도 이 범주 |
+| 보상 | 시작 당시 기준 이상이며 현재 트리에서 해당 작업·난이도가 미획득일 때 장식 1개 |
+
+- 출제: 약한 문제와 오래 안 푼 문제를 절반씩 고릅니다. 5문제는 3·2, 10문제는 5·5, 15문제는 8·7입니다. 한 범주가 모자라면 다른 범주에서 채웁니다.
+- 정답률은 **내림**해서 정수 퍼센트로 보여 줍니다(7/9 = 77%). 팀 합의 사항이며 규칙은 `Services/Accuracy.swift`에 있습니다. 기록 화면의 평균 점수와 카테고리별 정답률도 `Accuracy.percent(correct:total:)`를 쓰면 같은 값이 나옵니다.
+- 보상 판정은 정확하게 비교합니다(79.5%는 79%로 보이고 80% 기준 미달). 기준 이상이어도 이미 획득한 작업·난이도이면 추가 보상은 없습니다. 통과 여부와 보상 결과를 별도로 표시합니다.
+- 추천: 답한 기록이 있는 카테고리 중 정답률이 가장 낮은 곳. 동률이면 작업 순서(소원 접수, 선물 생산, 포장, 썰매 적재)가 앞선 곳, 기록이 없으면 `nil`.
+
+## 5. 시드 문제
+
+- 앱 시작 때 `MyApp`이 `SeedLoader.seed(into:)`를 호출합니다. 같은 `id`가 이미 있으면 건너뛰므로 여러 번 실행해도 중복되지 않습니다.
+- 검증에 실패하면 문제를 하나도 넣지 않고 로그에 오류 목록을 남깁니다.
+- 검증 항목: id 중복, 빈 문제·해설, 보기 4개와 빈 보기·같은 보기, 정답 번호 0~3, 빈 태그, 자료 URL 형식(http/https), 애니메이션 문제의 `animationID`.
+- 분량 점검(조합당 5문제 이상)은 `SeedLoader.coverageShortfalls`로 확인합니다.
+- 문제를 추가할 때는 각자 별도 JSON으로 작성하고 A가 `questions.json`에 합칩니다. 같은 파일을 동시에 고치면 충돌합니다.
+
+## 6. 개발 도구
+
+- **실제 서비스로 미리보기**: `PreviewData.make()`(디버그 빌드 전용)는 메모리 저장소에 시드 문제를 넣고 실제 서비스를 조립합니다.
+  ```swift
+  #Preview {
+      let preview = PreviewData.make()
+      TaskHomeView(onSelectQuestions: {})
+          .modelContainer(preview.container)
+          .environment(\.services, preview.services)
+  }
+  ```
+- **서비스 점검**: `Tools/service-check/run.sh`가 출제, 추천, 세션, 트리, 시드 로직을 Xcode 없이 점검합니다. `VERBOSE=1`을 앞에 붙이면 통과한 항목도 보입니다. SwiftData 실제 동작은 확인하지 않으므로 Xcode 빌드와 실행은 따로 해야 합니다.
+
+## 7. 아직 정해지지 않은 것
+
+| 항목 | 상태 |
+| --- | --- |
+| 소요 시간(`elapsedSeconds`) 저장 방식 | `updateElapsed(_:in:)`로 합의하고 구현함 (위 "소요 시간 저장") |
+| 사용자가 삭제한 시드 문제 | 1차에서는 시드 문제의 수정·삭제를 막기로 합의함(D). 나중에 삭제를 허용하면 `SeedLoader`가 되살리므로 삭제한 시드 ID 기록이나 시드 버전 관리가 필요 |
+| "하루" 계산 기준, "최근 오답"의 범위 | 팀 확인 필요 |
+| 기록 화면의 점수 계산 | 내림으로 합의함. D가 `RecordsStatistics`를 `Accuracy`와 같은 내림으로 맞추는 중 |
+| 단위 테스트 타깃과 프레임워크 | `app-foundation` 결정 대기. 확정되면 `Tools/service-check/main.swift`의 시나리오를 옮김 |
+
+## 작업 보상 계약 변경
+
+- 세션 생성: `startSession(task: WorkshopTask, categories: Set<QuizCategory>, difficulty: Difficulty, tags: Set<String>, count: Int)`.
+- 트리 지급: `grant(task: WorkshopTask, difficulty: Difficulty)`. 같은 트리의 같은 칸이면 `alreadyEarned`이고 개수는 변하지 않습니다.
+- `QuizSession.task`는 이어 풀기에서도 유지되며, `rewardOutcome`은 최초 완료에 확정됩니다. `SessionResult.passedThreshold`는 정확한 정답률 비교 결과입니다.
+- 기존 개발 저장소는 사용자가 초기화하고 확인합니다. 기존 단순 개수에서 획득 칸을 자동 복원하지 않습니다.
+
+## 산타 마을 스테이지 입장 규칙
+
+- `QuizStage`는 기존 작업·난이도 칸을 쉬움 네 단계 → 보통 네 단계 → 어려움 네 단계로 표시합니다. 저장 모델 변경은 없습니다.
+- 신규 세션은 현재 트리의 첫 미획득 단계 또는 이미 획득한 단계만 시작할 수 있습니다. 잠긴 단계는 `SessionError.stageLocked`입니다. `StartSessionCoordinator`도 기존 세션의 포기 전에 이를 확인합니다.
+- 비순차로 얻은 기존 보상은 유지하며, 진행 중 세션 복원·완료는 잠금과 관계없이 허용합니다. 새 트리는 1-1부터 진행합니다.
+- 출제 기본 난이도는 다음 도전 단계이며, 전체 카테고리·5문제가 기본입니다. 탭 이동·취소·이어 풀기·시작 실패의 설정 보존과 신규 생성 성공 후 초기화는 유지합니다.

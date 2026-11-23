@@ -1,0 +1,106 @@
+import SwiftUI
+
+/// 결과 화면의 테마 배경. 테마 색 빛 번짐과 소품, 천천히 떠다니는 눈송이를 깐다.
+struct ThemeBackground: View {
+    let theme: QuizTheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        ZStack {
+            LinearGradient(
+                colors: [.nightBackgroundTop, .nightBackgroundBottom],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+
+            // 테마 색 빛 번짐 두 덩어리
+            RadialGradient(
+                colors: [theme.accent.opacity(0.42), .clear],
+                center: .topTrailing,
+                startRadius: 0,
+                endRadius: 420
+            )
+            RadialGradient(
+                colors: [theme.accent.opacity(0.22), .clear],
+                center: .bottomLeading,
+                startRadius: 0,
+                endRadius: 380
+            )
+
+            props
+            Snowfall(isAnimated: !reduceMotion)
+        }
+        .ignoresSafeArea()
+        .animation(.easeInOut(duration: 0.6), value: theme)
+        .accessibilityHidden(true)
+    }
+
+    /// 테마 소품 이모지를 흐리게 흩어 둔다.
+    private var props: some View {
+        GeometryReader { proxy in
+            ForEach(Array(theme.props.enumerated()), id: \.offset) { index, symbol in
+                let x = [0.18, 0.82, 0.62][index % 3]
+                let y = [0.24, 0.6, 0.86][index % 3]
+                Text(symbol)
+                    .font(.system(size: 54))
+                    .opacity(0.10)
+                    .blur(radius: 2)
+                    .rotationEffect(.degrees(Double(index) * 17 - 14))
+                    .position(x: proxy.size.width * x, y: proxy.size.height * y)
+            }
+            .id(theme)
+            .transition(.opacity)
+        }
+    }
+}
+
+/// 천천히 떨어지는 눈송이. 모션 줄이기가 켜져 있으면 멈춘 채로 둔다.
+private struct Snowfall: View {
+    let isAnimated: Bool
+
+    private struct Flake {
+        let x: Double
+        let speed: Double
+        let size: Double
+        let phase: Double
+        let sway: Double
+    }
+
+    private static let flakes: [Flake] = {
+        var rng = SeededRandom(seed: 7)
+        return (0..<34).map { _ in
+            Flake(
+                x: rng.next(),
+                speed: 0.018 + rng.next() * 0.04,
+                size: 1.6 + rng.next() * 3.4,
+                phase: rng.next(),
+                sway: 6 + rng.next() * 16
+            )
+        }
+    }()
+
+    var body: some View {
+        TimelineView(.animation(minimumInterval: 1.0 / 30, paused: !isAnimated)) { timeline in
+            let t = isAnimated ? timeline.date.timeIntervalSinceReferenceDate : 0
+            Canvas { context, size in
+                for flake in Self.flakes {
+                    let progress = (flake.phase + t * flake.speed).truncatingRemainder(dividingBy: 1)
+                    let y = progress * (size.height + 20) - 10
+                    let x = flake.x * size.width + sin(t * 0.7 + flake.phase * 20) * flake.sway
+                    let rect = CGRect(x: x, y: y, width: flake.size, height: flake.size)
+                    context.opacity = 0.18 + 0.28 * (flake.size / 5)
+                    context.fill(Path(ellipseIn: rect), with: .color(.glowWhite))
+                }
+            }
+        }
+        .allowsHitTesting(false)
+    }
+}
+
+#Preview("테마 4종") {
+    HStack(spacing: 0) {
+        ForEach(QuizTheme.allCases, id: \.self) { theme in
+            ThemeBackground(theme: theme)
+        }
+    }
+}
