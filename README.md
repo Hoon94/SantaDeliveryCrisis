@@ -5,9 +5,7 @@
 <br>
 
 <p align="center">
-  <img src="./docs/readme/screenshots/01-home-light.png" width="220"/>
-  <img src="./docs/readme/screenshots/03-stage-map-light.png" width="220"/>
-  <img src="./docs/readme/screenshots/04-quiz-question.png" width="220"/>
+  <img src="./docs/readme/banner.png" width="100%"/>
 </p>
 
 <h1 align="center"><strong>산타의 작업실 탈출</strong></h1>
