@@ -25,7 +25,6 @@
 <br>
 
 ## 📅 개발 기간
-Git 커밋 기록 기준으로 정리했습니다.
 
 | 기간 | 작업 내용 |
 |------|-----------|
@@ -33,7 +32,7 @@ Git 커밋 기록 기준으로 정리했습니다.
 | 11월 18일 ~ 11월 20일 | 세션·출제·트리 로직, 퀴즈 화면, 작업실·출제 화면, 문제 관리, 기록·설정 구현 |
 | 11월 21일 ~ 11월 23일 | 장식 공개·트리 완성 연출, 라이트/다크 대응, 알림·위젯, QA와 UX/UI 개선 |
 
-마감: 2026-11-22
+마감: 2026-11-23
 
 <br>
 
@@ -223,11 +222,24 @@ Git 커밋 기록 기준으로 정리했습니다.
 <br>
 
 ## 👥 팀원 소개
-커밋 기록에서 확인한 주 작업 영역 기준입니다.
 
-| 팀원 | 주 작업 영역 |
-|------|--------------|
-| [@Hoon94](https://github.com/Hoon94) (hoon) | 작업실·출제 화면, 퀴즈 연출, 디자인 문서 |
-| [@Jungnovus](https://github.com/Jungnovus) (Gundong) | 퀴즈 진행·결과, 피드백(효과음·햅틱) |
-| [@yang6486](https://github.com/yang6486) (yang) | 문제 관리, 기록·설정 |
-| [@zarin3580](https://github.com/zarin3580) (Zarin) | 세션 로직, 시드 로더, 서비스 점검 도구 |
+<table align="center">
+  <tr>
+    <td align="center"><img src="https://github.com/Hoon94.png" width="100"/></td>
+    <td align="center"><img src="https://github.com/Jungnovus.png" width="100"/></td>
+    <td align="center"><img src="https://github.com/yang6486.png" width="100"/></td>
+    <td align="center"><img src="https://github.com/zarin3580.png" width="100"/></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/Hoon94">@Hoon94</a></td>
+    <td align="center"><a href="https://github.com/Jungnovus">@Jungnovus</a></td>
+    <td align="center"><a href="https://github.com/yang6486">@yang6486</a></td>
+    <td align="center"><a href="https://github.com/zarin3580">@zarin3580</a></td>
+  </tr>
+  <tr>
+    <td align="center">작업실·출제 화면<br>퀴즈 연출, 디자인 문서</td>
+    <td align="center">퀴즈 진행·결과<br>피드백(효과음·햅틱)</td>
+    <td align="center">문제 관리<br>기록·설정</td>
+    <td align="center">세션 로직, 시드 로더<br>서비스 점검 도구</td>
+  </tr>
+</table>
